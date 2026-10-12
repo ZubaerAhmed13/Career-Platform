@@ -1,9 +1,58 @@
 'use client';
-import { useActionState, useEffect } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { reviewCareerSuggestion, addResumeTextForReview } from '@/app/actions/career';
+import { editSuggestion, mergeSuggestion } from '@/app/actions/career-review';
 import {careerKinds,kindLabels,type CareerRecord,type CareerSuggestion} from '@/lib/career/schema';
+
+
+function EditProposal({suggestion}:{suggestion:CareerSuggestion}){
+ const [state,action,pending]=useActionState(editSuggestion,{});
+ const router=useRouter();
+ useEffect(()=>{if(state.message)router.refresh();},[state.message,router]);
+ return <form action={action} className="stack" style={{padding:14,border:'1px solid var(--line)',borderRadius:12}}>
+  <input name="id" type="hidden" value={suggestion.id}/>
+  <label className="label" htmlFor={'edit-kind-'+suggestion.id}>Category</label>
+  <select className="field" id={'edit-kind-'+suggestion.id} name="kind" defaultValue={suggestion.kind}>
+   {careerKinds.map(kind=><option key={kind} value={kind}>{kindLabels[kind]}</option>)}</select>
+  <label className="label" htmlFor={'edit-title-'+suggestion.id}>Suggested title</label>
+  <input className="field" id={'edit-title-'+suggestion.id} name="title" defaultValue={suggestion.title} maxLength={180} required/>
+  <label className="label" htmlFor={'edit-description-'+suggestion.id}>Suggested detail</label>
+  <textarea className="field" id={'edit-description-'+suggestion.id} name="description" defaultValue={suggestion.description} maxLength={4000} rows={4}/>
+  <button className="button secondary" disabled={pending}>Save corrected suggestion</button>
+  {state.error&&<p role="alert" className="error">{state.error}</p>}
+  {state.message&&<p role="status" className="success">{state.message}</p>}
+ </form>;
+}
+function MergeProposal({suggestion,records}:{suggestion:CareerSuggestion;records:CareerRecord[]}){
+ const [state,action,pending]=useActionState(mergeSuggestion,{});
+ const router=useRouter();
+ const candidates=records.filter(r=>r.kind===suggestion.kind&&r.status==='confirmed');
+ const [target,setTarget]=useState(candidates[0]?.id??'');
+ useEffect(()=>{if(state.message)router.refresh();},[state.message,router]);
+ const original=candidates.find(c=>c.id===target);
+ if(!candidates.length)return <p className="subtle">No confirmed record of the same category is available for merging.</p>;
+ return <form action={action} className="stack" style={{border:'1px solid var(--line)',padding:14,borderRadius:12}}>
+   <input type="hidden" name="id" value={suggestion.id}/>
+   <input type="hidden" name="expected_revision" value={original?.revision??''}/>
+   <label className="label" htmlFor={'merge-target-'+suggestion.id}>Choose existing confirmed record</label>
+   <select className="field" id={'merge-target-'+suggestion.id} name="target_record_id" value={target} onChange={e=>setTarget(e.target.value)}>
+    {candidates.map(c=><option key={c.id} value={c.id}>{c.title} {c.organization&&'· '+c.organization}</option>)}
+   </select>
+   {original&&<div className="page-grid">
+    <div className="muted-card"><strong>Existing confirmed value</strong><p>{original.title}</p><p style={{whiteSpace:'pre-wrap'}}>{original.description||'No description'}</p></div>
+    <div className="muted-card"><strong>Proposed new value</strong><p>{suggestion.title}</p><p style={{whiteSpace:'pre-wrap'}}>{suggestion.description||'No description'}</p></div>
+   </div>}
+   <label><input type="checkbox" name="merge_title" value="yes"/> Replace title</label>
+   <label><input type="checkbox" name="merge_description" value="yes"/> Replace description</label>
+   <label><input type="checkbox" name="confirm_merge" value="yes" required/> I reviewed both versions and approve only the selected replacements.</label>
+   <button className="button" disabled={pending}>Merge selected fields</button>
+   <p className="subtle">Other record fields remain intact; a revision check prevents overwriting newer edits.</p>
+   {state.error&&<p role="alert" className="error">{state.error}</p>}
+   {state.message&&<p role="status" className="success">{state.message}</p>}
+ </form>;
+}
 
 function Suggestion({suggestion,records}:{suggestion:CareerSuggestion;records:CareerRecord[]}){
  const [state,action,pending]=useActionState(reviewCareerSuggestion,{});
@@ -30,6 +79,12 @@ function Suggestion({suggestion,records}:{suggestion:CareerSuggestion;records:Ca
     {state.error&&<p className="error" role="alert">{state.error}</p>}
     {state.message&&<p className="success" role="status">{state.message}</p>}
   </form>}
+  {suggestion.review_status==='pending'&&<div className="stack">
+    <details><summary style={{cursor:'pointer',padding:10,fontWeight:600}}>Edit proposed information before approval</summary>
+      <EditProposal suggestion={suggestion}/></details>
+    <details><summary style={{cursor:'pointer',padding:10,fontWeight:600}}>Merge selected fields into a confirmed record</summary>
+      <MergeProposal suggestion={suggestion} records={records}/></details>
+  </div>}
  </article>;
 }
 export function ReviewWorkspace({suggestions,records}:{suggestions:CareerSuggestion[];records:CareerRecord[]}){
