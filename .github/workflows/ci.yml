@@ -18,4 +18,4 @@ jobs:
       - run: npm run build
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: example-not-a-real-key
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: dummy-build-only-publishable-key

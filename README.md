@@ -5,21 +5,25 @@ Initial foundation for a secure, account-based career workspace. **This mileston
 ## Stack
 Next.js 15 App Router, React 19, strict TypeScript, Tailwind CSS 4, Supabase Auth/PostgreSQL/Storage (private bucket), Zod, next-themes, Vitest and GitHub Actions.
 
-## Local setup
+## Connect your Supabase project
+Project URL: `https://jtitfwzpfbyfsdpxxrbj.supabase.co` (provided by the project owner).
+
 1. Install Node.js 22 and run `npm install`.
-2. Create a Supabase project and copy `.env.example` to `.env.local`. Populate the project URL and the public **anon** key; never commit secrets.
-3. Apply `supabase/migrations/202610120001_initial.sql` in your Supabase development project (prefer Supabase CLI migrations for ongoing development).
-4. In Supabase Auth set Site URL to `http://localhost:3000` and redirect allowlist to `http://localhost:3000/auth/callback` and `http://localhost:3000/auth/callback?next=/update-password`. Configure email delivery/verification appropriately.
-5. Set `NEXT_PUBLIC_SITE_URL=http://localhost:3000`. Run `npm run dev`, then visit localhost:3000.
+2. Copy `.env.example` to `.env.local`. The correct project URL is prefilled. Fill `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` with **your** Supabase publishable key (`sb_publishable_…`). The publishable key is a public configuration value, not an admin key; keep all secret/service-role keys off the frontend and out of Git.
+3. Apply `supabase/migrations/202610120001_initial.sql` to the intended development/staging Supabase project. Prefer migration tooling for future changes. **Do not assume the migration was applied simply because it is in GitHub.**
+4. In Supabase → Authentication → URL Configuration, set Site URL to `http://localhost:3000` for local testing. Add `http://localhost:3000/auth/callback` and `http://localhost:3000/auth/callback?next=/update-password` to redirect URLs. Configure email verification and an authorized email delivery provider.
+5. Set `NEXT_PUBLIC_SITE_URL=http://localhost:3000` and run `npm run dev`. Visit `http://localhost:3000`; test with two distinct test users.
+
+**When deploying:** set the three NEXT_PUBLIC_* environment variables in the host's environment configuration and set the production site/redirect URLs in Supabase Authentication. Do not upload `.env.local` to the public repository.
 
 ## Commands
 `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`, `npm run dev`.
 
 ## Security
-All private pages retrieve a verified Supabase user server-side; PostgreSQL RLS enforces owner isolation. Supabase auth cookies are managed by SSR middleware. The private storage bucket has no client upload policy until scanning exists. Do not supply a service-role key to the browser.
+Private pages require verified Supabase identity server-side; PostgreSQL RLS migration defines owner isolation. Supabase auth cookies are managed by SSR middleware. The private storage bucket has no client upload policy until scanning exists. The publishable key **does not itself provide RLS or user-data security**.
 
 ## Deployment
-Deploy to a Next.js-capable platform such as Vercel. Set the three environment variables and configure Supabase Auth public site URLs/redirects to the exact production domain. Apply migrations before release; test registration, email confirmation, password reset, RLS and privacy flows in a staging project first.
+Deploy to a Next.js-capable platform such as Vercel; configure host environment and exact production Auth redirect URLs. Apply database migrations before release; test registration, verification, password reset, RLS, sessions and data privacy flows in staging first.
 
 ## Status and limitations
-The repository was empty before this milestone. App code and migration are provided but **live provider integration has not been verified** without a configured Supabase project. Public launch requires operational monitoring, email deliverability, upload scanning, abuse controls, account export/deletion, privacy legal review, locale completion, database integration/e2e tests and a reproducible dependency lockfile. See docs and FEATURE_STATUS.md.
+Source configuration now targets the supplied project URL, but connection to its database is **not yet verified** and the SQL migration is **not yet confirmed applied**. Public launch requires monitoring, email delivery, abuse controls, uploads scanning, account export/deletion, privacy legal review, localization, integration tests, security review and a reproducible lockfile. See docs and FEATURE_STATUS.md.
