@@ -34,8 +34,31 @@ export async function saveCareerRecord(_prev: VaultActionState,form:FormData):Pr
  const {user,supabase}=await requireAccount();
  if(id){
    if(!uuid.safeParse(id).success||!Number.isSafeInteger(revision)||revision<1)return invalid();
+   // Preserve provenance/status and unedited structured detail fields. Manual
+   // editing of an AI-reviewed record must never relabel it as 'manual'.
+   const {data:current,error:readError}=await supabase.from('career_records')
+     .select('kind,details').eq('user_id',user.id).eq('id',id).maybeSingle();
+   if(readError||!current)return {error:'This career record is no longer available.'};
+   const savedDetails:Record<string,unknown>=
+     current.details && typeof current.details==='object' && !Array.isArray(current.details)
+       ? {...current.details} : {};
+   if(parsed.data.kind==='skill'||parsed.data.kind==='language'){
+     const proficiency=raw(form,'proficiency');
+     if(proficiency)savedDetails.proficiency=proficiency.slice(0,100);
+     else delete savedDetails.proficiency;
+   }else if(current.kind==='skill'||current.kind==='language'){
+     // A category change intentionally removes irrelevant proficiency.
+     delete savedDetails.proficiency;
+   }
+   const safeChanges={
+     kind:parsed.data.kind,title:parsed.data.title,
+     organization:parsed.data.organization,location:parsed.data.location,
+     description:parsed.data.description,started_on:parsed.data.started_on,
+     ended_on:parsed.data.ended_on,is_current:parsed.data.is_current,
+     details:savedDetails,
+   };
    const {data,error}=await supabase.from('career_records')
-     .update({...parsed.data,user_id:user.id})
+     .update(safeChanges)
      .eq('user_id',user.id).eq('id',id).eq('revision',revision)
      .select('id').maybeSingle();
    if(error)return {error:'Unable to save the record. Please retry.'};
