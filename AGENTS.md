@@ -4,3 +4,5 @@ Before editing, read README.md, ARCHITECTURE.md, DATABASE_ARCHITECTURE.md, SECUR
 
 ## Career Intelligence Vault invariants
 Before further edits, read `docs/CAREER_VAULT_SPEC.md`, `docs/CAREER_EVIDENCE_MODEL.md`, `docs/AI_CAREER_INTERVIEW_SPEC.md`, and `docs/CV_IMPORT_PIPELINE.md`. Preserve stable record IDs; reject cross-owner record/evidence/session references at the database level. Confirmed career facts must not be rewritten by AI or imported data without explicit user approval. Draft resumes remain separate derivatives. Ensure all future export and file endpoints verify authenticated ownership and forbid public personal files. Never advertise simulated parsing, AI or availability as working. Apply changes via additive migrations and run both unit and staging security tests.
+
+Do not bypass ClamAV fail-closed checks for PDF/DOCX import. Preserve scanner-only configuration on the server, the source evidence queue, binary size, page and decompression bounds, and atomic AI quota calls. Never commit OPENAI_API_KEY or service-role tokens. Adding a parser does not mean secure production upload is validated.

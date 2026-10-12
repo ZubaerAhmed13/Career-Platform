@@ -21,3 +21,5 @@ Manual saves are confirmed facts owned by the authenticated user; unreviewed dat
 
 ## Conflict review refinements
 Reviewers can correct pending suggested title/description/category or explicitly choose an existing confirmed record and which fields to merge. The merge RPC locks both proposal and target record, checks account ownership, matching category and expected revision, then records the audited update in one database transaction. Keeping the original record or rejecting the proposal remains available; unrelated fields are not modified.
+
+A conditional, fail-closed PDF/DOCX intake form now accepts uploads only when an internal clamd antivirus service is configured; clean documents are parsed in memory and the extracted text remains a pending review item. Scanner and staging E2E tests are not yet passed. AI request quotas are also enforced by migration 006.

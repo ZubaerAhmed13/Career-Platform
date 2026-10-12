@@ -31,3 +31,6 @@ Migration 005 adds edit/merge RPCs with explicit confirmation and a stale-revisi
 
 ## Milestone 2 verified code checks
 2026-10-12 [GitHub CI #38301391444](https://github.com/ZubaerAhmed13/Career-Platform/actions/runs/38301391444): dependency installation **PASS**, `npm run typecheck` **PASS**, `npm run lint` **PASS**, `npm test` **PASS (15 unit tests: 7 account + 8 career)**, `npm run build` **PASS**. Staging integration/E2E and live AI API requests **not run**. Subsequent documentation/test-only commits must be rechecked before merge.
+
+## New document/AI cost safeguards
+GitHub CI [#38303064913](https://github.com/ZubaerAhmed13/Career-Platform/actions/runs/38303064913) passed TypeScript, ESLint, unit tests and Next.js build including `cv-format` and DOCX preflight tests. Added migration 006 for durable authenticated AI request limits. Still blocked: clamd connection, malicious-file scanner acceptance tests, PDF/DOCX extraction E2E, zip-bomb sandbox/fuzz checks, quota enforcement against real Supabase, cross-user persistence and real model calls. Do not mark these as passed.

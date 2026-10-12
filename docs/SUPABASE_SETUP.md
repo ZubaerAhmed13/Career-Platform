@@ -71,6 +71,7 @@ After 001 and 002, review and apply in ascending order:
 - `supabase/migrations/202610120003_career_vault.sql`
 - `supabase/migrations/202610120004_career_suggestion_review.sql`
 - `supabase/migrations/202610120005_suggestion_conflicts.sql`
+- `supabase/migrations/202610120006_ai_usage_limits.sql`
 
 Before applying, confirm the target project, staging/production environment, migration history, backups, and table names. The publishable key is not permission to run SQL. Use an authorized Supabase project connection or the project's SQL Editor. Never assume these migrations have been applied just because their files exist in GitHub.
 

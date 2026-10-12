@@ -22,6 +22,7 @@ Additive new migrations (not applied by this session):
 - `202610120003_career_vault.sql` — career_records, career_evidence, career_evidence_links, career_links, career_suggestions, career_interview_sessions, career_interview_messages, career_events with indexes, RLS, same-owner FKs, and record revision/audit triggers.
 - `202610120004_career_suggestion_review.sql` — authenticated atomic approval/rejection RPCs.
 - `202610120005_suggestion_conflicts.sql` — authenticated pending proposal editing and revision-checked selected-field merges.
+- `202610120006_ai_usage_limits.sql` — atomic authenticated per-user AI request quota: 4/minute, 50/day.
 
 The original migrations 001 and 002 remain unmodified. Target project state, backups, migration history, RLS behavior and deployed schema were **not** accessible for verification.
 
@@ -29,7 +30,7 @@ The original migrations 001 and 002 remain unmodified. Target project state, bac
 An optional OpenAI Responses API integration uses server-only `OPENAI_API_KEY`, configurable `CAREER_AI_MODEL`, strict structured JSON output with Zod validation, evidence-quote matching, explicit user consent, limits and provider failure states. The implementation does not call the provider without configuration and never invents a fake conversation. **Live model credentials absent; no real AI interview or extraction test passed.**
 
 ## 6. CV import
-Available: typed/pasted UTF-8 text up to 4,000 characters, preserved as unreviewed; optional AI-based structured extraction only with credentials/consent, proposals requiring approval. Not available: PDF/DOCX upload, antivirus scanning, binary text extraction, OCR or file-level signed access. These are intentionally blocked pending secure ingestion.
+Available: typed/pasted UTF-8 text up to 4,000 characters, preserved as unreviewed; optional AI-based structured extraction only with credentials/consent, proposals requiring approval. Conditional source implementation: PDF/DOCX file upload through a ClamAV INSTREAM-gated, size-limited in-memory extractor using unpdf/mammoth. Scanner configuration is mandatory; no original file storage, no OCR. Actual antivirus and parsing E2E are unverified. Not available: persistent document storage, OCR or file download URLs. These are intentionally blocked pending secure ingestion.
 
 ## 7. Security results
 Source includes RLS and composite owner relationships, server-verified authenticated identity, private export scoping, approval transactions, audit history, stale-edit detection and staging test cases. **Cross-account authorization is not proven against a real Supabase database.** No production credential was committed.
@@ -48,3 +49,6 @@ Branch `feat/milestone-2-career-vault` at [PR #2](https://github.com/ZubaerAhmed
 
 ## 12. Readiness for Resume Studio
 **Not yet accepted for Stage 3.** The master record model is implemented and passes source checks, but database migration/RLS and live persistence have not been verified and secure document import is incomplete. Do not base production resume creation on unverified career data access.
+
+## Continued implementation and verification
+Additional binary document parsing safeguards and database-backed AI quotas were committed. GitHub CI [#38303064913](https://github.com/ZubaerAhmed13/Career-Platform/actions/runs/38303064913) passed typecheck, lint, unit tests and build. This does not prove scanner runtime or database activation. The pull request remains draft.
