@@ -1,22 +1,23 @@
-# Feature status — Milestone 1 (2026-10-12)
+# CareerOS implementation status — Milestone 2
 
-| Feature | Status | Evidence / blocker |
+| Feature | State | Verification |
 |---|---|---|
-| Public home and planned-module states | Implemented, build-verified | Next.js build green |
-| Registration, login and logout | Implemented, live test pending | Supabase Auth server actions |
-| Confirmation and password recovery | Implemented, live test pending | Callback routes and recovery forms |
-| Private route guard | Implemented, live test pending | auth.getUser() on server |
-| User profiles and row-level security | Migration provided, deployment pending | SQL migrations 001 + 002 |
-| Onboarding/settings | Implemented, live save test pending | Zod + Supabase server actions |
-| Private file storage foundation | Migration provided, uploads blocked | Intentional lack of upload policy |
-| Dashboard and responsive navigation | Implemented, build-verified | Authenticated app shell |
-| Theme preference persistence | Implemented, live test pending | next-themes + stored profile |
-| Supabase project config | Prepared | Public URL configured; local/host publishable key required |
-| Unit tests | Tested | 7 passing in run #38297687890 |
-| Typecheck/lint/build | Tested | All passed in run #38297687890 |
-| Two-user database integration/E2E | Blocked | Requires separate Supabase staging project/accounts |
-| German interface translation | Planned | English is the verified implementation language |
-| Career Vault / Resume / Letters / Applications / Interviews | Planned | Not part of Prompt 1 |
-| Data export, deletion, privacy compliance, notification delivery | Planned | Before public launch |
+| Original account foundation | Implemented / previously CI-tested | Milestone 1 merged, preserved |
+| Career Vault data migrations 003–004 | Implemented SQL / Not deployed | Supabase access and migration preflight needed |
+| Manual career records CRUD (8 categories) | Implemented code | CI pending; live database test blocked |
+| Optimistic concurrency/version checks | Implemented code | Staging multi-device test pending |
+| Search, filters, record overview | Implemented code | Browser UX verification pending |
+| Evidence notes/URLs and record links | Implemented code | DB composite FK test blocked |
+| Confirmed/unreviewed/rejected information | Implemented code | Transactional RPC staging test blocked |
+| Pasted CV text review | Implemented code | No automatic parsing; live test pending |
+| Secure PDF/DOCX uploads and AI extraction | Not started / Blocked | Scanning, parsing and private storage pipeline absent |
+| Optional AI interviewer | Implemented provider-backed code | OPENAI_API_KEY absent, real integration blocked |
+| AI suggested fact approval | Implemented code | SQL RPC staging test required |
+| Knowledge relationships | Implemented code | UI browser/staging verification pending |
+| Private JSON export | Implemented code | Auth/export E2E test pending |
+| Dashboard Career Vault integration | Implemented code | CI/browser verification pending |
+| Two-user RLS integration tests | Test suite written | Not executed; requires staging account access |
+| German UI and full accessibility audit | Planned | Not verified |
+| Production deployment and security/privacy review | Blocked | Credentials/domain/operational controls absent |
 
-**Interpretation:** The milestone's GitHub code foundation is reviewable and compiles. The app is **not yet confirmed to run against the user's Supabase database**; migrations, authentication provider settings, two-user ownership tests and hosting still require authorized infrastructure access. Do not mark those features as tested until verified.
+**Milestone 2 is NOT yet fully accepted or production ready.** A successful code build alone does not prove external AI service, file upload, database security, or data persistence.

@@ -20,3 +20,8 @@ Tests verify form schema, profile completion, owner-ID stripping and local redir
 - [ ] Configure the deployed public origin, redirect allowlist, verified email provider, monitoring and privacy rights flows.
 
 **Blocking dependencies:** Connected, authorized Supabase management access is not available in this session; neither migration execution nor live user authentication has been verified. A deployment target/domain also has not been specified.
+
+## Milestone 2 status (2026-10-12)
+Automated unit tests include career record validation, localized text, counts, date consistency, and invalid AI outputs/unsupported quotes. GitHub CI runs install/typecheck/lint/unit/build using dummy public Supabase credentials, and does **not** apply database migrations or call OpenAI. The staging integration suite `tests/integration/career-vault.test.ts` exercises cross-owner operations, composite foreign key constraints, AI-session scoping, suggestion approval, and unauthorized record writes. It requires disposable staging credentials, so results must remain **blocked** until the actual command runs.
+
+Manual checks still required: apply migrations in a backed-up staging database, registration/login persistence, edit conflicts across two sessions, mobile/keyboard/screen reader review, export ownership test, real AI service timeout and structured response testing, multilingual export, user-directed deletions, authorization of related references and provider failure states. PDF/DOCX import is **not implemented**, so its upload/extraction tests cannot be marked passed.

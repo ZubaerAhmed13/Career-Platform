@@ -14,3 +14,6 @@
 12. Public-launch security, localization, privacy, operations and reliability hardening
 
 Each stage requires reviewed migrations, tests, truthful feature status and preservation of previous stages.
+
+## Milestone 2 implementation note
+Career Vault code, evidence model, unreviewed text intake and a provider-backed interview path have been submitted in a feature branch. Full Milestone 2 acceptance remains conditional on applying and testing the database migrations in staging and completing secure PDF/DOCX import and conflict resolution. Do not start Resume Studio implementation until the verified data ownership and relationship model is stable.
