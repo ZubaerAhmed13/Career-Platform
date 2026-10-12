@@ -1,0 +1,22 @@
+# Actual verification and outstanding acceptance checks
+
+## Completed GitHub validation
+
+- 2026-10-12 CI run #38294023211: dependency installation passed; TypeScript failed on SSR cookie callback types; later stages skipped.
+- 2026-10-12 CI run #38294969904: dependency install and TypeScript passed; lint failed on an internal anchor; tests/build skipped.
+- 2026-10-12 CI run #38295911272: install, TypeScript, lint, 3 unit tests, production build passed.
+- 2026-10-12 CI run #38297687890: **install, TypeScript, lint, 7 unit tests, production build all passed**. [Run link](https://github.com/ZubaerAhmed13/Career-Platform/actions/runs/38297687890)
+
+Tests verify form schema, profile completion, owner-ID stripping and local redirect/origin safety. CI uses a placeholder publishable key and does **not** call a live Supabase database. These results do not prove functioning signup, sessions or DB isolation.
+
+## Required staging-only tests (not executed)
+
+- [ ] Apply SQL migrations 001 and 002 in the selected Supabase project, verify tables, triggers, policies and private storage bucket.
+- [ ] Register two **distinct** disposable users, verify email delivery and confirmation, login, session persistence, recovery and logout.
+- [ ] Run `npm run test:integration` against a **dedicated staging project** using the variables in `docs/SUPABASE_SETUP.md`. No production user accounts.
+- [ ] Verify User A/B isolation for profile reads/writes, anonymous access denial and disabled file metadata insertion.
+- [ ] Inspect deployed client bundles for server credentials, test expired sessions and callback redirects.
+- [ ] Keyboard-accessibility and mobile smoke tests at 320px, phone, tablet, desktop; check both themes.
+- [ ] Configure the deployed public origin, redirect allowlist, verified email provider, monitoring and privacy rights flows.
+
+**Blocking dependencies:** Connected, authorized Supabase management access is not available in this session; neither migration execution nor live user authentication has been verified. A deployment target/domain also has not been specified.

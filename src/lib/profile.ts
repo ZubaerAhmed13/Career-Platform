@@ -1,0 +1,5 @@
+import { z } from 'zod';
+export const profileSchema=z.object({full_name:z.string().trim().max(120).default(''),display_name:z.string().trim().max(80).default(''),country:z.string().trim().max(80).default(''),city:z.string().trim().max(100).default(''),preferred_language:z.enum(['en','de']).default('en'),career_stage:z.enum(['student','graduate','early','experienced','changer','']).default(''),target_role:z.string().trim().max(150).default(''),primary_goal:z.enum(['resume','cover_letter','job_search','applications','interview','growth','']).default(''),theme_preference:z.enum(['system','light','dark']).default('system'),onboarding_completed:z.boolean().default(false)});
+export type ProfileInput=z.infer<typeof profileSchema>;
+export type Profile=ProfileInput & {id:string;created_at:string;updated_at:string};
+export function profileCompletion(data:Partial<ProfileInput>){const fields=['display_name','country','preferred_language','career_stage','target_role','primary_goal'] as const;return Math.round(fields.filter(key=>Boolean(data[key])).length/fields.length*100)}
