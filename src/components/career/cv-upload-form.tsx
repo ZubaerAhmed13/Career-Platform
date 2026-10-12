@@ -20,6 +20,12 @@ export function CvUploadForm({scannerReady}:{scannerReady:boolean}){
    {careerKinds.map(k=><option key={k} value={k}>{kindLabels[k]}</option>)}
   </select>
   <label><input type="checkbox" name="consent" value="yes" required/> I own or may process this file, and consent to server-side antivirus scanning and text extraction for private review.</label>
+  <fieldset className="stack" style={{border:'1px solid var(--line)',padding:14,borderRadius:12}}>
+   <legend style={{fontWeight:600}}>Optional AI extraction</legend>
+   <label><input type="checkbox" name="extract_with_ai" value="yes"/> Identify several career facts from the scanned CV text using AI, rather than storing the text as one unreviewed item.</label>
+   <label><input type="checkbox" name="ai_consent" value="yes"/> I separately consent to sharing the extracted text with the configured external AI provider. Required only when AI extraction is selected.</label>
+   <p className="subtle">AI requires a configured provider and private database persistence. No extracted fact becomes confirmed without your review.</p>
+  </fieldset>
   <button className="button" disabled={pending}>{pending?'Scanning and extracting…':'Scan and import as unreviewed text'}</button>
   {state.error&&<p role="alert" className="error">{state.error}</p>}
   {state.message&&<p role="status" className="success">{state.message}</p>}

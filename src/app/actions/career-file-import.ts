@@ -3,6 +3,8 @@ import { requireAccount } from '@/lib/account';
 import { careerKind } from '@/lib/career/schema';
 import { extractScannedCv } from '@/lib/career/cv-file';
 import { scanningConfigured } from '@/lib/career/clamav';
+import { suggestFactsFromPastedCV } from '@/lib/career/import-ai';
+import { aiPersistenceConfigured,persistVerifiedCVSuggestions } from '@/lib/career/ai-admin';
 import { revalidatePath } from 'next/cache';
 import type { VaultActionState } from './career';
 
@@ -14,25 +16,44 @@ export async function importScannedCv(
  const file=form.get('file');
  const kind=careerKind.safeParse(form.get('kind'));
  if(!(file instanceof File)||!kind.success)return {error:'Select a PDF or DOCX and a career category.'};
+ const wantsAI=form.get('extract_with_ai')==='yes';
+ if(wantsAI && form.get('ai_consent')!=='yes')
+   return {error:'Separate consent is required to share extracted text with the AI provider.'};
+ if(wantsAI && (!process.env.OPENAI_API_KEY||!aiPersistenceConfigured()))
+   return {error:'AI extraction is not configured. Uncheck AI extraction to keep a manually reviewable CV text.'};
  const {user,supabase}=await requireAccount();
+ let extracted:{text:string;format:'pdf'|'docx'};
  try{
-  const extracted=await extractScannedCv(file);
-  // Binary data is never written to storage. The resulting text is unreviewed.
-  const {error}=await supabase.from('career_suggestions').insert({
-   user_id:user.id,kind:kind.data,
-   title:file.name.slice(0,180) || 'Uploaded CV section',
-   description:extracted.text,
-   evidence_quote:extracted.text.slice(0,2000),
-   origin:'cv_import',review_status:'pending',
-  });
-  if(error)return {error:'File passed scanning but its text could not be saved. Retry later.'};
-  revalidatePath('/career-vault/review');
-  return {message:'Scanned '+extracted.format.toUpperCase()+' text was extracted into a pending review item. No confirmed facts were replaced.'};
+  extracted=await extractScannedCv(file);
  }catch(error){
-  // Never echo raw parser/provider exceptions (which may contain untrusted text).
-  if(error instanceof Error && /(too large|2 MB|Only matching|12 pages|No readable|4,000-character|failed antivirus|not configured|timed out)/i.test(error.message)){
-    return {error:error.message};
-  }
+  if(error instanceof Error&&/(too large|2 MB|Only matching|12 pages|No readable|4,000-character|failed antivirus|not configured|timed out)/i.test(error.message))
+   return {error:error.message};
   return {error:'The file could not be safely scanned or parsed. Nothing was imported.'};
  }
+ if(wantsAI){
+  const quota=await supabase.rpc('claim_career_ai_quota');
+  if(quota.error||!quota.data)return {error:'AI usage limit reached or unavailable. Nothing was imported. Try manually reviewing the CV text.'};
+  try{
+   const proposed=await suggestFactsFromPastedCV(extracted.text);
+   if(proposed.length===0)return {message:'File scanned successfully, but AI found no directly evidenced facts. No records were changed. Retry in manual review mode.'};
+   await persistVerifiedCVSuggestions({
+    verifiedUserId:user.id,originalText:extracted.text,suggestions:proposed,
+   });
+   revalidatePath('/career-vault/review');
+   return {message:'Scanned '+extracted.format.toUpperCase()+' and saved '+proposed.length+' source-supported fact proposals for review. No confirmed records were changed.'};
+  }catch{
+   return {error:'File scanning succeeded, but AI extraction could not be completed safely. Nothing was imported. Retry with AI extraction unchecked.'};
+  }
+ }
+ // Manual path: unreviewed original text, no provider receives the data.
+ const {error}=await supabase.from('career_suggestions').insert({
+  user_id:user.id,kind:kind.data,
+  title:file.name.slice(0,180) || 'Uploaded CV section',
+  description:extracted.text,
+  evidence_quote:extracted.text.slice(0,2000),
+  origin:'cv_import',review_status:'pending',
+ });
+ if(error)return {error:'File passed scanning but its text could not be saved. Retry later.'};
+ revalidatePath('/career-vault/review');
+ return {message:'Scanned '+extracted.format.toUpperCase()+' text was saved for manual review. No confirmed facts were replaced.'};
 }
