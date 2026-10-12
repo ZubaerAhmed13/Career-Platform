@@ -52,7 +52,7 @@ begin
       or char_length(trim(coalesce(item->>'title',''))) not between 1 and 180
       or char_length(coalesce(item->>'description',''))>4000
       or char_length(coalesce(item->>'evidence_quote','')) not between 6 and 2000
-      or position(item->>'evidence_quote' in last_answer)=0 then
+      or position((item->>'evidence_quote') in last_answer)=0 then
      raise exception 'AI proposal lacks verified user-answer evidence';
    end if;
  end loop;
