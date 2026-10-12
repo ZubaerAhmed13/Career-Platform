@@ -17,6 +17,7 @@ export default async function Dashboard(){
  const supabase=await serverSupabase();
  const result=await supabase.from('career_records').select('kind,status')
   .eq('user_id',user.id).limit(1000);
+ const activity=await supabase.from('career_events').select('id,record_id,action,created_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(5);
  const available=!result.error;
  const rows=available?(result.data??[]) as Pick<CareerRecord,'kind'|'status'>[]:[];
  const stats=vaultCounts(rows);
@@ -50,6 +51,11 @@ export default async function Dashboard(){
       stats.pending>0?'Review unconfirmed career information before using it.':
       guidance[profile?.primary_goal??'']??'Connect relevant skills and achievements to supporting evidence.'}</p>
    <Link href={stats.pending>0?'/career-vault/review':'/career-vault'} className="button secondary">Continue →</Link>
+  </section>
+  <section className="card stack"><h2>Recent career activity</h2>
+   {activity.error?<p className="subtle">Activity history is unavailable until the database migrations are applied.</p>:
+    !activity.data?.length?<div className="muted-card">No career records have been changed yet.</div>:
+    activity.data.map(event=><p key={event.id}>{event.action} · {new Date(event.created_at).toLocaleDateString()} · record {String(event.record_id).slice(0,8)}</p>)}
   </section>
   <section className="card stack"><h2>Other future modules</h2>
    <p className="subtle">Resume Studio, cover letters, application tracking and job discovery remain planned and unavailable. No sample job records or career activities are invented.</p>

@@ -30,11 +30,14 @@ export function VaultWorkspace({records,linkedCount}:{records:CareerRecord[];lin
  const [kind,setKind]=useState<string>('all');
  const [status,setStatus]=useState('all');
  const [search,setSearch]=useState('');
+ const [fromDate,setFromDate]=useState('');
+ const [toDate,setToDate]=useState('');
  const summary=vaultCounts(records);
  const filtered=useMemo(()=>records.filter(r=>
     (kind==='all'||r.kind===kind)&&(status==='all'||r.status===status)&&
+    (!fromDate||!r.ended_on||r.ended_on>=fromDate)&&(!toDate||!r.started_on||r.started_on<=toDate)&&
     [r.title,r.organization,r.location,r.description].join(' ').toLocaleLowerCase().includes(search.toLocaleLowerCase())
- ),[records,kind,status,search]);
+ ),[records,kind,status,search,fromDate,toDate]);
  return <div className="stack" style={{gap:24}}>
   <header><p className="eyebrow">Verified information, in your control</p>
     <h1 className="heading">Career Intelligence Vault</h1>
@@ -64,6 +67,12 @@ export function VaultWorkspace({records,linkedCount}:{records:CareerRecord[];lin
      <select className="field" id="vault-status" value={status} onChange={e=>setStatus(e.target.value)}>
       <option value="all">All statuses</option><option value="confirmed">Confirmed</option><option value="unreviewed">Unreviewed</option><option value="conflict">Conflict</option>
      </select></div>
+   </div>
+   <div className="page-grid">
+    <div className="form-row"><label className="label" htmlFor="vault-from">Record date range — from</label>
+     <input className="field" id="vault-from" type="date" value={fromDate} onChange={e=>setFromDate(e.target.value)}/></div>
+    <div className="form-row"><label className="label" htmlFor="vault-to">Record date range — to</label>
+     <input className="field" id="vault-to" type="date" value={toDate} onChange={e=>setToDate(e.target.value)}/></div>
    </div>
    {records.length===0?<div className="muted-card">Your vault is empty. Add a real experience, education record, skill, project or achievement to get started. You can return and edit it at any time.</div>:
     filtered.length===0?<p className="subtle">No records match these filters.</p>:
