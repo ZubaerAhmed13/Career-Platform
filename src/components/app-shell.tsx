@@ -1,4 +1,29 @@
-import Link from 'next/link';import {signOut} from '@/app/actions/auth';
-const links=[['/dashboard','Dashboard',true],['/career-vault','Career Vault',false],['/resume-studio','Resume Studio',false],['/cover-letters','Cover Letter Studio',false],['/jobs','Job Discovery',false],['/applications','Applications',false],['/interviews','Interview Academy',false],['/career-growth','Career Growth',false],['/documents','Documents',false],['/settings','Settings',true]] as const;
-function Navigation(){return <nav aria-label="Primary navigation" className="stack" style={{gap:3}}>{links.map(([href,label,ready])=><Link className="nav-link" href={href} key={href}>{label}{!ready&&<small style={{display:'block',fontSize:11}}>Coming soon</small>}</Link>)}</nav>}
-export function AppShell({children,email}:{children:React.ReactNode;email:string}){return <div className="app-layout"><aside className="sidebar"><Link href="/dashboard" style={{fontWeight:800,fontSize:22}}>CareerOS <span style={{color:'var(--accent)'}}>AI</span></Link><Navigation/><div style={{marginTop:'auto',overflowWrap:'anywhere'}}><p className="subtle" style={{fontSize:12}}>{email}</p><form action={signOut}><button className="button secondary" type="submit">Sign out</button></form></div></aside><div><header className="mobile-nav"><details><summary>☰ CareerOS AI · Menu</summary><Navigation/><form action={signOut}><button className="button secondary">Sign out</button></form></details></header><main className="main" id="main-content">{children}</main></div></div>}
+import Link from 'next/link';
+import { signOut } from '@/app/actions/auth';
+import { AppNavigation } from '@/components/app-navigation';
+import { MobileNavigation } from '@/components/mobile-navigation';
+
+export function AppShell({ children, email }: { children: React.ReactNode; email: string }) {
+  return (
+    <div className="app-layout">
+      <aside className="sidebar">
+        <Link href="/dashboard" style={{ fontWeight: 800, fontSize: 22 }}>
+          CareerOS <span style={{ color: 'var(--accent)' }}>AI</span>
+        </Link>
+        <AppNavigation />
+        <div style={{ marginTop: 'auto', overflowWrap: 'anywhere' }}>
+          <p className="subtle" style={{ fontSize: 12 }}>{email}</p>
+          <form action={signOut}>
+            <button className="button secondary" type="submit">Sign out</button>
+          </form>
+        </div>
+      </aside>
+      <div>
+        <MobileNavigation />
+        <main className="main" id="main-content">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+}
