@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { requireAccount } from '@/lib/account';
 import { getInterviewResponse, AIUnavailableError } from '@/lib/career/ai';
+import { aiPersistenceConfigured, persistVerifiedAI } from '@/lib/career/ai-admin';
 import { interviewTopics } from '@/lib/career/prompts';
 import type { VaultActionState } from './career';
 
@@ -11,7 +12,7 @@ const uuid=z.uuid();
 const topicSchema=z.enum(interviewTopics);
 
 export async function startCareerInterview(_previous:VaultActionState,form:FormData):Promise<VaultActionState>{
- if(!process.env.OPENAI_API_KEY)return {error:'AI interviewer is unavailable until the provider is configured.'};
+ if(!process.env.OPENAI_API_KEY||!aiPersistenceConfigured())return {error:'AI interviewer is unavailable until the provider and secure persistence are configured.'};
  const title=String(form.get('title')??'Career exploration').trim().slice(0,160)||'Career exploration';
  const {user,supabase}=await requireAccount();
  const {data,error}=await supabase.from('career_interview_sessions')
@@ -21,7 +22,7 @@ export async function startCareerInterview(_previous:VaultActionState,form:FormD
 }
 
 export async function sendCareerInterviewAnswer(_previous:VaultActionState,form:FormData):Promise<VaultActionState>{
- if(!process.env.OPENAI_API_KEY)return {error:'AI interviewer is not configured.'};
+ if(!process.env.OPENAI_API_KEY||!aiPersistenceConfigured())return {error:'AI interviewer or secure persistence is not configured.'};
  if(form.get('consent')!=='yes')return {error:'Confirm you agree to send this answer to the configured AI provider.'};
  const sessionId=String(form.get('session_id')??'');
  const answer=String(form.get('answer')??'').trim();
@@ -56,18 +57,13 @@ export async function sendCareerInterviewAnswer(_previous:VaultActionState,form:
      history:(history.data??[]).reverse().map(m=>({role:m.role as 'user'|'assistant',content:m.content})),
      context:(records.data??[]),
    });
-   const response=await supabase.from('career_interview_messages').insert({
-     user_id:user.id,session_id:sessionId,role:'assistant',content:result.reply,
-   });
-   if(response.error)return {error:'Your answer was saved, but the generated response could not be stored.'};
-   if(result.suggestions.length){
-     const proposal=await supabase.from('career_suggestions').insert(result.suggestions.map(s=>({
-       user_id:user.id,session_id:sessionId,...s,origin:'ai',review_status:'pending',
-     })));
-     if(proposal.error)return {error:'Interview reply saved, but proposed facts were not stored for review.'};
+   try {
+     await persistVerifiedAI({
+       verifiedUserId:user.id,sessionId,reply:result.reply,suggestions:result.suggestions,
+     });
+   } catch {
+     return {error:'Your answer was saved, but the verified AI response could not be stored safely. No assistant reply was fabricated.'};
    }
-   await supabase.from('career_interview_sessions').update({updated_at:new Date().toISOString()})
-     .eq('id',sessionId).eq('user_id',user.id);
    revalidatePath('/career-vault/interview');revalidatePath('/career-vault/review');
    return {message:'Answer saved; any proposed facts are pending your approval.'};
  }catch(error){

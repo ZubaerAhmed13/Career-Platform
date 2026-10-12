@@ -1,0 +1,36 @@
+import 'server-only';
+import { createClient } from '@supabase/supabase-js';
+import { supabaseConfig } from '@/lib/config';
+import type { CareerSuggestion } from '@/lib/career/schema';
+
+/**
+ * A privileged client must ONLY be invoked after getUser() has authenticated
+ * the incoming request and checked ownership of the target interview session.
+ * Never expose this key or this client to a Client Component/browser bundle.
+ */
+export function aiPersistenceConfigured() {
+ return Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY?.trim());
+}
+
+export async function persistVerifiedAI({
+ verifiedUserId, sessionId, reply, suggestions,
+}:{
+ verifiedUserId:string;sessionId:string;reply:string;
+ suggestions:Pick<CareerSuggestion,'kind'|'title'|'description'|'evidence_quote'>[];
+}) {
+ const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
+ if(!key)throw new Error('AI persistence is not configured');
+ const {url}=supabaseConfig();
+ const client=createClient(url,key,{
+  auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},
+ });
+ // The SQL RPC re-verifies the account/session binding, validates each quoted
+ // proposal, and commits the answer + proposals atomically.
+ const {data,error}=await client.rpc('persist_verified_ai_interview',{
+  target_user_id:verifiedUserId,
+  target_session_id:sessionId,
+  ai_reply:reply,
+  proposals:suggestions,
+ });
+ if(error||data!==true)throw new Error('Verified AI output could not be saved');
+}
