@@ -76,3 +76,7 @@ end; $$;
 
 revoke all on function public.persist_verified_ai_interview(uuid,uuid,text,jsonb) from public,anon,authenticated;
 grant execute on function public.persist_verified_ai_interview(uuid,uuid,text,jsonb) to service_role;
+
+-- Users may remove their own discarded or approved proposals without erasing confirmed records.
+create policy "users delete own review suggestions" on public.career_suggestions
+ for delete to authenticated using (user_id=(select auth.uid()));

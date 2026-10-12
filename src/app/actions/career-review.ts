@@ -37,3 +37,16 @@ export async function mergeSuggestion(_prev:VaultActionState,form:FormData):Prom
  revalidatePath('/career-vault');revalidatePath('/career-vault/review');revalidatePath('/dashboard');
  return {message:'Only selected fields were merged into the confirmed record; prior values remain in the audit history.'};
 }
+
+
+export async function deleteCareerSuggestion(_previous:VaultActionState,form:FormData):Promise<VaultActionState>{
+ const id=str(form,'id');
+ if(!uuid.safeParse(id).success||form.get('confirm')!=='yes')
+  return {error:'Confirm which suggestion should be removed.'};
+ const {user,supabase}=await requireAccount();
+ const {data,error}=await supabase.from('career_suggestions').delete()
+  .eq('id',id).eq('user_id',user.id).select('id').maybeSingle();
+ if(error||!data)return {error:'Unable to remove the suggestion.'};
+ revalidatePath('/career-vault/review');
+ return {message:'The selected suggestion was removed. Confirmed career records were not affected.'};
+}

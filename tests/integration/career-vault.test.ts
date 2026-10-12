@@ -1,5 +1,5 @@
 /**
- * Mandatory staging tests for Migration 003/004: two confirmed disposable accounts.
+ * Mandatory staging tests for Migrations 003–007: two confirmed disposable accounts.
  * Uses the same explicit test configuration as profile RLS tests. Never point at
  * live production. These tests create and remove test-only records.
  */
@@ -64,17 +64,32 @@ describe('Career Vault staging ownership isolation',()=>{
   expect((await b.auth.signInWithPassword(cfg.b)).error).toBeNull();
   const aid=(await a.auth.getUser()).data.user!.id;
   let sessionId:string|undefined,approvedId:string|undefined;
+  const createdSuggestions:string[]=[];
   try{
    const ses=await a.from('career_interview_sessions').insert({user_id:aid,title:'RLS disposable interview'}).select('id').single();
    expect(ses.error).toBeNull();sessionId=ses.data!.id;
    const denied=await b.from('career_interview_messages').insert({user_id:(await b.auth.getUser()).data.user!.id,session_id:sessionId,role:'user',content:'Cross account message'});
    expect(denied.error).not.toBeNull();
+   const deniedAssistant=await a.from('career_interview_messages').insert({
+     user_id:aid,session_id:sessionId,role:'assistant',content:'Forged assistant message',
+   });
+   expect(deniedAssistant.error).not.toBeNull();
+   const deniedServiceFunction=await a.rpc('persist_verified_ai_interview',{
+     target_user_id:aid,target_session_id:sessionId,ai_reply:'Forged provider response',proposals:[],
+   });
+   expect(deniedServiceFunction.error).not.toBeNull();
+   const forgedAI=await a.from('career_suggestions').insert({
+     user_id:aid,session_id:sessionId,kind:'skill',title:'Forged AI suggestion',
+     origin:'ai',description:'Claiming a model made this',review_status:'pending',
+   });
+   expect(forgedAI.error).not.toBeNull();
    const text='Verified by the staging test';
    const suggestion=await a.from('career_suggestions').insert({
-     user_id:aid,session_id:sessionId,kind:'skill',title:text,description:text,
-     evidence_quote:text,origin:'ai',review_status:'pending',
+     user_id:aid,kind:'skill',title:text,description:text,
+     evidence_quote:text,origin:'cv_import',review_status:'pending',
    }).select('id').single();
    expect(suggestion.error).toBeNull();
+   createdSuggestions.push(suggestion.data!.id);
    const deniedApprove=await b.rpc('approve_career_suggestion',{suggestion_id:suggestion.data!.id});
    expect(deniedApprove.error).not.toBeNull();
    const approved=await a.rpc('approve_career_suggestion',{suggestion_id:suggestion.data!.id});
@@ -84,11 +99,12 @@ describe('Career Vault staging ownership isolation',()=>{
    const saved=await a.from('career_records').select('title').eq('id',approvedId).single();
    expect(saved.data?.title).toBe(text);
    const another=await a.from('career_suggestions').insert({
-     user_id:aid,session_id:sessionId,kind:'skill',
+     user_id:aid,kind:'skill',
      title:'Edited staging evidence',description:'Original proposed description',
-     evidence_quote:'Original proposed description',origin:'ai',review_status:'pending',
+     evidence_quote:'Original proposed description',origin:'cv_import',review_status:'pending',
    }).select('id').single();
    expect(another.error).toBeNull();
+   createdSuggestions.push(another.data!.id);
    const correction=await a.rpc('edit_career_suggestion',{
      suggestion_id:another.data!.id,proposed_kind:'skill',
      proposed_title:'Edited staging evidence',proposed_description:'User-approved proposed detail',
@@ -111,6 +127,7 @@ describe('Career Vault staging ownership isolation',()=>{
    expect(updated.data?.revision).toBe(2);
   }finally{
    if(approvedId)await a.from('career_records').delete().eq('id',approvedId);
+   for(const id of createdSuggestions)await a.from('career_suggestions').delete().eq('id',id);
    if(sessionId)await a.from('career_interview_sessions').delete().eq('id',sessionId);
   }
  },30000);
