@@ -18,3 +18,7 @@ Every table has its own RLS policies scoped to `auth.uid()`. Composite foreign k
 
 - `202610120007_ai_provenance.sql`: narrows authenticated message/suggestion inserts, adds service-role-only atomic interview persistence RPC, and allows owned suggestion deletion.
 - `202610120008_verified_cv_and_urls.sql`: service-role-only AI-origin CV suggestion persistence, and non-destructive HTTP(S) evidence source-URL CHECK constraint (NOT VALID until existing rows are audited).
+
+- `202610120009_record_provenance.sql`: owner insert policy only allows manual confirmed source, content edits cannot change owner, ID, provenance or review status. Revision trigger preserves provenance while updating timestamps.
+- `202610120010_fix_ai_persistence.sql`: fixes an actual PL/pgSQL runtime ambiguity between the `item` variable and a JSONB result alias. Prior migrations remain untouched.
+- `supabase/test/compat.sql` and `supabase/test/assertions.sql`: disposable PostgreSQL 16 CI fixtures and actual SQL assertion scripts. Supabase Auth/Storage are stubbed and these cannot replace dedicated hosted staging acceptance tests.

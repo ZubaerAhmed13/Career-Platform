@@ -55,3 +55,11 @@ Additional binary document parsing safeguards and database-backed AI quotas were
 
 ## Continued security hardening (not yet live tested)
 Migration 007 restricts direct browser writes to user-authored interview answers and pasted-CV suggestions. Assistant responses and associated AI proposals require a privileged service-only transaction, with ownership and direct source quote checks. Migration 008 handles AI-origin CV extraction similarly and rejects newly written non-HTTP evidence URLs. The server now requires `SUPABASE_SERVICE_ROLE_KEY` for trusted AI persistence and never exposes it to a client. Reviewable source tests cover direct role forgery and unauthorized RPC execution, but they still require a real staging environment to run. The 2 MiB file intake has a 3 MB Next.js Server Action body budget. The default branch remains unchanged.
+
+## Latest continuation — direct SQL testing and source-of-truth safeguards
+- Found and fixed browser-edit provenance loss, then enforced source/status immutability in migration 009. Manual updates no longer rewrite AI-reviewed source metadata or unrelated JSON detail fields.
+- Ran numbered SQL migrations against a disposable PostgreSQL CI database and caught a genuine failing AI persistence RPC that earlier TypeScript/build/unit checks missed. Migration 010 repairs it; SQL smoke assertions now execute.
+- Implemented optional consented AI parsing of scanner-extracted PDF/DOCX text, still disabled without ClamAV/model/backend credentials and a secure parser environment.
+- Improved professional overview, optional target-role context, organization filtering and topic-specific AI interview context selection.
+- Added real browser smoke tests for unauthenticated routing, public auth forms and mobile layout, with final run still to be checked.
+- Host Supabase migration state remains **unknown**; no remote database changes have been made. The milestone is not production-accepted until real account sessions, upload scanner, AI credentials and staging RLS are verified.

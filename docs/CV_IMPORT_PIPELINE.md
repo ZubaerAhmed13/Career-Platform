@@ -15,3 +15,6 @@ See `docs/CV_SCAN_RUNBOOK.md` for fail-closed scanner configuration and deployme
 
 ## Verified AI extraction provenance
 When structured AI extraction is requested, source-quoted proposals now pass through a service-role-only transactional Supabase function. User-authored pasted text uses `origin='cv_import'` while provider-created facts use `origin='ai'`; both still require separate explicit review and approval. An API key alone cannot enable trusted AI functionality: configure secure database persistence too.
+
+## Conditional scanned-file structured extraction
+After a real clean ClamAV verdict, a user may choose **manual review** (one pending original-text entry, no AI transfer) or select **AI-assisted field proposals** with distinct permission to send extracted text to the provider. AI requires the configured model, database quota RPC and server-only trusted persistence. Up to six quote-backed facts become pending suggestions, never confirmed records. If the provider fails, no success is claimed and the user can retry with AI extraction unchecked. No original binary is saved.

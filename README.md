@@ -55,3 +55,12 @@ Migrations 007 and 008 prohibit ordinary browser sessions from impersonating an 
 The Next.js Server Actions request cap is configured to `3mb` for the 2 MiB binary CV limit plus form overhead. Server-side byte limits, a clean clamd verdict and parser checks are still enforced independently.
 
 See `docs/AI_TRUST_BOUNDARY.md` and the updated staging runbook. Migrations/authorization and scanner/model integration have **not** been applied or verified against a live project.
+
+## Latest Career Vault milestone verification (2026-10-12)
+**Do not consider Milestone 2 production-complete yet.** Source now includes migrations 001–010. SQL migrations are actually executed in an isolated PostgreSQL 16 CI container with simplified auth/storage compatibility fixtures, followed by RLS, provenance, service-AI persistence and quota assertions. This **does not** establish that these migrations have been applied to the hosted Supabase project, nor does it simulate all Supabase Auth behavior.
+
+Manual record edits now preserve original record provenance and unrelated structured detail fields. CV file import supports optional user-consented AI extraction into separate reviewable facts (only when ClamAV, AI and protected database persistence are available). The Vault dashboard presents a factual career overview and an organization filter. Interview context is ranked by the selected topic and capped to eight records.
+
+In addition to `npm run typecheck`, `npm run lint`, `npm test` and `npm run build`, the repository contains `npm run test:e2e` for public desktop/mobile flows and unauthorized vault access; Playwright browsers must be installed. CI validates migration SQL and browser smoke tests separately. Real authenticated staging acceptance still requires Supabase management access.
+
+**Remaining SQL migrations:** 009 enforces immutable source/status provenance on manual record edits; 010 fixes an AI persistence SQL alias ambiguity discovered by executing actual database assertions. Apply them after 001–008, only after backup and migration-history review.

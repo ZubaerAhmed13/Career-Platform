@@ -1,30 +1,25 @@
-# CareerOS implementation status — Milestone 2
+# CareerOS AI — current Career Vault status (2026-10-12)
 
-| Feature | State | Verification |
+| Requirement | Source state | Verification |
 |---|---|---|
-| Original account foundation | Implemented / previously CI-tested | Milestone 1 merged, preserved |
-| Career Vault data migrations 003–008 | Implemented SQL / Not deployed | Supabase access and migration preflight needed |
-| Manual career records CRUD (8 categories) | Implemented code | CI build/test passed; live database test blocked |
-| Optimistic concurrency/version checks | Implemented code | Staging multi-device test pending |
-| Search, filters, record overview | Implemented code | Browser UX verification pending |
-| Evidence notes/URLs and record links | Implemented code | DB composite FK test blocked |
-| Confirmed/unreviewed/rejected information + field-level merge | Implemented code | RPC migrations 004–005, staging security test blocked |
-| Pasted CV text review + optional AI extraction | Implemented code | Live provider not configured; PDF/DOCX unsupported |
-| PDF/DOCX scanned text extraction (no stored binary) | Implemented code / Provider blocked | Requires internal ClamAV; antivirus and parser E2E not executed |
-| Optional AI interviewer | Implemented provider-backed code | OPENAI_API_KEY absent, real integration blocked; SQL rate limits added in migration 006 |
-| AI suggested fact approval | Implemented code | SQL RPC staging test required |
-| Knowledge relationships | Implemented code | UI browser/staging verification pending |
-| Private JSON export | Implemented code | Auth/export E2E test pending |
-| Dashboard Career Vault integration | Implemented code | CI passed; browser verification pending |
-| Two-user RLS integration tests | Test suite written | Not executed; requires staging account access |
-| German UI and full accessibility audit | Planned | Not verified |
-| Production deployment and security/privacy review | Blocked | Credentials/domain/operational controls absent |
+| Login/onboarding/settings | Retained from Milestone 1 | Previous source CI; live Auth not tested |
+| Manual career records and stable IDs | Implemented | Unit, TypeScript, build; local SQL ownership checks |
+| Eight record categories and contextual forms | Implemented | Code verified, authenticated browser test pending |
+| Career fact provenance | Hardened | Migration 009; PostgreSQL CI tests, NOT hosted Supabase |
+| Career overview, organization/date/search filters | Implemented | Code verified; browser acceptance pending |
+| Evidence and cross-owned record constraints | Implemented | Local PostgreSQL RLS/FK smoke tests |
+| Approve/reject/edit/delete suggestions | Implemented | Local SQL approval tests and source tests |
+| Selective revision-safe merges | Implemented | Source tests; live Supabase staging required |
+| Pasted CV text and optional AI extraction | Implemented conditionally | Credentials and live AI tests absent |
+| PDF/DOCX scanner-gated text extraction | Implemented conditionally | Real ClamAV/parser isolation tests absent |
+| AI interviews, sessions and context ranking | Implemented conditionally | Server model/persistence credentials absent |
+| AI/source impersonation prevention | Implemented | SQL execution tests with compatibility stub; staging required |
+| Per-user AI rate quotas | Implemented | Local SQL assertions; live load/concurrency test pending |
+| Private JSON data export | Implemented | Code verified; authenticated browser/staging test pending |
+| Static unit suite | Implemented | CI |
+| Real SQL migration and policy smoke suite | Implemented | CI PostgreSQL 16; not actual Supabase |
+| Public/anonymous desktop-mobile browser suite | Implemented | Playwright CI (check latest run) |
+| Dedicated two-account Supabase integration suite | Written | BLOCKED — protected staging project not connected |
+| Public deployment, legal/privacy, scanner/AI providers | Not finished | Requires authorized infrastructure and live verification |
 
-**Milestone 2 is NOT yet fully accepted or production ready.** A successful code build alone does not prove external AI service, file upload, database security, or data persistence.
-
-**Automated code verification:** [GitHub Actions #38301391444](https://github.com/ZubaerAhmed13/Career-Platform/actions/runs/38301391444) passed TypeScript, ESLint, 15 unit tests and Next.js build. This does not verify Supabase, AI, PDF import or deployed browser behavior.
-
-**Latest source validation:** GitHub Actions [#38303064913](https://github.com/ZubaerAhmed13/Career-Platform/actions/runs/38303064913) passed typecheck, lint, unit tests and build after PDF/DOCX guards. The real AV scanner, Supabase migrations and AI provider are still untested.
-
-### AI provenance boundary (new)
-Migrations 007–008 now restrict browser-authenticated sessions to self-authored interview replies and manually staged CV text. Model replies and AI-origin proposals require server-only privileged persistence and atomic SQL checks. The real provider and service role credentials remain **unconfigured and untested**, so these functions cannot be declared operational. New client-side unit tests also cover malicious evidence URLs and strict scanner results. See `docs/AI_TRUST_BOUNDARY.md`.
+**Do not merge PR #2 as a production release based only on source checks.** The original acceptance criteria require live authenticated persistence, ownership, secure imports, model behavior and verified UX.

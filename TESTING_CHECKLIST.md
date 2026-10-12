@@ -46,3 +46,10 @@ These tests are **not** covered by unit CI and remain blocked pending staging ac
 
 ## Manually triggered staging CI
 Added `.github/workflows/staging-security.yml`. It is **not** invoked by a normal PR/push. Configure a protected GitHub Environment named `staging` and six encrypted environment secrets as described in `docs/STAGING_SECURITY_RUNBOOK.md`. Then manually run the action on the feature branch. This workflow **has not been executed** because authorized isolated staging credentials are not available. Its guard and the test code reject the known primary CareerOS Supabase URL.
+
+## Latest acceptance upgrades
+- Added disposable PostgreSQL 16 GitHub CI job which installs minimal Supabase-compatible auth/storage fixtures, runs ALL numbered migrations 001–010 and executes actual SQL assertions for account ownership, forbidden client AI attribution, verified AI/CV writes, approval and database-backed quotas.
+- The first SQL execution uncovered an ambiguous `item` reference in `persist_verified_ai_interview`. Migration 010 fixes it; an updated run passed all SQL assertions.
+- Added `tests/integration/record-provenance.test.ts` for real two-account staging validation of fake AI attribution, preserved source/status and revision history. It is NOT executed by unit CI.
+- Added public/browser Playwright tests for unauthenticated Career Vault access, home, sign-in/signup/recovery screens and mobile overflow. Final CI outcome needs confirmation before marking as passed.
+- Unit checks alone are not evidence of hosted Supabase migration deployment, live AI calls, real ClamAV, logged-in end-to-end flows, cross-account database isolation or GDPR compliance.

@@ -13,3 +13,6 @@ A specialized text extraction prompt uses the same provider boundary and strict 
 
 ## Integrity boundary — server privileged persistence
 Trusted assistant messages and provider-generated suggestions are now committed together via the `persist_verified_ai_interview` PostgreSQL function. It checks a real active session owned by the authenticated account, that the most recent answer belongs to the same user, and that each proposal cites a verbatim substring of that answer. An authenticated browser can save only its own `user` messages. The server-only service-role key is required; without both model and secure persistence credentials, the interface reports AI unavailable. A second service-role-only SQL function persists evidence-matching suggestions from consented pasted-CV extraction. This design prevents a browser from fabricating provider-labeled content by writing directly to PostgREST. Production SQL staging tests are still outstanding.
+
+## Topic-based context ranking
+`src/lib/career/context.ts` ranks a bounded set of confirmed records by interview topic. For example, a project interview prioritizes saved projects, education and skills; an experience interview prioritizes confirmed employment records. It never creates or substitutes career facts. Final provider and session testing remains outstanding.

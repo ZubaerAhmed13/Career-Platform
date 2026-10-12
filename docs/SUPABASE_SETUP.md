@@ -90,3 +90,12 @@ Evidence URLs are constrained for new writes; pre-existing bad URLs, if any, req
 
 ## Dedicated staging CI
 See `docs/STAGING_SECURITY_RUNBOOK.md` for a manual, environment-protected GitHub Actions workflow. Never supply production credentials or enable mutation testing against the primary project.
+
+## Additional migration activation (009–010)
+After backing up the intended Supabase project and confirming 001–008 were applied correctly, apply:
+1. `supabase/migrations/202610120009_record_provenance.sql`
+2. `supabase/migrations/202610120010_fix_ai_persistence.sql`
+
+Migration 009 disallows ordinary browser inserts that claim `source='ai'` or `source='import'`, and prevents ordinary edits from re-labeling career provenance or changing creator/record IDs. Migration 010 repairs an actual runtime SQL bug discovered by local PostgreSQL integration assertions.
+
+**Do not run the two-account staging test suite against the supplied primary project.** Create a separate project and two disposable confirmed users. The known primary project is rejected by the integration test harness. CI PostgreSQL compatibility fixtures are not proof of a successful hosted Supabase deployment.

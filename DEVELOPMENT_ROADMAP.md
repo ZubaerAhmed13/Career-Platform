@@ -21,3 +21,5 @@ Career Vault code, evidence model, unreviewed text intake and a provider-backed 
 Milestone 2 conflict-review SQL uses migration 005. The next Resume Studio stage remains blocked until staging migrations, RLS verification and source-of-truth stability are checked.
 
 Milestone 2 continued: scanner-gated PDF/DOCX extraction and SQL-based per-user AI quota have source implementations. Public document importing is still blocked on a correctly isolated malware scanner, resource sandboxing and external staging acceptance tests; the third milestone must not start solely on source CI.
+
+Milestone 2 now has local PostgreSQL migration execution, source-level provider/provenance safeguards and optional public browser tests. Stage 3 remains gated on actual Supabase staging integration, browser persistence, security validation and user acceptance.
