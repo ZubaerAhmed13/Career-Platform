@@ -83,7 +83,7 @@ select public.persist_verified_ai_cv_suggestions(
 set role authenticated;
 select set_config('request.jwt.claim.role','authenticated',false);
 select set_config('request.jwt.claim.sub','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',false);
-do $
+do $$
 declare answers integer; proposed integer;
 begin
  select count(*) into answers from public.career_interview_messages
