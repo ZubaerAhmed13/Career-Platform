@@ -1,0 +1,3 @@
+# Agent development contract
+
+Before editing, read README.md, ARCHITECTURE.md, DATABASE_ARCHITECTURE.md, SECURITY.md, FEATURE_STATUS.md and DEVELOPMENT_ROADMAP.md. Inspect actual code. Preserve functional modules. Use strictly validated server operations and authenticated identity for ownership; avoid privileged browser keys. Add migrations for all schema changes, enforce and test RLS, and never fabricate user content, success states, AI features, or job listings. Implement only the requested milestone; future module landing pages must remain honestly unavailable. Run typecheck, lint, tests and build and record actual outcomes. Prefer reviewed pull requests; never silently overwrite production configuration or data.

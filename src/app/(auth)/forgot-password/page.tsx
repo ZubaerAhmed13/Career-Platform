@@ -1,0 +1,2 @@
+import Link from 'next/link';import {AuthForm} from '@/components/auth-form';
+export default function Forgot(){return <main className="auth-shell"><section className="card auth-card stack"><h1 className="heading">Reset your password</h1><p className="subtle">We will send a link if the email belongs to an account.</p><AuthForm mode="forgot"/><Link href="/login">Back to sign in</Link></section></main>}

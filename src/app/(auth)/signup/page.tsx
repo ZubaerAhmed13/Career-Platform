@@ -1,0 +1,2 @@
+import Link from 'next/link';import {AuthForm} from '@/components/auth-form';
+export default function Signup(){return <main className="auth-shell"><section className="card auth-card stack"><Link href="/" className="eyebrow">← CareerOS AI</Link><h1 className="heading">Start your career workspace</h1><p className="subtle">Create a secure account using your email.</p><AuthForm mode="signup"/><p>Have an account? <Link href="/login" style={{color:'var(--accent)'}}>Sign in</Link></p></section></main>}

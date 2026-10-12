@@ -1,0 +1,3 @@
+# Design system
+
+Calm premium visual direction: white/slate surfaces, blue accent and neutral dark theme, shared CSS custom properties for foreground, background, surface, muted, line and accent. Rounded ~10px controls and ~18px cards; fluid title hierarchy; 16px spacing rhythm. Forms use semantic labels, native focusable controls and 44px minimum touch controls. App shell uses fixed-width desktop sidebar and mobile details navigation. Theme system supports system/light/dark and remembers browser theme. Layout avoids horizontal overflow; errors use role=alert and updates use role=status. Accessibility target WCAG 2.2 AA; independent audit pending. Language resources and German translations remain a follow-up.

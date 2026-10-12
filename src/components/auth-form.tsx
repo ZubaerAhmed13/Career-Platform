@@ -1,0 +1,7 @@
+'use client';
+import {useActionState} from 'react';
+import type {AuthState} from '@/app/actions/auth';
+import {signIn,signUp,requestReset,changePassword} from '@/app/actions/auth';
+type Mode='login'|'signup'|'forgot'|'update';
+const actions={login:signIn,signup:signUp,forgot:requestReset,update:changePassword};
+export function AuthForm({mode,next}:{mode:Mode;next?:string}){const [state,action,pending]=useActionState<AuthState,FormData>(actions[mode],{});return <form action={action} className="stack">{(mode!=='update')&&<div className="form-row"><label className="label" htmlFor="email">Email address</label><input className="field" type="email" id="email" name="email" autoComplete="email" required/></div>}{(mode==='login'||mode==='signup'||mode==='update')&&<div className="form-row"><label className="label" htmlFor="password">Password</label><input className="field" type="password" id="password" name="password" minLength={mode==='login'?undefined:12} autoComplete={mode==='signup'?'new-password':mode==='login'?'current-password':'new-password'} required/>{mode!=='login'&&<small className="subtle">At least 12 characters</small>}</div>}{next&&<input type="hidden" name="next" value={next}/>}<button className="button" disabled={pending} type="submit">{pending?'Please wait…':({login:'Sign in',signup:'Create account',forgot:'Send recovery instructions',update:'Save new password'})[mode]}</button>{state.error&&<p role="alert" className="error">{state.error}</p>}{state.message&&<p role="status" className="success">{state.message}</p>}</form>}

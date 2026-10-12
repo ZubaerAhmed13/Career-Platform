@@ -1,0 +1,6 @@
+'use server';
+import {revalidatePath} from 'next/cache';
+import {requireAccount} from '@/lib/account';
+import {profileSchema} from '@/lib/profile';
+export type SaveState={error?:string;message?:string};
+export async function saveProfile(_previous:SaveState,form:FormData):Promise<SaveState>{const {user,supabase}=await requireAccount();const input={full_name:String(form.get('full_name')??''),display_name:String(form.get('display_name')??''),country:String(form.get('country')??''),city:String(form.get('city')??''),preferred_language:String(form.get('preferred_language')??'en'),career_stage:String(form.get('career_stage')??''),target_role:String(form.get('target_role')??''),primary_goal:String(form.get('primary_goal')??''),theme_preference:String(form.get('theme_preference')??'system'),onboarding_completed:form.get('onboarding_completed')==='true'};const result=profileSchema.safeParse(input);if(!result.success)return {error:'Please correct the invalid profile fields.'};const {error}=await supabase.from('profiles').upsert({id:user.id,...result.data},{onConflict:'id'});if(error)return {error:'Your changes could not be saved. Please retry.'};revalidatePath('/dashboard');revalidatePath('/settings');revalidatePath('/onboarding');return {message:'Your profile was saved.'}}
