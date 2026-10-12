@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import {
   BookOpenCheck, BriefcaseBusiness, ChartNoAxesCombined, ClipboardList,
   FileArchive, FilePenLine, Files, House, MessageSquareQuote,
-  Settings, UserRound,
+  UserRound,
 } from 'lucide-react';
 
 const items = [
