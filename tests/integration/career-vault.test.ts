@@ -78,6 +78,11 @@ describe('Career Vault staging ownership isolation',()=>{
      target_user_id:aid,target_session_id:sessionId,ai_reply:'Forged provider response',proposals:[],
    });
    expect(deniedServiceFunction.error).not.toBeNull();
+   const deniedCVService=await a.rpc('persist_verified_ai_cv_suggestions',{
+     target_user_id:aid,original_text:'This was a real staging interview answer',
+     proposals:[],
+   });
+   expect(deniedCVService.error).not.toBeNull();
    const forgedAI=await a.from('career_suggestions').insert({
      user_id:aid,session_id:sessionId,kind:'skill',title:'Forged AI suggestion',
      origin:'ai',description:'Claiming a model made this',review_status:'pending',
