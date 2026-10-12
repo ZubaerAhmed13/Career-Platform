@@ -1,0 +1,84 @@
+'use client';
+import { useActionState, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { deleteCareerRecord } from '@/app/actions/career';
+import { careerKinds, kindLabels, vaultCounts, type CareerRecord, type CareerKind } from '@/lib/career/schema';
+import { RecordEditor } from './record-editor';
+
+function DeleteButton({record}:{record:CareerRecord}){
+ const [state,action,pending]=useActionState(deleteCareerRecord,{});
+ const [confirm,setConfirm]=useState(false);
+ const router=useRouter();
+ useEffect(()=>{if(state.message)router.refresh();},[state.message,router]);
+ return <div>
+  {!confirm?<button className="button secondary" type="button" onClick={()=>setConfirm(true)}>Delete</button>:
+  <form action={action} className="stack" style={{gap:8}}>
+   <input type="hidden" name="id" value={record.id}/>
+   <p className="subtle">Delete “{record.title}”? Associated links will be removed; independent records remain.</p>
+   <label><input name="confirm" type="checkbox" value="yes" required/> I understand this cannot be undone</label>
+   <div style={{display:'flex',gap:8}}><button className="button" disabled={pending}>Confirm delete</button>
+    <button className="button secondary" type="button" onClick={()=>setConfirm(false)}>Cancel</button></div>
+  </form>}
+  {state.error&&<p role="alert" className="error">{state.error}</p>}
+  {state.message&&<p role="status" className="success">{state.message}</p>}
+ </div>;
+}
+export function VaultWorkspace({records,linkedCount}:{records:CareerRecord[];linkedCount:number}){
+ const [adding,setAdding]=useState(false);
+ const [editing,setEditing]=useState<string|null>(null);
+ const [kind,setKind]=useState<string>('all');
+ const [status,setStatus]=useState('all');
+ const [search,setSearch]=useState('');
+ const summary=vaultCounts(records);
+ const filtered=useMemo(()=>records.filter(r=>
+    (kind==='all'||r.kind===kind)&&(status==='all'||r.status===status)&&
+    [r.title,r.organization,r.location,r.description].join(' ').toLocaleLowerCase().includes(search.toLocaleLowerCase())
+ ),[records,kind,status,search]);
+ return <div className="stack" style={{gap:24}}>
+  <header><p className="eyebrow">Verified information, in your control</p>
+    <h1 className="heading">Career Intelligence Vault</h1>
+    <p className="subtle">Your permanent source of career facts. Tailored resumes will use these records without changing the originals.</p>
+    <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
+      <button className="button" onClick={()=>{setAdding(v=>!v);setEditing(null)}}>{adding?'Close editor':'+ Add career record'}</button>
+      <Link className="button secondary" href="/career-vault/evidence">Evidence & relationships</Link>
+      <Link className="button secondary" href="/career-vault/review">Review suggestions</Link>
+      <Link className="button secondary" href="/career-vault/interview">Career interviewer</Link>
+      <a className="button secondary" href="/api/career-vault/export">Export my data</a>
+    </div>
+  </header>
+  <div className="page-grid">
+   <div className="card"><p className="eyebrow">Saved records</p><strong style={{fontSize:32}}>{summary.total}</strong><p className="subtle">Not an artificial profile score</p></div>
+   <div className="card"><p className="eyebrow">Needs confirmation</p><strong style={{fontSize:32}}>{summary.pending}</strong><p className="subtle">Unreviewed or conflicting records</p></div>
+   <div className="card"><p className="eyebrow">Connections</p><strong style={{fontSize:32}}>{linkedCount}</strong><p className="subtle">Saved relationships and evidence links</p></div>
+  </div>
+  {adding&&<RecordEditor onSaved={()=>setAdding(false)}/>}
+  <section className="card stack"><h2 style={{margin:0}}>Explore your career information</h2>
+   <div className="page-grid">
+    <div className="form-row"><label className="label" htmlFor="vault-search">Search your records</label>
+     <input className="field" id="vault-search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Title, employer, description…"/></div>
+    <div className="form-row"><label className="label" htmlFor="vault-kind">Category</label>
+     <select className="field" id="vault-kind" value={kind} onChange={e=>setKind(e.target.value)}><option value="all">All categories</option>
+      {careerKinds.map(k=><option key={k} value={k}>{kindLabels[k]} ({summary.counts[k]})</option>)}</select></div>
+    <div className="form-row"><label className="label" htmlFor="vault-status">Review status</label>
+     <select className="field" id="vault-status" value={status} onChange={e=>setStatus(e.target.value)}>
+      <option value="all">All statuses</option><option value="confirmed">Confirmed</option><option value="unreviewed">Unreviewed</option><option value="conflict">Conflict</option>
+     </select></div>
+   </div>
+   {records.length===0?<div className="muted-card">Your vault is empty. Add a real experience, education record, skill, project or achievement to get started. You can return and edit it at any time.</div>:
+    filtered.length===0?<p className="subtle">No records match these filters.</p>:
+    <div className="stack">{filtered.map(r=><article className="card stack" key={r.id} style={{padding:18}}>
+     <div style={{display:'flex',justifyContent:'space-between',gap:12,flexWrap:'wrap'}}>
+      <div><p className="eyebrow" style={{marginBottom:4}}>{kindLabels[r.kind as CareerKind]} · {r.status}</p>
+       <h3 style={{margin:'4px 0'}}>{r.title}</h3><p className="subtle" style={{margin:0}}>{[r.organization,r.location].filter(Boolean).join(' · ')||'No organization set'}</p></div>
+      <button className="button secondary" onClick={()=>{setEditing(editing===r.id?null:r.id);setAdding(false)}}>{editing===r.id?'Close editor':'Edit'}</button>
+     </div>
+     {(r.started_on||r.ended_on||r.is_current)&&<p className="subtle" style={{margin:0}}>{r.started_on??'Start not specified'} — {r.is_current?'Present':r.ended_on??'End not specified'}</p>}
+     {r.details?.proficiency&&<p style={{margin:0}}>Proficiency: {r.details.proficiency}</p>}
+     {r.description&&<p style={{whiteSpace:'pre-wrap',margin:0}}>{r.description}</p>}
+     {editing===r.id?<RecordEditor key={r.id+'-'+r.revision} record={r} onSaved={()=>setEditing(null)}/>:<DeleteButton record={r}/>}
+    </article>)}</div>}
+   {records.length>=250&&<p className="subtle">Showing the most recently updated 250 records. Export includes additional records.</p>}
+  </section>
+ </div>;
+}
