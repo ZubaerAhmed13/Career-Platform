@@ -28,7 +28,7 @@ export async function extractScannedCv(file:File){
       if(document.numPages<1||document.numPages>12)throw new Error('PDF must contain at most 12 pages.');
       const extracted=await extractText(document,{mergePages:true});
       text=typeof extracted.text==='string'?extracted.text:'';
-    }finally{await document.destroy();}
+    }finally{await (document as unknown as {destroy?:()=>Promise<void>}).destroy?.();}
   }else{
     const mammoth=await import('mammoth');
     const result=await mammoth.extractRawText({buffer:bytes});
