@@ -83,6 +83,32 @@ describe('Career Vault staging ownership isolation',()=>{
    expect(duplicate.error).not.toBeNull();
    const saved=await a.from('career_records').select('title').eq('id',approvedId).single();
    expect(saved.data?.title).toBe(text);
+   const another=await a.from('career_suggestions').insert({
+     user_id:aid,session_id:sessionId,kind:'skill',
+     title:'Edited staging evidence',description:'Original proposed description',
+     evidence_quote:'Original proposed description',origin:'ai',review_status:'pending',
+   }).select('id').single();
+   expect(another.error).toBeNull();
+   const correction=await a.rpc('edit_career_suggestion',{
+     suggestion_id:another.data!.id,proposed_kind:'skill',
+     proposed_title:'Edited staging evidence',proposed_description:'User-approved proposed detail',
+   });
+   expect(correction.error).toBeNull();expect(correction.data).toBe(true);
+   const blockedMerge=await b.rpc('merge_career_suggestion',{
+     suggestion_id:another.data!.id,target_record_id:approvedId,
+     expected_revision:1,merge_title:false,merge_description:true,
+   });
+   expect(blockedMerge.error).not.toBeNull();
+   const merged=await a.rpc('merge_career_suggestion',{
+     suggestion_id:another.data!.id,target_record_id:approvedId,
+     expected_revision:1,merge_title:false,merge_description:true,
+   });
+   expect(merged.error).toBeNull();
+   const updated=await a.from('career_records').select('title,description,revision')
+      .eq('id',approvedId).single();
+   expect(updated.data?.title).toBe(text);
+   expect(updated.data?.description).toBe('User-approved proposed detail');
+   expect(updated.data?.revision).toBe(2);
   }finally{
    if(approvedId)await a.from('career_records').delete().eq('id',approvedId);
    if(sessionId)await a.from('career_interview_sessions').delete().eq('id',sessionId);
