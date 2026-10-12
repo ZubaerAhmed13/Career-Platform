@@ -34,3 +34,12 @@ Migration 005 adds edit/merge RPCs with explicit confirmation and a stale-revisi
 
 ## New document/AI cost safeguards
 GitHub CI [#38303064913](https://github.com/ZubaerAhmed13/Career-Platform/actions/runs/38303064913) passed TypeScript, ESLint, unit tests and Next.js build including `cv-format` and DOCX preflight tests. Added migration 006 for durable authenticated AI request limits. Still blocked: clamd connection, malicious-file scanner acceptance tests, PDF/DOCX extraction E2E, zip-bomb sandbox/fuzz checks, quota enforcement against real Supabase, cross-user persistence and real model calls. Do not mark these as passed.
+
+## Trust-boundary staging tests (migrations 007–008)
+- [ ] With two real staging accounts, normal tokens attempting to insert `role=assistant` or `origin=ai` must fail.
+- [ ] Normal tokens calling `persist_verified_ai_interview` or `persist_verified_ai_cv_suggestions` must fail even when using a valid own session.
+- [ ] Protected server with valid service-role credentials can persist a real provider response; invalid quotes must abort the entire transaction without creating an assistant message.
+- [ ] Anonymous/other-account IDs cannot read, merge or remove these records.
+- [ ] Old evidence with invalid URL (if any) is reviewed before validating the HTTP(S) constraint.
+- [ ] Browser CV upload reaches the action with the 3 MB cap, rejects files exceeding 2 MiB, and uses a real internal clamd scanner and isolated parser.
+These tests are **not** covered by unit CI and remain blocked pending staging access.

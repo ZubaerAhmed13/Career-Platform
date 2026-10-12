@@ -148,7 +148,7 @@ export function ReviewWorkspace({suggestions,records,aiConfigured}:{suggestions:
       {state.message&&<p role="status" className="success">{state.message}</p>}
     </form>
   </section>
-  {aiConfigured?<AIExtractForm/>:<p className="muted-card" role="status">Automatic AI text extraction is unavailable until a server-side provider is configured. Manual records and text review still work.</p>}
+  {aiConfigured?<AIExtractForm/>:<p className="muted-card" role="status">Automatic AI text extraction is unavailable until a server-side AI provider and trusted database persistence are configured. Manual records and text review still work.</p>}
   <section className="stack"><h2>Pending suggestions ({pendingSuggestions.length})</h2>
    {!pendingSuggestions.length?<div className="muted-card">Nothing needs approval yet. Your confirmed records are unchanged.</div>:
    pendingSuggestions.map(s=><Suggestion key={s.id} suggestion={s} records={records}/>)}

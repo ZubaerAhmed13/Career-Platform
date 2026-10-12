@@ -52,3 +52,6 @@ Branch `feat/milestone-2-career-vault` at [PR #2](https://github.com/ZubaerAhmed
 
 ## Continued implementation and verification
 Additional binary document parsing safeguards and database-backed AI quotas were committed. GitHub CI [#38303064913](https://github.com/ZubaerAhmed13/Career-Platform/actions/runs/38303064913) passed typecheck, lint, unit tests and build. This does not prove scanner runtime or database activation. The pull request remains draft.
+
+## Continued security hardening (not yet live tested)
+Migration 007 restricts direct browser writes to user-authored interview answers and pasted-CV suggestions. Assistant responses and associated AI proposals require a privileged service-only transaction, with ownership and direct source quote checks. Migration 008 handles AI-origin CV extraction similarly and rejects newly written non-HTTP evidence URLs. The server now requires `SUPABASE_SERVICE_ROLE_KEY` for trusted AI persistence and never exposes it to a client. Reviewable source tests cover direct role forgery and unauthorized RPC execution, but they still require a real staging environment to run. The 2 MiB file intake has a 3 MB Next.js Server Action body budget. The default branch remains unchanged.

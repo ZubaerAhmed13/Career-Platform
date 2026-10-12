@@ -12,3 +12,6 @@
 When `OPENAI_API_KEY` is configured, the review page also offers a user-consented text-only AI extraction. It uses a specialized prompt with schema validation and source-quote matching, then displays only pending proposals. Users can edit proposals, reject them, create new facts, or merge selected fields after checking the original. No original confirmed record changes merely because text was pasted or AI parsed it.
 
 See `docs/CV_SCAN_RUNBOOK.md` for fail-closed scanner configuration and deployment checks.
+
+## Verified AI extraction provenance
+When structured AI extraction is requested, source-quoted proposals now pass through a service-role-only transactional Supabase function. User-authored pasted text uses `origin='cv_import'` while provider-created facts use `origin='ai'`; both still require separate explicit review and approval. An API key alone cannot enable trusted AI functionality: configure secure database persistence too.

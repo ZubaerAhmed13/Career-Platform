@@ -76,3 +76,14 @@ After 001 and 002, review and apply in ascending order:
 Before applying, confirm the target project, staging/production environment, migration history, backups, and table names. The publishable key is not permission to run SQL. Use an authorized Supabase project connection or the project's SQL Editor. Never assume these migrations have been applied just because their files exist in GitHub.
 
 **Postmigration checks:** inspect RLS on every new private table, verify composite owner constraints, use two separate staging users, run `npm run test:integration` with explicit staging credentials, verify suggestion approval/merge RPC ownership and session privacy, then manually test account persistence and email recovery. Do not use real applicants' records as test data.
+
+## Additional migration prerequisites — trusted AI operations
+Review and apply **after migrations 001–006**:
+- `supabase/migrations/202610120007_ai_provenance.sql`
+- `supabase/migrations/202610120008_verified_cv_and_urls.sql`
+
+These replace previously permissive owner INSERT policies for provider-labeled data. Confirm the new functions are executable by `service_role` only, verify a normal user cannot insert `role='assistant'` or `origin='ai'`, and verify that one user cannot use another user's session ID.
+
+If you activate AI, configure the **server-only** `OPENAI_API_KEY` and `SUPABASE_SERVICE_ROLE_KEY` on the deployment host; never place them in the public repository, browser settings or `NEXT_PUBLIC_` variables. Without these, manual vault functionality remains available and AI paths must stay disabled. Secure deployment key access should be restricted to the application backend.
+
+Evidence URLs are constrained for new writes; pre-existing bad URLs, if any, require a migration-aware review before separately validating the NOT VALID constraint. Also verify the user-owned JSON export, browser session lifetime and password-recovery flows.

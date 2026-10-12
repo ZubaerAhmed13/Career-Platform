@@ -65,7 +65,7 @@ export function InterviewWorkspace({sessions,selected,messages,configured}:{
    <p className="subtle">Explore career stories with a real AI provider, then approve individual fact proposals. Your verified career records are never silently rewritten.</p>
   </header>
   {!configured?<div className="card stack" role="status">
-    <h2>AI service not configured</h2><p className="subtle">The manual Career Vault remains available. To activate interviews, configure OPENAI_API_KEY privately on the server; no simulated messages will be shown.</p>
+    <h2>AI service not configured</h2><p className="subtle">The manual Career Vault remains available. To activate interviews, configure both OPENAI_API_KEY and SUPABASE_SERVICE_ROLE_KEY privately on the server; no simulated messages will be shown.</p>
     <Link className="button secondary" href="/career-vault">Return to manual Career Vault</Link>
   </div>:<div className="page-grid">
    <aside className="card stack"><h2>Interview sessions</h2><StartInterview/>

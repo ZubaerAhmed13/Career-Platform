@@ -15,3 +15,6 @@ Every table has its own RLS policies scoped to `auth.uid()`. Composite foreign k
 - `202610120005_suggestion_conflicts.sql`: authenticated, transactional user review functions to edit pending suggestions and merge selected title/description fields with revision checks.
 
 - `202610120006_ai_usage_limits.sql`: RLS-protected `career_ai_usage` quota buckets with a SECURITY DEFINER `claim_career_ai_quota()` RPC. The server invokes it before each AI request; quotas are per authenticated account. Database not yet deployed.
+
+- `202610120007_ai_provenance.sql`: narrows authenticated message/suggestion inserts, adds service-role-only atomic interview persistence RPC, and allows owned suggestion deletion.
+- `202610120008_verified_cv_and_urls.sql`: service-role-only AI-origin CV suggestion persistence, and non-destructive HTTP(S) evidence source-URL CHECK constraint (NOT VALID until existing rows are audited).

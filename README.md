@@ -10,7 +10,7 @@ Project URL: `https://jtitfwzpfbyfsdpxxrbj.supabase.co` (provided by the project
 
 1. Install Node.js 22 and run `npm install`.
 2. Copy `.env.example` to `.env.local`. The correct project URL is prefilled. Fill `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` with **your** Supabase publishable key (`sb_publishable_…`). The publishable key is a public configuration value, not an admin key; keep all secret/service-role keys off the frontend and out of Git.
-3. Apply all migrations **in order**: `supabase/migrations/202610120001_initial.sql`, `supabase/migrations/202610120002_restrict_unverified_file_metadata.sql`, `supabase/migrations/202610120003_career_vault.sql`, and `supabase/migrations/202610120004_career_suggestion_review.sql`, `supabase/migrations/202610120005_suggestion_conflicts.sql`, `supabase/migrations/202610120006_ai_usage_limits.sql` to the intended development/staging Supabase project. Prefer migration tooling for future changes. **Do not assume the migration was applied simply because it is in GitHub.**
+3. Apply all migrations **in order**: `supabase/migrations/202610120001_initial.sql`, `supabase/migrations/202610120002_restrict_unverified_file_metadata.sql`, `supabase/migrations/202610120003_career_vault.sql`, and `supabase/migrations/202610120004_career_suggestion_review.sql`, `supabase/migrations/202610120005_suggestion_conflicts.sql`, `supabase/migrations/202610120006_ai_usage_limits.sql`, `supabase/migrations/202610120007_ai_provenance.sql`, and `supabase/migrations/202610120008_verified_cv_and_urls.sql` to the intended development/staging Supabase project. Prefer migration tooling for future changes. **Do not assume the migration was applied simply because it is in GitHub.**
 4. In Supabase → Authentication → URL Configuration, set Site URL to `http://localhost:3000` for local testing. Add `http://localhost:3000/auth/callback` and `http://localhost:3000/auth/callback?next=/update-password` to redirect URLs. Configure email verification and an authorized email delivery provider.
 5. Set `NEXT_PUBLIC_SITE_URL=http://localhost:3000` and run `npm run dev`. Visit `http://localhost:3000`; test with two distinct test users.
 
@@ -31,10 +31,10 @@ Deploy to a Next.js-capable platform such as Vercel; configure host environment 
 ## Milestone 2 — Career Intelligence Vault
 The authenticated `/career-vault` route supports manual career records, editing with optimistic revision checks, deletion with confirmation, record search/filter, evidence notes/URLs, same-owner relationship links, user-approved suggestions and a private downloadable JSON export. Categories include experience, education, skills, languages, projects, achievements, certifications, and volunteering. A separate `/career-vault/review` page accepts **pasted text only**, supports corrections and explicitly merging selected fields, and can request real provider-based structured extraction when configured; a fail-closed PDF/DOCX extraction form is now implemented but disabled unless an internal ClamAV scanner is configured and tested.
 
-AI interviews at `/career-vault/interview` are **real provider-dependent operations**, not a demo chatbot. Configure server-only `OPENAI_API_KEY` (optional `CAREER_AI_MODEL`, default `gpt-4o-mini`), or the UI honestly reports unavailable. Career data is only sent after explicit consent. AI suggestions are separately approved; no confirmed record is silently replaced.
+AI interviews at `/career-vault/interview` are **real provider-dependent operations**, not a demo chatbot. Configure server-only `OPENAI_API_KEY` and `SUPABASE_SERVICE_ROLE_KEY` (optional `CAREER_AI_MODEL`, default `gpt-4o-mini`), or the UI honestly reports unavailable. Career data is only sent after explicit consent. AI suggestions are separately approved; no confirmed record is silently replaced.
 
 ### Activation and validation
-The previously supplied Supabase URL/publishable-key configuration is still used. Apply migrations 001–006 **only to a reviewed, backed-up intended project**. Detailed source and environment requirements are in `docs/SUPABASE_SETUP.md`. Run `npm test` and the CI scripts. Two-user authorization checks are available through `npm run test:integration` against a dedicated disposable staging project. Do not run those mutation tests on real user accounts.
+The previously supplied Supabase URL/publishable-key configuration is still used. Apply migrations 001–008 **only to a reviewed, backed-up intended project**. Detailed source and environment requirements are in `docs/SUPABASE_SETUP.md`. Run `npm test` and the CI scripts. Two-user authorization checks are available through `npm run test:integration` against a dedicated disposable staging project. Do not run those mutation tests on real user accounts.
 
 See `docs/CAREER_VAULT_SPEC.md`, `docs/CAREER_EVIDENCE_MODEL.md`, `docs/CV_IMPORT_PIPELINE.md` and `docs/AI_CAREER_INTERVIEW_SPEC.md`. Code compilation is not evidence that the Supabase migration or external AI service has been tested.
 
@@ -47,3 +47,11 @@ PDF/DOCX imports can only run with a trusted internal ClamAV `clamd` service tha
 Migration 006 adds a secure server-side quota function; both interview and text extraction must claim it before contacting a model. Default limits: 4 model requests/minute and 50/day per authenticated account. These safeguards require deploying migration 006 and are not proof of production-scale abuse resistance.
 
 The latest source CI run #38303064913 passed install, TypeScript, lint, unit tests and build. Live Supabase, antivirus, and AI provider integration remain **unverified**.
+
+### Verified AI provenance
+Migrations 007 and 008 prohibit ordinary browser sessions from impersonating an AI interviewer or saving AI-origin fact proposals. The server verifies the account and session before invoking a **service-role-only** transactional database function. This requires setting `SUPABASE_SERVICE_ROLE_KEY` on the protected server environment, **not** in the browser or GitHub. The interview and AI extraction interfaces stay disabled without this trusted persistence key. Once authenticated, manual career editing, pasted CV review and JSON export do **not** require this key.
+
+### Practical file upload limit
+The Next.js Server Actions request cap is configured to `3mb` for the 2 MiB binary CV limit plus form overhead. Server-side byte limits, a clean clamd verdict and parser checks are still enforced independently.
+
+See `docs/AI_TRUST_BOUNDARY.md` and the updated staging runbook. Migrations/authorization and scanner/model integration have **not** been applied or verified against a live project.
