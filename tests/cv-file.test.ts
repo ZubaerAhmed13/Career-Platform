@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { identifyCv, MAX_CV_BYTES } from '../src/lib/career/cv-file';
+import { identifyCv, MAX_CV_BYTES } from '../src/lib/career/cv-format';
 
 describe('untrusted CV format validation',()=>{
  it('recognizes PDF by signature and extension',()=>{
