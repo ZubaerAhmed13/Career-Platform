@@ -1,5 +1,6 @@
 import 'server-only';
 import { scanDocument } from './clamav';
+import { validateDocxArchive } from './zip-security';
 
 export const MAX_CV_BYTES=2*1024*1024;
 export type CvFormat='pdf'|'docx';
@@ -30,6 +31,7 @@ export async function extractScannedCv(file:File){
       text=typeof extracted.text==='string'?extracted.text:'';
     }finally{await (document as unknown as {destroy?:()=>Promise<void>}).destroy?.();}
   }else{
+    validateDocxArchive(bytes);
     const mammoth=await import('mammoth');
     const result=await mammoth.extractRawText({buffer:bytes});
     text=result.value;

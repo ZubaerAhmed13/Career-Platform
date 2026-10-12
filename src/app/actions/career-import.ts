@@ -15,6 +15,8 @@ export async function extractPastedCV(_previous:VaultActionState,form:FormData):
    .gte('created_at',new Date(Date.now()-60*60*1000).toISOString()).limit(30);
  if(recent.error)return {error:'Unable to check extraction limits.'};
  if((recent.data??[]).length>=30)return {error:'The text extraction limit has been reached for this hour.'};
+ const quota=await supabase.rpc('claim_career_ai_quota');
+ if(quota.error||!quota.data)return {error:'AI usage limit reached or quota service unavailable. Try again later.'};
  try{
   const proposed=await suggestFactsFromPastedCV(content);
   if(!proposed.length)return {message:'No clearly evidenced career facts were extracted. Confirmed records are unchanged.'};

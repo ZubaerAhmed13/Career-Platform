@@ -44,6 +44,8 @@ export async function sendCareerInterviewAnswer(_previous:VaultActionState,form:
  ]);
  if(history.error||records.error)return {error:'Unable to retrieve the selected career context.'};
  // User message is persisted first; if provider fails it remains truthfully marked as unanswered.
+ const quota=await supabase.rpc('claim_career_ai_quota');
+ if(quota.error||!quota.data)return {error:'AI usage limit reached or quota service unavailable. Try again later.'};
  const saved=await supabase.from('career_interview_messages').insert({
    user_id:user.id,session_id:sessionId,role:'user',content:answer,
  });
