@@ -6,6 +6,7 @@ import { reviewCareerSuggestion, addResumeTextForReview } from '@/app/actions/ca
 import { editSuggestion, mergeSuggestion } from '@/app/actions/career-review';
 import { extractPastedCV } from '@/app/actions/career-import';
 import {careerKinds,kindLabels,type CareerRecord,type CareerSuggestion} from '@/lib/career/schema';
+import {potentialCareerConflicts} from '@/lib/career/conflicts';
 
 
 function AIExtractForm(){
@@ -75,7 +76,7 @@ function Suggestion({suggestion,records}:{suggestion:CareerSuggestion;records:Ca
  const [state,action,pending]=useActionState(reviewCareerSuggestion,{});
  const router=useRouter();
  useEffect(()=>{if(state.message)router.refresh();},[state.message,router]);
- const conflict=records.filter(r=>r.kind===suggestion.kind&&r.title.toLowerCase()===suggestion.title.toLowerCase());
+ const conflict=potentialCareerConflicts(suggestion,records);
  return <article className="card stack">
   <div><p className="eyebrow">{suggestion.origin==='ai'?'AI suggestion':'User-provided import text'} · {suggestion.kind} · {suggestion.review_status}</p>
     <h3 style={{margin:'6px 0'}}>{suggestion.title}</h3></div>
@@ -84,7 +85,7 @@ function Suggestion({suggestion,records}:{suggestion:CareerSuggestion;records:Ca
     <strong>Supporting excerpt supplied to the system</strong><p style={{whiteSpace:'pre-wrap'}}>{suggestion.evidence_quote}</p>
   </div>}
   {conflict.length>0&&<p className="error" role="note">
-    A record with the same title and category already exists. Review the original before accepting anything new.
+    A potentially related record already exists. Review the dates, employer and original facts before saving a separate record or selectively merging.
   </p>}
   {suggestion.review_status==='pending'&&<form action={action} className="stack">
     <input type="hidden" name="id" value={suggestion.id}/>
