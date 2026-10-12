@@ -43,3 +43,6 @@ GitHub CI [#38303064913](https://github.com/ZubaerAhmed13/Career-Platform/action
 - [ ] Old evidence with invalid URL (if any) is reviewed before validating the HTTP(S) constraint.
 - [ ] Browser CV upload reaches the action with the 3 MB cap, rejects files exceeding 2 MiB, and uses a real internal clamd scanner and isolated parser.
 These tests are **not** covered by unit CI and remain blocked pending staging access.
+
+## Manually triggered staging CI
+Added `.github/workflows/staging-security.yml`. It is **not** invoked by a normal PR/push. Configure a protected GitHub Environment named `staging` and six encrypted environment secrets as described in `docs/STAGING_SECURITY_RUNBOOK.md`. Then manually run the action on the feature branch. This workflow **has not been executed** because authorized isolated staging credentials are not available. Its guard and the test code reject the known primary CareerOS Supabase URL.

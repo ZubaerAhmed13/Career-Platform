@@ -87,3 +87,6 @@ These replace previously permissive owner INSERT policies for provider-labeled d
 If you activate AI, configure the **server-only** `OPENAI_API_KEY` and `SUPABASE_SERVICE_ROLE_KEY` on the deployment host; never place them in the public repository, browser settings or `NEXT_PUBLIC_` variables. Without these, manual vault functionality remains available and AI paths must stay disabled. Secure deployment key access should be restricted to the application backend.
 
 Evidence URLs are constrained for new writes; pre-existing bad URLs, if any, require a migration-aware review before separately validating the NOT VALID constraint. Also verify the user-owned JSON export, browser session lifetime and password-recovery flows.
+
+## Dedicated staging CI
+See `docs/STAGING_SECURITY_RUNBOOK.md` for a manual, environment-protected GitHub Actions workflow. Never supply production credentials or enable mutation testing against the primary project.
