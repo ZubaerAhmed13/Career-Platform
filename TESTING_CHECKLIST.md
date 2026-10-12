@@ -28,3 +28,6 @@ Manual checks still required: apply migrations in a backed-up staging database, 
 
 ## Milestone 2 review refinements
 Migration 005 adds edit/merge RPCs with explicit confirmation and a stale-revision check. The review UI supports keep/reject, edit, save separately and selective merge. The pasted-text AI extraction route requires a server-side OpenAI key and consent; it has not been tested live. Relationship unlinking, interview completion, date filtering and career event summaries have been added; browser and staging database acceptance tests remain outstanding.
+
+## Milestone 2 verified code checks
+2026-10-12 [GitHub CI #38301391444](https://github.com/ZubaerAhmed13/Career-Platform/actions/runs/38301391444): dependency installation **PASS**, `npm run typecheck` **PASS**, `npm run lint` **PASS**, `npm test` **PASS (15 unit tests: 7 account + 8 career)**, `npm run build` **PASS**. Staging integration/E2E and live AI API requests **not run**. Subsequent documentation/test-only commits must be rechecked before merge.
