@@ -50,6 +50,9 @@ begin
  if not blocked then raise exception 'Browser forged assistant message'; end if;
 end $$;
 select set_config('request.jwt.claim.sub','bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',false);
+insert into public.career_records(id,user_id,kind,title)
+ values('22222222-2222-4222-8222-222222222222',
+ 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','project','Other user project');
 do $$
 declare total integer; blocked boolean:=false;
 begin
@@ -59,7 +62,7 @@ begin
  begin
   insert into public.career_links(user_id,from_record_id,to_record_id,relation)
   values('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
-  '11111111-1111-4111-8111-111111111111',
+  '22222222-2222-4222-8222-222222222222',
   '11111111-1111-4111-8111-111111111111','related');
  exception when others then blocked:=true; end;
  if not blocked then raise exception 'Cross-owner link inserted'; end if;
@@ -72,10 +75,15 @@ select public.persist_verified_ai_interview(
  'What kind of reports did you build?',
  '[{"kind":"skill","title":"SQL reporting","description":"Used SQL in an internship.","evidence_quote":"used SQL reporting"}]'::jsonb
 );
+select public.persist_verified_ai_cv_suggestions(
+ 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+ 'I used Excel to track inventory accurately at my employer.',
+ '[{"kind":"skill","title":"Excel","description":"Used Excel for inventory","evidence_quote":"used Excel to track inventory"}]'::jsonb
+);
 set role authenticated;
 select set_config('request.jwt.claim.role','authenticated',false);
 select set_config('request.jwt.claim.sub','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',false);
-do $$
+do $
 declare answers integer; proposed integer;
 begin
  select count(*) into answers from public.career_interview_messages
@@ -100,5 +108,30 @@ begin
  where user_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
  and source='import' and status='confirmed' and title='Approved SQL project';
  if count_confirmed<>1 then raise exception 'Approval failed'; end if;
+end $$;
+reset role;
+
+-- Assert non-interview AI proposals are stored as pending, never confirmed.
+do $$
+declare extracted_count integer;
+begin
+ select count(*) into extracted_count from public.career_suggestions
+ where user_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+ and origin='ai' and session_id is null
+ and title='Excel' and review_status='pending';
+ if extracted_count<>1 then raise exception 'Verified CV extraction did not persist pending data'; end if;
+end $$;
+-- Concurrent-safe, database-backed per-account quotas.
+select public.claim_career_ai_quota();
+select public.claim_career_ai_quota();
+select public.claim_career_ai_quota();
+select public.claim_career_ai_quota();
+do $$
+declare blocked boolean:=false;
+begin
+ begin
+  perform public.claim_career_ai_quota();
+ exception when others then blocked:=true; end;
+ if not blocked then raise exception 'AI request was not quota-limited'; end if;
 end $$;
 reset role;
