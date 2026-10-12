@@ -59,7 +59,7 @@ function MergeProposal({suggestion,records}:{suggestion:CareerSuggestion;records
     {candidates.map(c=><option key={c.id} value={c.id}>{c.title} {c.organization&&'· '+c.organization}</option>)}
    </select>
    {original&&<div className="page-grid">
-    <div className="muted-card"><strong>Existing confirmed value</strong><p>{original.title}</p><p style={{whiteSpace:'pre-wrap'}}>{original.description||'No description'}</p></div>
+    <div className="muted-card"><strong>Existing confirmed value</strong><p>{original.title}</p><p>{original.organization} · {original.started_on??'Start unknown'} to {original.is_current?'Present':original.ended_on??'End unknown'}</p><p style={{whiteSpace:'pre-wrap'}}>{original.description||'No description'}</p></div>
     <div className="muted-card"><strong>Proposed new value</strong><p>{suggestion.title}</p><p style={{whiteSpace:'pre-wrap'}}>{suggestion.description||'No description'}</p></div>
    </div>}
    <label><input type="checkbox" name="merge_title" value="yes"/> Replace title</label>
@@ -86,6 +86,9 @@ function Suggestion({suggestion,records}:{suggestion:CareerSuggestion;records:Ca
   </div>}
   {conflict.length>0&&<p className="error" role="note">
     A potentially related record already exists. Review the dates, employer and original facts before saving a separate record or selectively merging.
+   {conflict.map(record=><span key={record.id} style={{display:'block',marginTop:6}}>
+      Existing: {record.title} {record.organization&&'· '+record.organization} · {record.started_on??'Start unknown'} to {record.is_current?'Present':record.ended_on??'End unknown'}
+    </span>)}
   </p>}
   {suggestion.review_status==='pending'&&<form action={action} className="stack">
     <input type="hidden" name="id" value={suggestion.id}/>
