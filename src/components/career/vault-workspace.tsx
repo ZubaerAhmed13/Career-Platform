@@ -24,20 +24,32 @@ function DeleteButton({record}:{record:CareerRecord}){
   {state.message&&<p role="status" className="success">{state.message}</p>}
  </div>;
 }
-export function VaultWorkspace({records,linkedCount}:{records:CareerRecord[];linkedCount:number}){
+export function VaultWorkspace({records,linkedCount,targetRole}:{records:CareerRecord[];linkedCount:number;targetRole?:string}){
  const [adding,setAdding]=useState(false);
  const [editing,setEditing]=useState<string|null>(null);
  const [kind,setKind]=useState<string>('all');
  const [status,setStatus]=useState('all');
+ const [organization,setOrganization]=useState('all');
  const [search,setSearch]=useState('');
  const [fromDate,setFromDate]=useState('');
  const [toDate,setToDate]=useState('');
  const summary=vaultCounts(records);
+ const confirmed=records.filter(r=>r.status==='confirmed');
+ const organizations=[...new Set(records.map(r=>r.organization.trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+ const highlight=(kind:CareerKind,max=3)=>confirmed.filter(r=>r.kind===kind).slice(0,max);
+ const overview=[
+  {kind:'experience' as CareerKind,title:'Work experience',empty:'Add a real job or internship, including what you personally did.'},
+  {kind:'education' as CareerKind,title:'Education',empty:'Add a degree or relevant academic qualification when useful.'},
+  {kind:'skill' as CareerKind,title:'Skills',empty:'List skills you genuinely used and can explain.'},
+  {kind:'project' as CareerKind,title:'Projects',empty:'Connect an academic or professional project to relevant evidence.'},
+  {kind:'achievement' as CareerKind,title:'Achievements',empty:'Document meaningful results without inventing metrics.'},
+ ];
  const filtered=useMemo(()=>records.filter(r=>
     (kind==='all'||r.kind===kind)&&(status==='all'||r.status===status)&&
+    (organization==='all'||r.organization===organization)&&
     (!fromDate||!r.ended_on||r.ended_on>=fromDate)&&(!toDate||!r.started_on||r.started_on<=toDate)&&
     [r.title,r.organization,r.location,r.description].join(' ').toLocaleLowerCase().includes(search.toLocaleLowerCase())
- ),[records,kind,status,search,fromDate,toDate]);
+ ),[records,kind,status,organization,search,fromDate,toDate]);
  return <div className="stack" style={{gap:24}}>
   <header><p className="eyebrow">Verified information, in your control</p>
     <h1 className="heading">Career Intelligence Vault</h1>
@@ -55,6 +67,25 @@ export function VaultWorkspace({records,linkedCount}:{records:CareerRecord[];lin
    <div className="card"><p className="eyebrow">Needs confirmation</p><strong style={{fontSize:32}}>{summary.pending}</strong><p className="subtle">Unreviewed or conflicting records</p></div>
    <div className="card"><p className="eyebrow">Connections</p><strong style={{fontSize:32}}>{linkedCount}</strong><p className="subtle">Saved relationships and evidence links</p></div>
   </div>
+
+  <section className="stack" aria-labelledby="career-overview-heading">
+   <div>
+    <h2 id="career-overview-heading" style={{marginBottom:4}}>Your career at a glance</h2>
+    <p className="subtle">Only information you have saved and confirmed appears here. No career claims are invented.</p>
+    {targetRole&&<p><strong>Target role:</strong> {targetRole}</p>}
+   </div>
+   <div className="page-grid">
+    {overview.map(section=><section key={section.kind} className="card stack" style={{gap:10}}>
+     <h3 style={{margin:0}}>{section.title} ({summary.counts[section.kind]})</h3>
+     {highlight(section.kind).length===0?<p className="subtle">{section.empty}</p>:
+       highlight(section.kind).map(record=><div key={record.id}>
+        <strong>{record.title}</strong>
+        {record.organization&&<p className="subtle" style={{margin:'3px 0'}}>{record.organization}</p>}
+       </div>)}
+     {summary.counts[section.kind]>3&&<p className="subtle">More entries are listed below.</p>}
+    </section>)}
+   </div>
+  </section>
   {adding&&<RecordEditor onSaved={()=>setAdding(false)}/>}
   <section className="card stack"><h2 style={{margin:0}}>Explore your career information</h2>
    <div className="page-grid">
@@ -63,6 +94,11 @@ export function VaultWorkspace({records,linkedCount}:{records:CareerRecord[];lin
     <div className="form-row"><label className="label" htmlFor="vault-kind">Category</label>
      <select className="field" id="vault-kind" value={kind} onChange={e=>setKind(e.target.value)}><option value="all">All categories</option>
       {careerKinds.map(k=><option key={k} value={k}>{kindLabels[k]} ({summary.counts[k]})</option>)}</select></div>
+    <div className="form-row"><label className="label" htmlFor="vault-organization">Employer or institution</label>
+     <select className="field" id="vault-organization" value={organization} onChange={e=>setOrganization(e.target.value)}>
+      <option value="all">All organizations</option>
+      {organizations.map(name=><option key={name} value={name}>{name}</option>)}
+     </select></div>
     <div className="form-row"><label className="label" htmlFor="vault-status">Review status</label>
      <select className="field" id="vault-status" value={status} onChange={e=>setStatus(e.target.value)}>
       <option value="all">All statuses</option><option value="confirmed">Confirmed</option><option value="unreviewed">Unreviewed</option><option value="conflict">Conflict</option>
