@@ -1,5 +1,6 @@
 import 'server-only';
 import { createConnection } from 'node:net';
+import { isCleanClamAVVerdict } from './clamav-verdict';
 
 // Never parse files from users without an actual reachable malware scanner.
 // CLAMAV_HOST must point to a trusted *internal* scanner; do not expose it
@@ -49,7 +50,7 @@ export async function scanDocument(data: Buffer): Promise<void> {
     });
     socket.once('end',()=>end(undefined,buffer));
   });
-  if(!/(?:^|\n|^stream: )stream: OK\b|stream: OK\b/.test(result) || result.includes('FOUND')) {
+  if(!isCleanClamAVVerdict(result)) {
     throw new ScanFailed('File failed antivirus scanning or scanner result was inconclusive.');
   }
 }
