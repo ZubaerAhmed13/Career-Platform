@@ -4,10 +4,10 @@ import type { CareerRecord, CareerSuggestion } from './schema';
 function tokens(text:string){
  return new Set((text.normalize('NFKC').toLocaleLowerCase().match(/[\p{L}\p{N}]+/gu)??[]).filter(x=>x.length>2));
 }
-export function potentialCareerConflicts(
+export function potentialCareerConflicts<T extends Pick<CareerRecord,'id'|'kind'|'title'|'organization'>>(
  suggestion:Pick<CareerSuggestion,'kind'|'title'|'description'>,
- records:Pick<CareerRecord,'id'|'kind'|'title'|'organization'>[],
-){
+ records:T[],
+):T[]{
  const expected=tokens(suggestion.title);
  const description=suggestion.description.normalize('NFKC').toLocaleLowerCase();
  return records.filter(record=>{
