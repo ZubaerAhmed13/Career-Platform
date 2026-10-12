@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { saveCareerEvidence, attachCareerEvidence, linkCareerRecords, removeCareerEvidence, removeCareerLink, detachCareerEvidence, type VaultActionState } from '@/app/actions/career';
 import type { CareerRecord, CareerEvidence, CareerEvidenceLink, CareerLink } from '@/lib/career/schema';
+import { safeEvidenceUrl } from '@/lib/career/urls';
 
 type VaultAction=(previous:VaultActionState, form:FormData)=>Promise<VaultActionState>;
 function ActionForm({action,children,submitLabel}:{action:VaultAction;children:React.ReactNode;submitLabel:string}){
@@ -58,7 +59,7 @@ export function EvidenceWorkspace({records,evidence,links,evidenceLinks}:{
    evidence.map(e=><div className="card stack" key={e.id}>
      <h3 style={{margin:0}}>{e.title}</h3><p className="subtle" style={{margin:0}}>{e.evidence_type}</p>
      {e.excerpt&&<p style={{whiteSpace:'pre-wrap'}}>{e.excerpt}</p>}
-     {e.source_url&&<a href={e.source_url} target="_blank" rel="noreferrer noopener" style={{textDecoration:'underline'}}>Open source</a>}
+     {safeEvidenceUrl(e.source_url)&&<a href={safeEvidenceUrl(e.source_url)??undefined} target="_blank" rel="noreferrer noopener" style={{textDecoration:'underline'}}>Open source</a>}
      <p className="subtle">Attached to {evidenceLinks.filter(l=>l.evidence_id===e.id).length} record(s)</p>
      <ActionForm action={removeCareerEvidence} submitLabel="Permanently delete evidence">
       <input type="hidden" name="id" value={e.id}/>

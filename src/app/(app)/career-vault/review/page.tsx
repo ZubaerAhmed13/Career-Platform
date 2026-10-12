@@ -1,9 +1,10 @@
 import { loadCareerVault } from '@/lib/career/server';
 import { scanningConfigured } from '@/lib/career/clamav';
+import { aiPersistenceConfigured } from '@/lib/career/ai-admin';
 import { CvUploadForm } from '@/components/career/cv-upload-form';
 import { ReviewWorkspace } from '@/components/career/review-workspace';
 export const dynamic='force-dynamic';
 export default async function ReviewPage(){
  const {records,suggestions}=await loadCareerVault();
- return <><ReviewWorkspace suggestions={suggestions} records={records} aiConfigured={Boolean(process.env.OPENAI_API_KEY)}/><section style={{marginTop:28}}><CvUploadForm scannerReady={scanningConfigured()}/></section></>;
+ return <><ReviewWorkspace suggestions={suggestions} records={records} aiConfigured={Boolean(process.env.OPENAI_API_KEY)&&aiPersistenceConfigured()}/><section style={{marginTop:28}}><CvUploadForm scannerReady={scanningConfigured()}/></section></>;
 }
