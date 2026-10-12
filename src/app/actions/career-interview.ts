@@ -6,6 +6,7 @@ import { requireAccount } from '@/lib/account';
 import { getInterviewResponse, AIUnavailableError } from '@/lib/career/ai';
 import { aiPersistenceConfigured, persistVerifiedAI } from '@/lib/career/ai-admin';
 import { interviewTopics } from '@/lib/career/prompts';
+import { selectInterviewContext } from '@/lib/career/context';
 import type { VaultActionState } from './career';
 
 const uuid=z.uuid();
@@ -41,7 +42,7 @@ export async function sendCareerInterviewAnswer(_previous:VaultActionState,form:
    supabase.from('career_interview_messages').select('role,content')
     .eq('user_id',user.id).eq('session_id',sessionId).order('created_at',{ascending:false}).limit(10),
    supabase.from('career_records').select('kind,title,description')
-    .eq('user_id',user.id).eq('status','confirmed').order('updated_at',{ascending:false}).limit(8),
+    .eq('user_id',user.id).eq('status','confirmed').order('updated_at',{ascending:false}).limit(40),
  ]);
  if(history.error||records.error)return {error:'Unable to retrieve the selected career context.'};
  // User message is persisted first; if provider fails it remains truthfully marked as unanswered.
@@ -55,7 +56,7 @@ export async function sendCareerInterviewAnswer(_previous:VaultActionState,form:
    const result=await getInterviewResponse({
      topic:topic.data,answer,
      history:(history.data??[]).reverse().map(m=>({role:m.role as 'user'|'assistant',content:m.content})),
-     context:(records.data??[]),
+     context:selectInterviewContext((records.data??[]),topic.data),
    });
    try {
      await persistVerifiedAI({
