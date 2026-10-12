@@ -1,12 +1,8 @@
 import 'server-only';
-import { z } from 'zod';
-import { careerKind, suggestionSchema } from './schema';
+import { careerKind } from './schema';
+import { validateInterviewOutput } from './ai-validation';
 import { interviewInstructions, topicPrompts, type InterviewTopic } from './prompts';
 
-const responseSchema=z.object({
- reply:z.string().trim().min(1).max(1800),
- suggestions:z.array(suggestionSchema).max(2),
-});
 const formatSchema={
  type:'object',additionalProperties:false,
  properties:{
@@ -61,10 +57,6 @@ export async function getInterviewResponse({
  if(!raw)throw new AIUnavailableError('AI did not return usable structured text.');
  let parsed:unknown;
  try{parsed=JSON.parse(raw);}catch{throw new AIUnavailableError('AI returned invalid JSON.');}
- const checked=responseSchema.safeParse(parsed);
- if(!checked.success)throw new AIUnavailableError('AI response failed career-fact validation.');
- // Proposals must quote what the user actually said in their latest answer.
- return {reply:checked.data.reply,
-   suggestions:checked.data.suggestions.filter(s=>s.evidence_quote.length>=6&&answer.includes(s.evidence_quote)),
- };
+ return validateInterviewOutput(parsed,answer);
 }
+
