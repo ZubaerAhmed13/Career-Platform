@@ -17,3 +17,5 @@ Each stage requires reviewed migrations, tests, truthful feature status and pres
 
 ## Milestone 2 implementation note
 Career Vault code, evidence model, unreviewed text intake and a provider-backed interview path have been submitted in a feature branch. Full Milestone 2 acceptance remains conditional on applying and testing the database migrations in staging and completing secure PDF/DOCX import and conflict resolution. Do not start Resume Studio implementation until the verified data ownership and relationship model is stable.
+
+Milestone 2 conflict-review SQL uses migration 005. The next Resume Studio stage remains blocked until staging migrations, RLS verification and source-of-truth stability are checked.

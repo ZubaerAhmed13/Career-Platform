@@ -11,3 +11,5 @@
 - `202610120004_career_suggestion_review.sql`: drops direct suggestion update policy, introduces authenticated atomic approval/rejection functions.
 
 Every table has its own RLS policies scoped to `auth.uid()`. Composite foreign keys on `(id,user_id)` enforce cross-owner isolation even when malicious requests swap referenced UUIDs. Revision trigger handles optimistic edits; record triggers log create/update/delete for owner-only audit reads. Relationship rows cascade when an owned record is deleted, leaving unrelated records and standalone evidence untouched. Interview suggestions remain pending until approved. SQL is not claimed deployed: review actual migration history, backup and credentials before applying anything.
+
+- `202610120005_suggestion_conflicts.sql`: authenticated, transactional user review functions to edit pending suggestions and merge selected title/description fields with revision checks.

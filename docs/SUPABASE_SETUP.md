@@ -65,3 +65,13 @@ The default `npm test` suite is unit-only. GitHub CI uses dummy public configura
 Deploy the application to a hosting service supporting Next.js server actions and set its 3 public environment variables. Update Supabase Auth Site URL and redirect allowlist for that HTTPS domain; apply migration and recheck authorization in staging. Before public launch, complete rate limiting, email deliverability, privacy notices, data export/deletion, document scanning, live integration/E2E tests, monitoring, dependency security review, localization review and a GDPR legal/privacy assessment.
 
 **Current connection status:** Supabase provider management access is not connected in this ChatGPT environment; the source repository alone does not execute SQL on the hosted database.
+
+## Milestone 2 additional migrations
+After 001 and 002, review and apply in ascending order:
+- `supabase/migrations/202610120003_career_vault.sql`
+- `supabase/migrations/202610120004_career_suggestion_review.sql`
+- `supabase/migrations/202610120005_suggestion_conflicts.sql`
+
+Before applying, confirm the target project, staging/production environment, migration history, backups, and table names. The publishable key is not permission to run SQL. Use an authorized Supabase project connection or the project's SQL Editor. Never assume these migrations have been applied just because their files exist in GitHub.
+
+**Postmigration checks:** inspect RLS on every new private table, verify composite owner constraints, use two separate staging users, run `npm run test:integration` with explicit staging credentials, verify suggestion approval/merge RPC ownership and session privacy, then manually test account persistence and email recovery. Do not use real applicants' records as test data.

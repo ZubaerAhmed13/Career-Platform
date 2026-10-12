@@ -3,13 +3,13 @@
 | Feature | State | Verification |
 |---|---|---|
 | Original account foundation | Implemented / previously CI-tested | Milestone 1 merged, preserved |
-| Career Vault data migrations 003–004 | Implemented SQL / Not deployed | Supabase access and migration preflight needed |
+| Career Vault data migrations 003–005 | Implemented SQL / Not deployed | Supabase access and migration preflight needed |
 | Manual career records CRUD (8 categories) | Implemented code | CI pending; live database test blocked |
 | Optimistic concurrency/version checks | Implemented code | Staging multi-device test pending |
 | Search, filters, record overview | Implemented code | Browser UX verification pending |
 | Evidence notes/URLs and record links | Implemented code | DB composite FK test blocked |
-| Confirmed/unreviewed/rejected information | Implemented code | Transactional RPC staging test blocked |
-| Pasted CV text review | Implemented code | No automatic parsing; live test pending |
+| Confirmed/unreviewed/rejected information + field-level merge | Implemented code | RPC migrations 004–005, staging security test blocked |
+| Pasted CV text review + optional AI extraction | Implemented code | Live provider not configured; PDF/DOCX unsupported |
 | Secure PDF/DOCX uploads and AI extraction | Not started / Blocked | Scanning, parsing and private storage pipeline absent |
 | Optional AI interviewer | Implemented provider-backed code | OPENAI_API_KEY absent, real integration blocked |
 | AI suggested fact approval | Implemented code | SQL RPC staging test required |

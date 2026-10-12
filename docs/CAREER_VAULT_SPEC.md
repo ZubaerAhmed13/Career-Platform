@@ -18,3 +18,6 @@ PDF/DOCX scanning, document uploads, OCR, automated extraction/deduplication wit
 
 ## Integrity
 Manual saves are confirmed facts owned by the authenticated user; unreviewed data remains separate. Import/AI suggestions never overwrite a confirmed record. Linked IDs use composite FK constraints with the same user_id; RLS restricts all exposed tables. Record revision requires matching version when editing, rather than silently overwriting a concurrent change. Deleting a record cascades only its associations, preserving unrelated records and standalone evidence.
+
+## Conflict review refinements
+Reviewers can correct pending suggested title/description/category or explicitly choose an existing confirmed record and which fields to merge. The merge RPC locks both proposal and target record, checks account ownership, matching category and expected revision, then records the audited update in one database transaction. Keeping the original record or rejecting the proposal remains available; unrelated fields are not modified.

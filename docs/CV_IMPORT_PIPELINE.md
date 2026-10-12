@@ -5,3 +5,6 @@
 **Not implemented:** PDF/DOCX uploads, antivirus/document scanning, OCR, field-level extraction, duplicate/conflict reconciliation, resume metadata extraction and approved file-download links. These are blocked until secure private object ingest, scanning, per-owner policies, file limits, MIME and magic-byte checks, sandboxed parsers, storage retention and external provider credentials are ready.
 
 **Future review pipeline:** upload to private quarantine → scan → extract text → structured schema parsing → match candidate employers/titles/dates to existing verified records → show per-field evidence/conflicts → keep existing / accept new / merge selected fields / save separately / cancel → commit only explicitly approved changes in a transaction. Uploaded originals remain unchanged and user-owned. Never publicly serve uploaded CV documents by default.
+
+## Optional AI text extraction implementation
+When `OPENAI_API_KEY` is configured, the review page also offers a user-consented text-only AI extraction. It uses a specialized prompt with schema validation and source-quote matching, then displays only pending proposals. Users can edit proposals, reject them, create new facts, or merge selected fields after checking the original. No original confirmed record changes merely because text was pasted or AI parsed it.
