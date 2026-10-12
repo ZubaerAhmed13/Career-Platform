@@ -14,7 +14,8 @@ function config(){
  if(process.env.SUPABASE_TEST_ALLOW_MUTATIONS!=='I_UNDERSTAND_STAGING_ONLY')
   throw new Error('Staging-only mutation acknowledgment missing.');
  const url=process.env.SUPABASE_TEST_PROJECT_URL!;
- if(!url.startsWith('https://')||!url.endsWith('.supabase.co'))throw new Error('Use a dedicated Supabase staging URL');
+ if(new URL(url).host === 'jtitfwzpfbyfsdpxxrbj.supabase.co')throw new Error('Refusing mutation tests against the primary CareerOS Supabase project.');
+  if(!url.startsWith('https://')||!url.endsWith('.supabase.co'))throw new Error('Use a dedicated Supabase staging URL');
  if(process.env.SUPABASE_TEST_USER_A_EMAIL===process.env.SUPABASE_TEST_USER_B_EMAIL)
   throw new Error('Two distinct test accounts are required.');
  return {url,key:process.env.SUPABASE_TEST_PUBLISHABLE_KEY!,

@@ -31,6 +31,7 @@ function stagingConfiguration() {
     throw new Error('Supply two distinct staging test users.');
   }
   const url = env.SUPABASE_TEST_PROJECT_URL!;
+  if (new URL(url).host === 'jtitfwzpfbyfsdpxxrbj.supabase.co') throw new Error('Refusing mutation tests against the primary CareerOS Supabase project.');
   if (!url.startsWith('https://') || !url.endsWith('.supabase.co')) {
     throw new Error('Expected a dedicated Supabase staging project URL.');
   }

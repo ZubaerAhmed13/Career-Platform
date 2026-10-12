@@ -1,0 +1,42 @@
+name: Career Vault Staging Security
+
+# Never runs from push/PR. Requires manual initiation and approval of a
+# protected GitHub Environment named "staging".
+on:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    name: Two-account RLS / Provider Spoofing / SQL Transactions
+    runs-on: ubuntu-latest
+    environment: staging
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    env:
+      SUPABASE_TEST_PROJECT_URL: ${{ secrets.SUPABASE_TEST_PROJECT_URL }}
+      SUPABASE_TEST_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_TEST_PUBLISHABLE_KEY }}
+      SUPABASE_TEST_USER_A_EMAIL: ${{ secrets.SUPABASE_TEST_USER_A_EMAIL }}
+      SUPABASE_TEST_USER_A_PASSWORD: ${{ secrets.SUPABASE_TEST_USER_A_PASSWORD }}
+      SUPABASE_TEST_USER_B_EMAIL: ${{ secrets.SUPABASE_TEST_USER_B_EMAIL }}
+      SUPABASE_TEST_USER_B_PASSWORD: ${{ secrets.SUPABASE_TEST_USER_B_PASSWORD }}
+      SUPABASE_TEST_ALLOW_MUTATIONS: I_UNDERSTAND_STAGING_ONLY
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Refuse missing or primary production credentials
+        run: |
+          if [ -z "$SUPABASE_TEST_PROJECT_URL" ] || [ -z "$SUPABASE_TEST_PUBLISHABLE_KEY" ]; then
+            echo "Dedicated staging credentials must be configured in the protected staging environment."
+            exit 1
+          fi
+          case "$SUPABASE_TEST_PROJECT_URL" in
+            *jtitfwzpfbyfsdpxxrbj.supabase.co*)
+              echo "Refusing mutation tests against the known primary CareerOS project."
+              exit 1
+              ;;
+          esac
+      - run: npm install --no-audit --no-fund
+      - run: npm run test:integration
