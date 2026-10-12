@@ -19,3 +19,41 @@ jobs:
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: dummy-build-only-publishable-key
+
+  postgres-migrations:
+    name: PostgreSQL migration and RLS smoke tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: temporary-ci-only
+          POSTGRES_DB: careeros_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d careeros_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 6
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: temporary-ci-only
+      PGDATABASE: careeros_test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client if absent
+        run: command -v psql || (sudo apt-get update && sudo apt-get install -y postgresql-client)
+      - name: Initialize auth/storage SQL compatibility fixture
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/test/compat.sql
+      - name: Execute ALL numbered migrations in order
+        run: |
+          for migration in supabase/migrations/*.sql; do
+            echo "Checking $migration"
+            psql -X -v ON_ERROR_STOP=1 -f "$migration"
+          done
+      - name: Assert RLS, AI provenance, and approval
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/test/assertions.sql
