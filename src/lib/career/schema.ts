@@ -27,7 +27,7 @@ export const evidenceSchema = z.object({
  title:z.string().trim().min(1).max(180),
  evidence_type:z.enum(['note','url','document_reference']),
  excerpt:z.string().trim().max(4000).default(''),
- source_url:z.union([z.literal(''),z.url().max(1500)]).default(''),
+ source_url:z.union([z.literal(''),z.url().max(1500).refine(value=>/^https?:\/\//i.test(value),'Only HTTP(S) URLs are supported')]).default(''),
 });
 export const suggestionSchema = z.object({
  kind:careerKind,
