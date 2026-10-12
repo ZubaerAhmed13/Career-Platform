@@ -1,9 +1,22 @@
-# Testing checklist (record real execution only)
+# Actual verification and outstanding acceptance checks
 
-2026-10-12 first GitHub CI run #38294023211: dependency install PASSED; typecheck FAILED on implicit-any Supabase SSR cookie callbacks; lint/test/build were SKIPPED. The callbacks were subsequently typed and pushed for a new CI validation; **do not claim these tests passed until a new workflow run confirms it**.
+## Completed GitHub validation
 
-**Required staging checks:** create two accounts; verify signup/confirmation/login/reset/logout; confirm private pages redirect without session; save profile, reload and sign back in; verify User A cannot SELECT/UPDATE/INSERT as B; verify no anonymous profile reads; check storage bucket private and upload disallowed; test mobile keyboard navigation, light/dark mode, invalid inputs and expired tokens; confirm frontend bundles contain no private credentials. Record dates, run URLs and results when executed.
+- 2026-10-12 CI run #38294023211: dependency installation passed; TypeScript failed on SSR cookie callback types; later stages skipped.
+- 2026-10-12 CI run #38294969904: dependency install and TypeScript passed; lint failed on an internal anchor; tests/build skipped.
+- 2026-10-12 CI run #38295911272: install, TypeScript, lint, 3 unit tests, production build passed.
+- 2026-10-12 CI run #38297687890: **install, TypeScript, lint, 7 unit tests, production build all passed**. [Run link](https://github.com/ZubaerAhmed13/Career-Platform/actions/runs/38297687890)
 
-CI uses a dummy publishable key because compilation does not require live Supabase credentials. Live authentication/integration is **not tested by CI**.
+Tests verify form schema, profile completion, owner-ID stripping and local redirect/origin safety. CI uses a placeholder publishable key and does **not** call a live Supabase database. These results do not prove functioning signup, sessions or DB isolation.
 
-2026-10-12 run #38294969904: dependency installation and typecheck PASSED; lint FAILED on a raw internal <a> element in the profile form; tests/build SKIPPED. Replaced with Next.js Link, pending new CI results.
+## Required staging-only tests (not executed)
+
+- [ ] Apply SQL migrations 001 and 002 in the selected Supabase project, verify tables, triggers, policies and private storage bucket.
+- [ ] Register two **distinct** disposable users, verify email delivery and confirmation, login, session persistence, recovery and logout.
+- [ ] Run `npm run test:integration` against a **dedicated staging project** using the variables in `docs/SUPABASE_SETUP.md`. No production user accounts.
+- [ ] Verify User A/B isolation for profile reads/writes, anonymous access denial and disabled file metadata insertion.
+- [ ] Inspect deployed client bundles for server credentials, test expired sessions and callback redirects.
+- [ ] Keyboard-accessibility and mobile smoke tests at 320px, phone, tablet, desktop; check both themes.
+- [ ] Configure the deployed public origin, redirect allowlist, verified email provider, monitoring and privacy rights flows.
+
+**Blocking dependencies:** Connected, authorized Supabase management access is not available in this session; neither migration execution nor live user authentication has been verified. A deployment target/domain also has not been specified.
