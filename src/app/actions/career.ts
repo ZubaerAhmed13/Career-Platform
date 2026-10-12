@@ -129,3 +129,18 @@ export async function addResumeTextForReview(_prev:VaultActionState,form:FormDat
  if(error)return {error:'Unable to save your unreviewed text.'};
  refreshVault();return {message:'Text saved as an unreviewed suggestion. It has not changed confirmed records.'};
 }
+
+export async function removeCareerLink(_prev:VaultActionState,form:FormData):Promise<VaultActionState>{
+ const id=raw(form,'id');if(!uuid.safeParse(id).success)return invalid();
+ const {user,supabase}=await requireAccount();
+ const {data,error}=await supabase.from('career_links').delete().eq('id',id).eq('user_id',user.id).select('id').maybeSingle();
+ if(error||!data)return {error:'Unable to remove that relationship.'};
+ refreshVault();return {message:'Relationship removed; career records are unchanged.'};
+}
+export async function detachCareerEvidence(_prev:VaultActionState,form:FormData):Promise<VaultActionState>{
+ const id=raw(form,'id');if(!uuid.safeParse(id).success)return invalid();
+ const {user,supabase}=await requireAccount();
+ const {data,error}=await supabase.from('career_evidence_links').delete().eq('id',id).eq('user_id',user.id).select('id').maybeSingle();
+ if(error||!data)return {error:'Unable to detach that evidence.'};
+ refreshVault();return {message:'Evidence disconnected. The original evidence remains saved.'};
+}

@@ -2,7 +2,7 @@
 import { useActionState, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { startCareerInterview, sendCareerInterviewAnswer } from '@/app/actions/career-interview';
+import { startCareerInterview, sendCareerInterviewAnswer, completeCareerInterview } from '@/app/actions/career-interview';
 import { interviewTopics, type InterviewTopic } from '@/lib/career/prompts';
 import type {CareerMessage,CareerSession} from '@/lib/career/schema';
 
@@ -15,6 +15,16 @@ function StartInterview(){
      placeholder="e.g. My supply chain experience" defaultValue="Career exploration"/>
    <button className="button" disabled={pending}>{pending?'Creating…':'Start session'}</button>
    {state.error&&<p role="alert" className="error">{state.error}</p>}
+ </form>;
+}
+function FinishInterview({id}:{id:string}){
+ const [state,action,pending]=useActionState(completeCareerInterview,{});
+ const router=useRouter();
+ useEffect(()=>{if(state.message)router.refresh();},[state.message,router]);
+ return <form action={action} className="stack"><input type="hidden" name="session_id" value={id}/>
+  <button className="button secondary" disabled={pending}>Finish this interview</button>
+  {state.error&&<p role="alert" className="error">{state.error}</p>}
+  {state.message&&<p role="status" className="success">{state.message}</p>}
  </form>;
 }
 function InterviewChat({session,messages}:{session:CareerSession;messages:CareerMessage[]}){
@@ -30,6 +40,7 @@ function InterviewChat({session,messages}:{session:CareerSession;messages:Career
      <p className="eyebrow">{m.role==='assistant'?'AI response':'Your answer'}</p>
      <p style={{whiteSpace:'pre-wrap'}}>{m.content}</p>
    </article>)}</div>
+  {session.status==='active'&&<FinishInterview id={session.id}/>}
   {session.status==='active'&&<form action={action} className="card stack">
    <input type="hidden" name="session_id" value={session.id}/>
    <label className="label" htmlFor="topic">Focus for the next question</label>

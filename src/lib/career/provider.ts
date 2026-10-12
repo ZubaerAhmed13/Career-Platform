@@ -18,7 +18,7 @@ export async function requestStructuredCareerAI({
  const request={
   model,store:false,max_output_tokens:maxOutputTokens,
   instructions,
-  input:input.map(item=>({role:item.role,content:[{type:'input_text',text:item.content.slice(0,5000)}]})),
+  input:input.map(item=>({role:item.role,content:item.content.slice(0,5000)})),
   text:{format:{type:'json_schema',name,strict:true,schema}},
  };
  let response:Response;

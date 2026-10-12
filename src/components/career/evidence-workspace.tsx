@@ -2,7 +2,7 @@
 import { useActionState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { saveCareerEvidence, attachCareerEvidence, linkCareerRecords, removeCareerEvidence, type VaultActionState } from '@/app/actions/career';
+import { saveCareerEvidence, attachCareerEvidence, linkCareerRecords, removeCareerEvidence, removeCareerLink, detachCareerEvidence, type VaultActionState } from '@/app/actions/career';
 import type { CareerRecord, CareerEvidence, CareerEvidenceLink, CareerLink } from '@/lib/career/schema';
 
 type VaultAction=(previous:VaultActionState, form:FormData)=>Promise<VaultActionState>;
@@ -68,9 +68,16 @@ export function EvidenceWorkspace({records,evidence,links,evidenceLinks}:{
   </section>
   <section className="card stack"><h2>Knowledge connections ({links.length})</h2>
    {!links.length?<div className="muted-card">No connections yet. Link a project to a skill or an experience to an achievement.</div>:
-   links.map(link=><p key={link.id}>
-    {records.find(r=>r.id===link.from_record_id)?.title??'Deleted record'} → <strong>{link.relation.replaceAll('_',' ')}</strong> → {records.find(r=>r.id===link.to_record_id)?.title??'Deleted record'}
-   </p>)}
+   links.map(link=><div className="card stack" key={link.id}>
+    <p>{records.find(r=>r.id===link.from_record_id)?.title??'Deleted record'} → <strong>{link.relation.replaceAll('_',' ')}</strong> → {records.find(r=>r.id===link.to_record_id)?.title??'Deleted record'}</p>
+    <ActionForm action={removeCareerLink} submitLabel="Remove relationship"><input name="id" type="hidden" value={link.id}/></ActionForm>
+   </div>)}
+  </section>
+  <section className="card stack"><h2>Evidence attachments ({evidenceLinks.length})</h2>
+   {!evidenceLinks.length?<p className="subtle">No attachments yet.</p>:evidenceLinks.map(link=><div className="card stack" key={link.id}>
+    <p>{evidence.find(item=>item.id===link.evidence_id)?.title??'Deleted evidence'} → {records.find(item=>item.id===link.record_id)?.title??'Deleted career record'}</p>
+    <ActionForm action={detachCareerEvidence} submitLabel="Detach evidence"><input type="hidden" name="id" value={link.id}/></ActionForm>
+   </div>)}
   </section>
  </div>;
 }

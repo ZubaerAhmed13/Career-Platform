@@ -74,3 +74,14 @@ export async function sendCareerInterviewAnswer(_previous:VaultActionState,form:
    return {error:message+' Your original answer was saved, and no artificial reply was created.'};
  }
 }
+
+export async function completeCareerInterview(_previous:VaultActionState,form:FormData):Promise<VaultActionState>{
+ const id=String(form.get('session_id')??'');
+ if(!uuid.safeParse(id).success)return {error:'Invalid interview session.'};
+ const {user,supabase}=await requireAccount();
+ const {data,error}=await supabase.from('career_interview_sessions')
+   .update({status:'completed',updated_at:new Date().toISOString()})
+   .eq('id',id).eq('user_id',user.id).select('id').maybeSingle();
+ if(error||!data)return {error:'Could not finish the interview.'};
+ revalidatePath('/career-vault/interview');return {message:'Interview completed. Your conversation remains saved.'};
+}
