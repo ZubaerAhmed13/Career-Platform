@@ -4,8 +4,25 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { reviewCareerSuggestion, addResumeTextForReview } from '@/app/actions/career';
 import { editSuggestion, mergeSuggestion } from '@/app/actions/career-review';
+import { extractPastedCV } from '@/app/actions/career-import';
 import {careerKinds,kindLabels,type CareerRecord,type CareerSuggestion} from '@/lib/career/schema';
 
+
+function AIExtractForm(){
+ const [state,action,pending]=useActionState(extractPastedCV,{});
+ const router=useRouter();
+ useEffect(()=>{if(state.message)router.refresh();},[state.message,router]);
+ return <form action={action} className="card stack">
+  <h2>Extract reviewable facts from pasted text with AI</h2>
+  <p className="subtle">This sends your supplied text to the configured third-party AI provider. Only proposals with direct supporting excerpts enter your private review queue; nothing is approved automatically.</p>
+  <label htmlFor="ai-cv-text" className="label">Paste existing CV text (20–4,000 characters)</label>
+  <textarea className="field" id="ai-cv-text" name="resume_text" minLength={20} maxLength={4000} rows={6} required/>
+  <label><input type="checkbox" name="consent" value="yes" required/> I consent to sending this text to the configured AI provider for structured extraction.</label>
+  <button className="button" disabled={pending}>{pending?'Extracting…':'Extract proposed facts for my review'}</button>
+  {state.error&&<p role="alert" className="error">{state.error}</p>}
+  {state.message&&<p role="status" className="success">{state.message}</p>}
+ </form>;
+}
 
 function EditProposal({suggestion}:{suggestion:CareerSuggestion}){
  const [state,action,pending]=useActionState(editSuggestion,{});
@@ -87,7 +104,7 @@ function Suggestion({suggestion,records}:{suggestion:CareerSuggestion;records:Ca
   </div>}
  </article>;
 }
-export function ReviewWorkspace({suggestions,records}:{suggestions:CareerSuggestion[];records:CareerRecord[]}){
+export function ReviewWorkspace({suggestions,records,aiConfigured}:{suggestions:CareerSuggestion[];records:CareerRecord[];aiConfigured:boolean}){
  const [state,action,pending]=useActionState(addResumeTextForReview,{});
  const router=useRouter();
  useEffect(()=>{if(state.message)router.refresh();},[state.message,router]);
@@ -111,6 +128,7 @@ export function ReviewWorkspace({suggestions,records}:{suggestions:CareerSuggest
       {state.message&&<p role="status" className="success">{state.message}</p>}
     </form>
   </section>
+  {aiConfigured?<AIExtractForm/>:<p className="muted-card" role="status">Automatic AI text extraction is unavailable until a server-side provider is configured. Manual records and text review still work.</p>}
   <section className="stack"><h2>Pending suggestions ({pendingSuggestions.length})</h2>
    {!pendingSuggestions.length?<div className="muted-card">Nothing needs approval yet. Your confirmed records are unchanged.</div>:
    pendingSuggestions.map(s=><Suggestion key={s.id} suggestion={s} records={records}/>)}
