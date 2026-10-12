@@ -3,7 +3,7 @@ import { useActionState, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { reviewCareerSuggestion, addResumeTextForReview } from '@/app/actions/career';
-import { editSuggestion, mergeSuggestion } from '@/app/actions/career-review';
+import { editSuggestion, mergeSuggestion, deleteCareerSuggestion } from '@/app/actions/career-review';
 import { extractPastedCV } from '@/app/actions/career-import';
 import {careerKinds,kindLabels,type CareerRecord,type CareerSuggestion} from '@/lib/career/schema';
 import {potentialCareerConflicts} from '@/lib/career/conflicts';
@@ -72,6 +72,21 @@ function MergeProposal({suggestion,records}:{suggestion:CareerSuggestion;records
  </form>;
 }
 
+
+function RemoveProposal({id}:{id:string}){
+ const [state,action,pending]=useActionState(deleteCareerSuggestion,{});
+ const router=useRouter();
+ useEffect(()=>{if(state.message)router.refresh();},[state.message,router]);
+ return <details><summary style={{cursor:'pointer',padding:10,fontWeight:600}}>Remove this suggestion</summary>
+  <form action={action} className="stack">
+   <input type="hidden" name="id" value={id}/>
+   <label><input type="checkbox" name="confirm" value="yes" required/> Permanently remove this suggestion. My confirmed records will stay unchanged.</label>
+   <button className="button secondary" disabled={pending}>Remove suggestion</button>
+   {state.error&&<p role="alert" className="error">{state.error}</p>}
+   {state.message&&<p role="status" className="success">{state.message}</p>}
+  </form></details>;
+}
+
 function Suggestion({suggestion,records}:{suggestion:CareerSuggestion;records:CareerRecord[]}){
  const [state,action,pending]=useActionState(reviewCareerSuggestion,{});
  const router=useRouter();
@@ -106,6 +121,7 @@ function Suggestion({suggestion,records}:{suggestion:CareerSuggestion;records:Ca
     <details><summary style={{cursor:'pointer',padding:10,fontWeight:600}}>Merge selected fields into a confirmed record</summary>
       <MergeProposal suggestion={suggestion} records={records}/></details>
   </div>}
+  <RemoveProposal id={suggestion.id}/>
  </article>;
 }
 export function ReviewWorkspace({suggestions,records,aiConfigured}:{suggestions:CareerSuggestion[];records:CareerRecord[];aiConfigured:boolean}){
