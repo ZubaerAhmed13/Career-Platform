@@ -44,7 +44,7 @@ export function VaultWorkspace({records,linkedCount}:{records:CareerRecord[];lin
       <Link className="button secondary" href="/career-vault/evidence">Evidence & relationships</Link>
       <Link className="button secondary" href="/career-vault/review">Review suggestions</Link>
       <Link className="button secondary" href="/career-vault/interview">Career interviewer</Link>
-      <a className="button secondary" href="/api/career-vault/export">Export my data</a>
+      <Link className="button secondary" href="/api/career-vault/export">Export my data</Link>
     </div>
   </header>
   <div className="page-grid">
