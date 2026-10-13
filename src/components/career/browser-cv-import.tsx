@@ -6,7 +6,7 @@ import {careerKinds,kindLabels,type CareerKind} from '@/lib/career/schema';
 import {MAX_LOCAL_CV_BYTES,MAX_LOCAL_CV_TEXT,type LocalCvFormat} from '@/lib/career/browser-cv-security';
 
 type ExtractResult={format:LocalCvFormat;text:string};
-type LocalWorkerMessage={ok:boolean;result?:ExtractResult;error?:string};
+type LocalWorkerMessage={careerCvReply:true;ok:boolean;result?:ExtractResult;error?:string};
 
 /** This workflow NEVER submits file bytes to any endpoint or Supabase bucket. */
 function extractLocally(file:File,attach:(worker:Worker|null)=>void):Promise<ExtractResult>{
@@ -25,13 +25,14 @@ function extractLocally(file:File,attach:(worker:Worker|null)=>void):Promise<Ext
   const timer=setTimeout(()=>settle(new Error('Local extraction took too long. Try a smaller file.')),30_000);
   worker.onmessage=(event:MessageEvent<LocalWorkerMessage>)=>{
    const message=event.data;
-   if(message?.ok&&message.result)settle(undefined,message.result);
-   else settle(new Error(message?.error||'Local document extraction failed.'));
+   if(message?.careerCvReply!==true||typeof message.ok!=='boolean')return;
+   if(message.ok&&message.result)settle(undefined,message.result);
+   else settle(new Error(message.error||'Local document extraction failed.'));
   };
   worker.onerror=()=>settle(new Error('The local document reader encountered an error.'));
   file.arrayBuffer().then(bytes=>{
    if(complete)return;
-   worker.postMessage({buffer:bytes,name:file.name},[bytes]);
+   worker.postMessage({careerCvRequest:true,buffer:bytes,name:file.name},[bytes]);
   }).catch(()=>settle(new Error('Could not read the document from your device.')));
  });
 }

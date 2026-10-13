@@ -4,12 +4,13 @@ import {
  MAX_LOCAL_CV_PAGES,type LocalCvFormat,
 } from '../lib/career/browser-cv-security';
 
-type RequestPayload={buffer:ArrayBuffer;name:string};
+type RequestPayload={careerCvRequest?:boolean;buffer:ArrayBuffer;name:string});
 type WorkerResult={format:LocalCvFormat;text:string};
 const worker=self as DedicatedWorkerGlobalScope;
 
 /** Browser-local parsing only: no network calls, AI SDK or Supabase. */
-worker.onmessage=async({data}:MessageEvent<RequestPayload>)=>{
+worker.addEventListener('message',async({data}:MessageEvent<RequestPayload>)=>{
+ if(data?.careerCvRequest!==true)return;
  try{
   if(!(data?.buffer instanceof ArrayBuffer)||typeof data.name!=='string')
    throw new Error('Invalid local document.');
@@ -38,10 +39,10 @@ worker.onmessage=async({data}:MessageEvent<RequestPayload>)=>{
   if(normalized.length<20)throw new Error('No readable text was found. Image-only PDFs require OCR.');
   if(normalized.length>100_000)throw new Error('Extracted document is excessively long. Select a shorter source.');
   const answer:WorkerResult={format,text:normalized};
-  worker.postMessage({ok:true,result:answer});
+  worker.postMessage({careerCvReply:true,ok:true,result:answer});
  }catch(error){
   const message=error instanceof Error?error.message:'Document could not be read locally.';
   const permitted=/at most 2 MB|file signature|archive|DOCX|12 pages|No readable|4,000 characters|PDFs|Encrypted|unsupported|standard Word/.test(message);
-  worker.postMessage({ok:false,error:permitted||process.env.NODE_ENV==='development'?message:'Could not read that document locally. Please try another text-based PDF/DOCX.'});
+  worker.postMessage({careerCvReply:true,ok:false,error:permitted||process.env.NODE_ENV==='development'?message:'Could not read that document locally. Please try another text-based PDF/DOCX.'});
  }
 };
