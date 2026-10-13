@@ -5,6 +5,8 @@ services:
     restart: unless-stopped
     volumes:
       - model-weights:/root/.ollama
+    environment:
+      OLLAMA_HOST: 0.0.0.0:11434
     expose:
       - "11434"
     networks:
