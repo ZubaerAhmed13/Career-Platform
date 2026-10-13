@@ -26,8 +26,8 @@
 ## Verification that is and is not achieved
 - GitHub CI: TypeScript, lint, unit tests, build, disposable PostgreSQL 16 schema/RLS integration, desktop/mobile public browser smoke.
 - Live hosted Supabase: schema migrations are managed and audited; should additionally verify the new turn/session migration after applying.
-- **Not yet verified:** authenticated browser interview against an actual billed model, prompt injection/quality evaluations with live model outputs, real two-account E2E, privacy/legal review, and production AI budget/monitoring.
-- Protected Vercel preview is code deployment only while \`OPENAI_API_KEY\` and \`SUPABASE_SERVICE_ROLE_KEY\` remain absent. Never claim that an AI conversation succeeded without executing it.
+- **Not yet verified:** authenticated browser interview against the real independent Qwen3/Ollama host, prompt injection/quality evaluations with live model outputs, real two-account E2E, privacy/legal review, and production AI budget/monitoring.
+- A Vercel READY preview confirms a build only. Career AI requires a configured private HTTPS Ollama gateway (\`SELF_HOSTED_LLM_URL\`, \`SELF_HOSTED_LLM_TOKEN\`) and a server-only \`SUPABASE_SERVICE_ROLE_KEY\`; no \`OPENAI_API_KEY\` is required. Never claim that an AI conversation succeeded without executing it.
 
 ## Professional model evaluation scenarios (run only with an authorized small budget)
 1. Real project with a clear individual contribution — ask for an outcome or evidence.
@@ -43,7 +43,7 @@
 11. Two rapid answers for one session — at most one assistant reply per exact answer, stale results rejected.
 12. New percentage/metric absent from the cited answer — do not save as suggested fact.
 
-**Release criterion:** Tested account-scoped end-to-end data persistence and source-review behavior plus real provider responses under an explicit spending budget. Code-only tests are not production signoff.
+**Release criterion:** Tested account-scoped end-to-end data persistence and source-review behavior plus real self-hosted model responses with operator-approved compute limits. Code-only tests are not production signoff.
 
 
 ## Implementation verification update
