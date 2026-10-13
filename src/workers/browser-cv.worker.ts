@@ -4,7 +4,7 @@ import {
  MAX_LOCAL_CV_PAGES,type LocalCvFormat,
 } from '../lib/career/browser-cv-security';
 
-type RequestPayload={careerCvRequest?:boolean;buffer:ArrayBuffer;name:string});
+type RequestPayload={careerCvRequest?:boolean;buffer:ArrayBuffer;name:string};
 type WorkerResult={format:LocalCvFormat;text:string};
 const worker=self as DedicatedWorkerGlobalScope;
 
@@ -45,4 +45,4 @@ worker.addEventListener('message',async({data}:MessageEvent<RequestPayload>)=>{
   const permitted=/at most 2 MB|file signature|archive|DOCX|12 pages|No readable|4,000 characters|PDFs|Encrypted|unsupported|standard Word/.test(message);
   worker.postMessage({careerCvReply:true,ok:false,error:permitted||process.env.NODE_ENV==='development'?message:'Could not read that document locally. Please try another text-based PDF/DOCX.'});
  }
-};
+});
