@@ -61,7 +61,10 @@ test('PDF extraction happens in browser and user edits before text-only submissi
   buffer:textPdf('Work Experience I completed cycle counts for inventory accuracy'),
  });
  await page.getByRole('button',{name:'Extract text locally'}).click();
- await expect(page.locator('#local-cv-preview')).toHaveValue(/cycle counts/,{timeout:30000});
+ await expect(page.locator('#local-cv-preview, #local-cv-import p.error[role="alert"]')).toBeVisible({timeout:15000});
+ const pdfProblem=await page.locator('#local-cv-import p.error[role="alert"]').textContent();
+ expect(pdfProblem,'PDF local extraction failed: '+pdfProblem).toBeFalsy();
+ await expect(page.locator('#local-cv-preview')).toHaveValue(/cycle counts/,{timeout:15000});
  await expect(page.getByText(/Local extraction complete/)).toBeVisible();
  expect(sent).toEqual([]);
  await page.locator('#local-cv-preview').fill('Work Experience\nI completed inventory cycle counts with a team.');
@@ -86,6 +89,6 @@ test('bad and mismatched files are never parsed or sent',async({page})=>{
   name:'faked.pdf',mimeType:'application/pdf',buffer:Buffer.from('This is not a PDF.'),
  });
  await page.getByRole('button',{name:'Extract text locally'}).click();
- await expect(page.getByRole('alert')).toContainText(/signature|Could not read/);
+ await expect(page.locator('#local-cv-import p.error[role="alert"]')).toContainText(/signature|Could not read/);
  await expect(page.locator('#local-cv-preview')).toHaveCount(0);
 });
