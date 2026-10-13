@@ -41,19 +41,20 @@ export function extractCareerSections(text:string,max=6):ParsedSections{
  if(text.length<20||text.length>4000)throw new Error('CV text must contain 20–4,000 characters.');
  const lines=text.replace(/\r\n?/g,'\n').split('\n');
  let current:CareerKind|null=null;
- const candidateBlocks:{kind:CareerKind;text:string}[]=[];
+ const candidateBlocks:{kind:CareerKind;text:string;headingLine:string}[]=[];
+ let currentHeading='';
  let active:string[]=[];
  let recognized=false;
  const flush=()=>{
   const block=active.join('\n').trim();
-  if(block&&current)candidateBlocks.push({kind:current,text:block});
+  if(block&&current)candidateBlocks.push({kind:current,text:block,headingLine:currentHeading});
   active=[];
  };
  for(const rawLine of lines){
   const line=rawLine.trim();
   const heading=headingOf(line);
   if(heading){
-   flush();current=heading.kind;recognized=true;
+   flush();current=heading.kind;currentHeading=line;recognized=true;
    if(heading.inline)active.push(heading.inline);
    continue;
   }
@@ -76,6 +77,10 @@ export function extractCareerSections(text:string,max=6):ParsedSections{
     if(entry.trim().length<2)continue;
     const proposal=candidate(block.kind,block.text,entry);
     if(proposal)candidates.push(proposal);
+    else if(block.headingLine.length>=6&&text.includes(block.headingLine)){
+      candidates.push({kind:block.kind,title:entry.trim().slice(0,180),
+       description:block.text,evidence_quote:block.headingLine.slice(0,2000)});
+    }
    }
   }else{
    const title=block.text.split('\n')[0].trim();
@@ -83,6 +88,14 @@ export function extractCareerSections(text:string,max=6):ParsedSections{
    if(proposal)candidates.push(proposal);
   }
  }
- const limited=candidates.slice(0,Math.max(0,Math.min(max,6)));
- return {suggestions:limited,recognized,omitted:Math.max(0,candidates.length-limited.length)};
+ // Source quotes must actually appear in the submitted CV. If a normalized
+ // multi-line block loses spacing, fall back to one verbatim supporting line.
+ const verified=candidates.flatMap(record=>{
+   if(text.includes(record.evidence_quote))return [record];
+   const line=record.evidence_quote.split('\n').map(v=>v.trim())
+    .find(v=>v.length>=6&&text.includes(v));
+   return line?[{...record,evidence_quote:line.slice(0,2000)}]:[];
+ });
+ const limited=verified.slice(0,Math.max(0,Math.min(max,6)));
+ return {suggestions:limited,recognized,omitted:Math.max(0,verified.length-limited.length)};
 }
