@@ -6,10 +6,10 @@ import {clearMyCareerVault} from '@/app/actions/career-privacy';
 export function VaultPrivacy(){
  const [state,action,pending]=useActionState(clearMyCareerVault,{});
  const [open,setOpen]=useState(false);
- return <main className="stack" style={{maxWidth:760}}>
+ return <section className="stack" style={{maxWidth:760}} aria-labelledby="vault-privacy-heading">
   <header className="stack" style={{gap:8}}>
    <p className="eyebrow">Your data, your decision</p>
-   <h1 className="heading">Career Vault privacy & data export</h1>
+   <h1 className="heading" id="vault-privacy-heading">Career Vault privacy & data export</h1>
    <p className="subtle">CareerOS stores your career facts separately from your login account. You can export your information and clear your Vault deliberately.</p>
   </header>
   <section className="card stack">
@@ -33,5 +33,5 @@ export function VaultPrivacy(){
   </section>
   <p className="subtle">For full account deletion and information retained in operational backups, contact the service operator. This screen clears Career Vault application data only.</p>
   <Link href="/career-vault" className="button secondary">Back to Career Vault</Link>
- </main>;
+ </section>;
 }
