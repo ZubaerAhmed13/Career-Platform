@@ -43,6 +43,9 @@ export function VaultWorkspace({records,linkedCount,targetRole}:{records:CareerR
   {kind:'skill' as CareerKind,title:'Skills',empty:'List skills you genuinely used and can explain.'},
   {kind:'project' as CareerKind,title:'Projects',empty:'Connect an academic or professional project to relevant evidence.'},
   {kind:'achievement' as CareerKind,title:'Achievements',empty:'Document meaningful results without inventing metrics.'},
+  {kind:'language' as CareerKind,title:'Languages',empty:'Add languages and truthful proficiency levels.'},
+  {kind:'certification' as CareerKind,title:'Certifications',empty:'Add relevant certifications and the issuing organization.'},
+  {kind:'volunteering' as CareerKind,title:'Volunteering',empty:'Record real volunteer responsibilities and contributions.'},
  ];
  const filtered=useMemo(()=>records.filter(r=>
     (kind==='all'||r.kind===kind)&&(status==='all'||r.status===status)&&
