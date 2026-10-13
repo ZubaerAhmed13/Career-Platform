@@ -43,6 +43,6 @@ worker.addEventListener('message',async({data}:MessageEvent<RequestPayload>)=>{
  }catch(error){
   const message=error instanceof Error?error.message:'Document could not be read locally.';
   const permitted=/at most 2 MB|file signature|archive|DOCX|12 pages|No readable|4,000 characters|PDFs|Encrypted|unsupported|standard Word/.test(message);
-  worker.postMessage({careerCvReply:true,ok:false,error:permitted||process.env.NODE_ENV==='development'?message:'Could not read that document locally. Please try another text-based PDF/DOCX.'});
+  worker.postMessage({careerCvReply:true,ok:false,error:permitted?message:'Could not read that document locally. Please try another text-based PDF/DOCX.'});
  }
 });

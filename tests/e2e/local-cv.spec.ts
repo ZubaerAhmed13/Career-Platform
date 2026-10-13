@@ -62,7 +62,8 @@ test('PDF extraction happens in browser and user edits before text-only submissi
  });
  await page.getByRole('button',{name:'Extract text locally'}).click();
  await expect(page.locator('#local-cv-preview, #local-cv-import p.error[role="alert"]')).toBeVisible({timeout:15000});
- const pdfProblem=await page.locator('#local-cv-import p.error[role="alert"]').textContent();
+ const pdfErrors=page.locator('#local-cv-import p.error[role="alert"]');
+ const pdfProblem=await pdfErrors.count()?await pdfErrors.textContent():null;
  expect(pdfProblem,'PDF local extraction failed: '+pdfProblem).toBeFalsy();
  await expect(page.locator('#local-cv-preview')).toHaveValue(/cycle counts/,{timeout:15000});
  await expect(page.getByText(/Local extraction complete/)).toBeVisible();
