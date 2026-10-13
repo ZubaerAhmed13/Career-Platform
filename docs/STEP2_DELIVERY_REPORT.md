@@ -95,3 +95,17 @@ The review screen has a Web Worker-based alternative to scanner-dependent upload
 
 ## Latest local CV verification
 The feature-branch browser suite now exercises the document parsing worker using synthetic PDF and DOCX input in Chromium for desktop and mobile, verifies text appears before the save action and checks that no upload POST occurs during extraction. This is separate from real signed-in Supabase persistence acceptance, which remains pending.
+
+## Step 2 continuation: account rights and secure release checks (13 October 2026)
+
+The previous sections describe the state before this continuation. The following verified source changes supersede any earlier claim that full account deletion has no implementation:
+
+- `/settings` now contains owner-scoped account data export (`/api/account/export`) and typed/password-confirmed, explicit *full-account* deletion controls, distinct from Vault-only clearing.
+- The privileged server action reauthenticates the user's current password with an isolated unprivileged Supabase client, refuses a missing server-only admin key or unsafe private Storage, and calls Auth Admin hard delete only for the verified account identity. None of this code runs automatically on deployment.
+- In the live primary database, read-only catalog checks confirmed all 11 public tables with direct `auth.users` foreign keys cascade on delete. Disposable PostgreSQL CI now asserts that this invariant remains true; no production user was deleted.
+- Added tests for deletion confirmation input and unauthenticated account-export refusal; the separate protected staging suite now covers both user-specific Vault exports and broader account exports.
+- `docs/DATA_RETENTION_AND_ACCOUNT_ERASURE.md` identifies full legal/controller, provider-backup, Storage object, GDPR subject access, SSO and live destructive-test work that remains **operator-owned**.
+- The previous proof that the code deployed to Vercel applies to earlier commits. **A new Vercel READY deployment for the latest HEAD is not verified.** GitHub passing tests are a separate signal from protected preview readiness.
+- The full account deletion flow is **implemented but NOT live-staging-accepted**. Do not mark it GDPR-complete, production-ready, or tested on a live identity until a disposable staging deletion succeeds and retention/privacy signoff is complete.
+
+Production `main` remains unchanged while PR #2 is under review.
