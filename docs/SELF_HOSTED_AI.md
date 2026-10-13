@@ -104,3 +104,8 @@ The Next.js server uses the Ollama native `POST /api/chat` API with `stream:fals
 - Ollama model: https://ollama.com/library/qwen3:8b
 - Ollama structured JSON output: https://github.com/ollama/ollama/blob/main/docs/capabilities/structured-outputs.mdx
 - Original Qwen3 model license: https://huggingface.co/Qwen/Qwen3-8B
+
+
+## Optional antivirus sidecar for secure CV uploads
+
+The same private Docker host can also run ClamAV and the in-memory scan gateway. The installer generates a **separate scanner token**. The CareerOS preview requires server-only `CV_SCAN_GATEWAY_URL` and `CV_SCAN_GATEWAY_TOKEN` plus a running ClamAV service for binary document uploads. The AI model is not required for manual section extraction after scanning. See `docs/CV_SCAN_RUNBOOK.md`.

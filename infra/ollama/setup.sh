@@ -26,7 +26,9 @@ if [[ ! "$domain" =~ ^[A-Za-z0-9][A-Za-z0-9.-]*[A-Za-z0-9]$ ]] || [[ "$domain" !
 fi
 read -r -p "Reviewed Ollama Docker tag (e.g. 0.x.y): " ollama_version
 read -r -p "Reviewed Caddy Docker tag (requires Caddy >= 2.10, e.g. 2.x.y): " caddy_version
-if [[ ! "$ollama_version" =~ ^[A-Za-z0-9][A-Za-z0-9_.-]{1,70}$ ]] || [[ ! "$caddy_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+read -r -p "Supported ClamAV Docker image version (e.g. 1.x.y): " clamav_version
+read -r -p "Reviewed Node 22 Alpine image tag (e.g. 22.x.y-alpine): " scan_node_version
+if [[ ! "$ollama_version" =~ ^[A-Za-z0-9][A-Za-z0-9_.-]{1,70}$ ]] || [[ ! "$caddy_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || [[ ! "$clamav_version" =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]] || [[ ! "$scan_node_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+-alpine[0-9.]*$ ]]; then
   echo "Provide concrete, reviewed image tags. Do not use latest."
   exit 1
 fi
@@ -38,10 +40,11 @@ if (( 10#$caddy_major < 2 || (10#$caddy_major == 2 && 10#$caddy_minor < 10) )); 
   exit 1
 fi
 token="$(openssl rand -hex 32)"
-printf 'OLLAMA_VERSION=%s\nCADDY_VERSION=%s\nMODEL_DOMAIN=%s\nINFERENCE_BEARER_TOKEN=%s\n' \
-  "$ollama_version" "$caddy_version" "$domain" "$token" > .env
+scan_token="$(openssl rand -hex 32)"
+printf 'OLLAMA_VERSION=%s\nCADDY_VERSION=%s\nMODEL_DOMAIN=%s\nINFERENCE_BEARER_TOKEN=%s\nCLAMAV_VERSION=%s\nSCAN_NODE_VERSION=%s\nCV_SCAN_BEARER_TOKEN=%s\n' \
+  "$ollama_version" "$caddy_version" "$domain" "$token" "$clamav_version" "$scan_node_version" "$scan_token" > .env
 chmod 600 .env
-unset token
+unset token scan_token
 docker compose -f compose.yaml config --quiet
 echo "Configuration prepared at infra/ollama/.env (permissions 600)."
 echo "The random gateway token was saved locally and was NOT displayed."

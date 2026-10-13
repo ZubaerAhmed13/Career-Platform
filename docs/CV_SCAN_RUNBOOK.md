@@ -1,25 +1,26 @@
-# CareerOS CV scanning runbook
+# CareerOS PDF/DOCX antivirus activation
 
-## Status
-Source implementation is available, but **not activated or verified** against a live scanner or Supabase. No public document-upload endpoint should be exposed before staging security acceptance.
+**Status:** The fail-closed scan integration is implemented. It is not operational until a real ClamAV server and its up-to-date signatures have been deployed, tested and connected from Vercel.
 
-## Scanner deployment prerequisite
-Provision a managed, up-to-date **ClamAV clamd** service inside a private, application-only network. Keep malware definitions updated; prevent direct public access to TCP 3310. Ensure the daemon's INSTREAM feature and StreamMaxLength allow at least 2 MB. Configure `CLAMAV_HOST` to the private service name/IP and `CLAMAV_PORT` if different from 3310. Do not set these variables merely to enable a UI without a real scanner.
+## Architecture
 
-The app sends the bytes using ClamAV's zINSTREAM protocol, requires an explicit `stream: OK` verdict, and rejects infected, inconclusive, timed-out, unreachable or unconfigured scans. Only after a clean verdict does it parse a small PDF or DOCX in memory. Original binaries are discarded rather than saved into storage.
+Browser (authenticated) → CareerOS Next.js server action → private authenticated HTTPS scanner gateway → internal Node adapter → official ClamAV `clamd` TCP 3310 (never internet-facing).
 
-## Resource and format limits
-- Up to 2 MiB input; extension must match file signature.
-- PDF: 12 pages maximum, bounded PDF image allocation, plain text only; scanned-image PDFs with no text are rejected (no OCR).
-- DOCX: ZIP central directory must contain the expected Word components, reject declared suspicious expansion, encrypted entries, macro filename and many ZIP entries. These checks are defense-in-depth **not a proof against all decompression bombs**.
-- Extracted text must be 20–4,000 characters and goes to an unreviewed career suggestion. Users review, reject, edit or explicitly approve/merge it.
-- No original file persistence, no public file bucket and no file-download URL.
+A clean `stream: OK` verdict is required **before** parsing. The scanner sidecar holds input bytes in memory, does not persist original uploads or log document content, and sends back only `{"clean":true}` for clean files. Infected/inconclusive uploads and scanner outages are rejected. Normal CV section extraction works without an AI model; AI extraction has separate consent and requires the self-hosted Qwen model.
 
-## Required before production
-1. Verify antivirus updates and signatures, private networking/firewall, ClamAV scan reply behavior with known harmless files and a standard harmless antivirus detection test fixture.
-2. Test scanner-down, timeout, abnormal reply, encrypted DOCX, ZIP bombs, oversized PDFs and scanned image PDFs; all failures must preserve existing confirmed records.
-3. Isolate parsing in a separately resource-limited worker/container before accepting untrusted public uploads; source-only parser bounds are not an OS security sandbox.
-4. Apply and validate migrations 001–006 on backed-up staging Supabase. Verify two-user Row-Level Security and review merge RPC behavior.
-5. Manually verify mobile/keyboard UI, correct user consent, browser form behavior, security logs without raw CV data, retention, privacy policy and GDPR/legal review.
+## What the owner must do
 
-If any requirement is unfulfilled, leave uploads disabled by keeping `CLAMAV_HOST` unset.
+1. Provision a controlled Linux host with Docker and at least 4 GB of RAM available for ClamAV *in addition to* model/runtime resources. Choose supported ClamAV and Node image tags; do not use an unsupported end-of-life release.
+2. Set up an HTTPS DNS name and keep only ports 80/443 reachable; **never publish port 3310**. The existing `infra/ollama/compose.yaml` includes `clamav` and `scan-gateway` services on a private Docker network, protected by Caddy.
+3. On the host, run `bash infra/ollama/setup.sh` (only if no prior `infra/ollama/.env`). It now generates a *separate* random `CV_SCAN_BEARER_TOKEN`. If you have an existing `.env`, **do not overwrite it**; add `CLAMAV_VERSION`, `SCAN_NODE_VERSION` and a newly generated `CV_SCAN_BEARER_TOKEN` privately.
+4. Start Docker Compose, allow ClamAV signatures to initialize, and verify daemon/definition updates. Run `node --test infra/ollama/scan-server.test.mjs` as a local adapter test. **That test uses mocked scanner connections**, not the real ClamAV database.
+5. Execute a *real* authorized HTTPS scanning test for a benign PDF and the harmless EICAR antivirus test fixture. Verify HTTP 200 only for the benign file and blocked results for detected malware, corrupted archives, overload and server-down conditions. Do not test using real malware.
+6. In Vercel `career-platform` preview for `feat/milestone-2-career-vault`, set `CV_SCAN_GATEWAY_URL=https://<owned-model-domain>` and `CV_SCAN_GATEWAY_TOKEN=<separate scan token>` as **server-only environment variables**. Redeploy the feature branch. Verify actual browser uploads with two independent users.
+
+The `CV_SCAN_GATEWAY_*` variables remain **unset** until this deployment is working. The upload interface must remain disabled rather than bypass the scanner.
+
+## Defense in depth and remaining release checks
+
+Input limited to 2 MiB, 12 PDF pages, 4,000 extracted characters; file signature matches the extension. DOCX ZIP directory uses declared expansion limits; no OCR or public binary storage. A scanner is **not** a parser sandbox: PDF/DOCX parser isolation in a dedicated resource-restricted worker/container is still outstanding before accepting untrusted uploads broadly. ClamAV only recognizes threats covered by its signatures and engine.
+
+Official guidance: https://docs.clamav.net/manual/Installing/Docker.html and https://docs.clamav.net/manual/Usage/ClamdProtocol.html.
