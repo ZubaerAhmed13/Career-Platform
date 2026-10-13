@@ -54,3 +54,9 @@ Use a separate, disposable Supabase project and approved identities. Test that a
 - No automatic merge or promotion without these approvals.
 
 Further references: [Supabase user management](https://supabase.com/docs/guides/auth/managing-user-data), [storage deletion](https://supabase.com/docs/guides/storage/management/delete-objects).
+
+## Additional staging controls (October 13)
+
+An optional protected GitHub `staging` workflow gate now includes opt-in destructive acceptance against throwaway users (one Vault-only erasure and one full Auth hard deletion). It is disabled by default. Set `CAREER_STAGING_ERASURE=I_UNDERSTAND_DELETES_DISPOSABLE_USERS` only after verifying a dedicated *non-production* Supabase project, an approved staging-only service-role key and two extra empty test users. Public CI must never execute these scenarios. See `docs/STAGING_SECURITY_RUNBOOK.md`.
+
+The primary-project read-only security scan confirms RLS on all 11 public tables. Advisor warnings include nine authenticated SECURITY DEFINER RPCs requiring individual authorization audits and disabled leaked-password checks; these are not equivalent to a clean security acceptance. Backup expiry, support contact, controller and processor policies cannot be inferred from code and still require operator approval.
