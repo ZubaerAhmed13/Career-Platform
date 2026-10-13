@@ -59,8 +59,14 @@ test.describe('Destructive signed-in acceptance — extra disposable staging acc
   await page.goto('/settings');
   await page.getByRole('button',{name:'Show permanent account deletion controls'}).click();
   await page.getByLabel('Type DELETE MY ACCOUNT to confirm').fill('DELETE MY ACCOUNT');
-  await page.getByLabel('Current account password').fill(deletion.password);
+  // Confirm a wrong password does not delete the identity or its Vault data.
+  await page.getByLabel('Current account password').fill('wrong-password-staging-rejection');
   await page.getByLabel(/I want to permanently delete this account/).check();
+  await page.getByRole('button',{name:'Permanently delete my account'}).click();
+  await expect(page.getByRole('alert')).toContainText('current password could not be verified',{timeout:20000});
+  const stillPresent=await page.request.get('/api/account/export');
+  expect(stillPresent.ok()).toBe(true);
+  await page.getByLabel('Current account password').fill(deletion.password);
   await page.getByRole('button',{name:'Permanently delete my account'}).click();
   await expect(page).toHaveURL(/\?account_deleted=1/,{timeout:25000});
   await page.goto('/career-vault');
