@@ -87,3 +87,7 @@ CareerOS AI's inference adapter now calls only the private Ollama JSON-schema AP
 
 ### Secure binary CV import
 PDF/DOCX uploads are intentionally fail-closed. The independent inference host can run an official ClamAV scanner sidecar and a Caddy-authenticated `/scan` gateway, with a separate bearer secret. Vercel uses private server-side `CV_SCAN_GATEWAY_URL` and `CV_SCAN_GATEWAY_TOKEN` variables. The system will not enable uploads until that private scanner is configured. Provisioning/real ClamAV tests and parser isolation remain outstanding. See `docs/CV_SCAN_RUNBOOK.md`.
+
+
+### Step 2 acceptance and privacy
+The protected Career Vault preview also offers a private JSON export and a deliberately confirmation-gated way to clear one's own saved career records, evidence, interviews, proposals and activity without deleting the login account. Production binary CV parsing is now designed to run **outside Vercel** in a restricted container after ClamAV scanning; the live server remains a release prerequisite. For the exact operational gates, see [Step 2 release gates](docs/STEP2_RELEASE_GATES.md).

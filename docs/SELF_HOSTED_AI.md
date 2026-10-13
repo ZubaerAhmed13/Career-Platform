@@ -109,3 +109,15 @@ The Next.js server uses the Ollama native `POST /api/chat` API with `stream:fals
 ## Optional antivirus sidecar for secure CV uploads
 
 The same private Docker host can also run ClamAV and the in-memory scan gateway. The installer generates a **separate scanner token**. The CareerOS preview requires server-only `CV_SCAN_GATEWAY_URL` and `CV_SCAN_GATEWAY_TOKEN` plus a running ClamAV service for binary document uploads. The AI model is not required for manual section extraction after scanning. See `docs/CV_SCAN_RUNBOOK.md`.
+
+
+## Career Vault document parsing worker
+
+The same \`infra/ollama/compose.yaml\` now builds a **separate non-root CV parser container** alongside the model and antivirus services. It has:
+- Read-only root filesystem, \`no-new-privileges\`, dropped Linux capabilities and explicit memory, PID and CPU limits.
+- A dedicated internal-only Docker network. Only the scanner adapter can send a document there; the public HTTPS gateway cannot directly reach the worker.
+- PDF/DOCX parsing only after a real clean ClamAV verdict. Vercel no longer opens untrusted files using PDF libraries in its production process.
+
+On the server after setup, \`docker compose build cv-parser\` and \`docker compose up -d\` start the parser with the other services. The protected HTTPS scanner endpoint \`/extract\` accepts the same **separate scanning credential** as \`/scan\`, never the Qwen AI token. \`CV_SCAN_GATEWAY_URL\` points to the HTTPS origin, not a port 3310/3089 HTTP URL.
+
+For testing, \`node --test cv-parser.test.mjs\` checks parser contract and invalid documents, and \`python3 check-scanner.py\` checks live ClamAV. Exercise a complete PDF/DOCX upload from a protected signed-in preview before claiming this system is operational.

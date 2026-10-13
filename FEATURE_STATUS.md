@@ -35,3 +35,10 @@ Last reviewed: October 13, 2026.
 - **Operationally disabled:** No owned scanner server or Vercel scan URL/token is configured. Live malware signature, uptime and PDF/DOCX import acceptance have not been performed.
 - **Outstanding defense-in-depth:** dedicated OS-sandboxed parser, two-account browser acceptance, GDPR retention, resource monitoring.
 - Setup: [CV scanner runbook](docs/CV_SCAN_RUNBOOK.md). Keep uploads **disabled** until the scanner and real tests pass.
+
+
+## Step 2 security and lifecycle upgrades — October 13, 2026
+- PDF/DOCX **production parsing moved out of Vercel** into a restricted, non-root container behind a private, ClamAV-backed HTTPS \`/extract\` endpoint. The binary is scanned before the separate parser is called, and only bounded text returns to the website. Code and CI can be complete while live scanner operation remains unavailable.
+- Added authenticated Career Vault privacy/export page, with owner-controlled and explicitly confirmed career-data clearing; a new additive database migration defines the delete-own-data function.
+- No external AI/scanner host or protected runtime secrets have been configured. **Do not claim live Qwen or antivirus operation.**
+- Complete acceptance checklist: \`docs/STEP2_RELEASE_GATES.md\`.
