@@ -19,7 +19,7 @@ export function onlySupportedSuggestions<T extends Candidate>(
   // evidence excerpt itself. Otherwise request clarification from the user.
   const declared=[...new Set(((p.title+' '+p.description).match(/\d+(?:[.,]\d+)?%?/g)??[]))];
   if(declared.some(value=>!quote.includes(value)))continue;
-  const key=(p.kind+'|'+p.title).normalize('NFKC').toLocaleLowerCase().trim();
+  const key=p.kind+'|'+p.title.normalize('NFKC').toLocaleLowerCase().trim();
   if(seen.has(key))continue;
   seen.add(key);
   accepted.push({...p,evidence_quote:quote});
