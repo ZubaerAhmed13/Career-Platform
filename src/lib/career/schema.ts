@@ -37,7 +37,8 @@ export const suggestionSchema = z.object({
 });
 export type CareerSuggestion = z.infer<typeof suggestionSchema> & {
  id:string;user_id:string;origin:'ai'|'cv_import';review_status:'pending'|'approved'|'rejected';
- session_id:string|null;created_at:string;
+ session_id:string|null;created_at:string;organization:string;location:string;
+ started_on:string|null;ended_on:string|null;is_current:boolean;
 };
 export type CareerEvidence = z.infer<typeof evidenceSchema> & {id:string;user_id:string;created_at:string};
 export type CareerLink = {id:string;user_id:string;from_record_id:string;to_record_id:string;relation:string;created_at:string};

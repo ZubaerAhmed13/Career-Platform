@@ -38,6 +38,19 @@ function EditProposal({suggestion}:{suggestion:CareerSuggestion}){
   <input className="field" id={'edit-title-'+suggestion.id} name="title" defaultValue={suggestion.title} maxLength={180} required/>
   <label className="label" htmlFor={'edit-description-'+suggestion.id}>Suggested detail</label>
   <textarea className="field" id={'edit-description-'+suggestion.id} name="description" defaultValue={suggestion.description} maxLength={4000} rows={4}/>
+
+  <label className="label" htmlFor={'edit-organization-'+suggestion.id}>Employer or institution (optional)</label>
+  <input className="field" id={'edit-organization-'+suggestion.id} name="organization" maxLength={180} defaultValue={suggestion.organization??''}/>
+  <label className="label" htmlFor={'edit-location-'+suggestion.id}>Location (optional)</label>
+  <input className="field" id={'edit-location-'+suggestion.id} name="location" maxLength={150} defaultValue={suggestion.location??''}/>
+  <div className="page-grid">
+   <div className="form-row"><label className="label" htmlFor={'edit-start-'+suggestion.id}>Start date (optional)</label>
+    <input className="field" type="date" id={'edit-start-'+suggestion.id} name="started_on" defaultValue={suggestion.started_on??''}/></div>
+   <div className="form-row"><label className="label" htmlFor={'edit-end-'+suggestion.id}>End date (optional)</label>
+    <input className="field" type="date" id={'edit-end-'+suggestion.id} name="ended_on" defaultValue={suggestion.ended_on??''}/></div>
+  </div>
+  <label><input type="checkbox" name="is_current" value="yes" defaultChecked={suggestion.is_current}/> This role/qualification is ongoing. End date must be empty.</label>
+
   <button className="button secondary" disabled={pending}>Save corrected suggestion</button>
   {state.error&&<p role="alert" className="error">{state.error}</p>}
   {state.message&&<p role="status" className="success">{state.message}</p>}
@@ -60,10 +73,13 @@ function MergeProposal({suggestion,records}:{suggestion:CareerSuggestion;records
    </select>
    {original&&<div className="page-grid">
     <div className="muted-card"><strong>Existing confirmed value</strong><p>{original.title}</p><p>{original.organization} · {original.started_on??'Start unknown'} to {original.is_current?'Present':original.ended_on??'End unknown'}</p><p style={{whiteSpace:'pre-wrap'}}>{original.description||'No description'}</p></div>
-    <div className="muted-card"><strong>Proposed new value</strong><p>{suggestion.title}</p><p style={{whiteSpace:'pre-wrap'}}>{suggestion.description||'No description'}</p></div>
+    <div className="muted-card"><strong>Proposed new value</strong><p>{suggestion.title}</p><p>{suggestion.organization||'Employer unspecified'} · {suggestion.location||'Location unspecified'}</p><p>{suggestion.started_on??'Start unknown'} to {suggestion.is_current?'Present':suggestion.ended_on??'End unknown'}</p><p style={{whiteSpace:'pre-wrap'}}>{suggestion.description||'No description'}</p></div>
    </div>}
    <label><input type="checkbox" name="merge_title" value="yes"/> Replace title</label>
    <label><input type="checkbox" name="merge_description" value="yes"/> Replace description</label>
+   <label><input type="checkbox" name="merge_organization" value="yes"/> Replace employer/institution</label>
+   <label><input type="checkbox" name="merge_location" value="yes"/> Replace location</label>
+   <label><input type="checkbox" name="merge_dates" value="yes"/> Replace start, end and ongoing status together</label>
    <label><input type="checkbox" name="confirm_merge" value="yes" required/> I reviewed both versions and approve only the selected replacements.</label>
    <button className="button" disabled={pending}>Merge selected fields</button>
    <p className="subtle">Other record fields remain intact; a revision check prevents overwriting newer edits.</p>
