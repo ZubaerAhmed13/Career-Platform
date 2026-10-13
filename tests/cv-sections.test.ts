@@ -43,3 +43,54 @@ describe('source-quote integrity for CV punctuation and short skills',()=>{
   for(const item of result.suggestions)expect(text).toContain(item.evidence_quote);
  });
 });
+
+
+describe('conservative labeled structured fields',()=>{
+ it('extracts explicitly labelled employer, location and ISO start/end dates only',()=>{
+  const input=[
+   'Work Experience',
+   'Working student — Inventory',
+   'Employer: Example GmbH',
+   'Location: Worms',
+   'Start: 2025-02-01',
+   'End: 2026-07-31',
+   'I performed stock checks and replenishment.',
+  ].join('\n');
+  const result=extractCareerSections(input);
+  expect(result.suggestions).toHaveLength(1);
+  expect(result.suggestions[0]).toMatchObject({
+   kind:'experience',organization:'Example GmbH',
+   location:'Worms',started_on:'2025-02-01',
+   ended_on:'2026-07-31',is_current:false,
+  });
+  expect(input).toContain(result.suggestions[0].evidence_quote);
+ });
+ it('does not turn ambiguous or invalid dates into fabricated dates',()=>{
+  const input=[
+   'Education',
+   'Master of Example',
+   'Institution: University of Example',
+   'Start: October 2024',
+   'End: 2025-02-30',
+   'Coursework in business analysis.',
+  ].join('\n');
+  const proposal=extractCareerSections(input).suggestions[0];
+  expect(proposal.organization).toBe('University of Example');
+  expect(proposal.started_on).toBe(null);
+  expect(proposal.ended_on).toBe(null);
+ });
+ it('accepts only explicitly current dates with no end date inferred',()=>{
+  const input=[
+   'Work Experience',
+   'Operations associate',
+   'Organization: Example Cooperative',
+   'Start: 2025-09-01',
+   'End: Present',
+   'I monitored product replenishment.',
+  ].join('\n');
+  const result=extractCareerSections(input).suggestions[0];
+  expect(result.is_current).toBe(true);
+  expect(result.started_on).toBe('2025-09-01');
+  expect(result.ended_on).toBe(null);
+ });
+});

@@ -7,6 +7,7 @@ import type { CareerKind } from './schema';
  */
 export type SectionProposal = {
  kind:CareerKind; title:string; description:string; evidence_quote:string;
+ organization?:string; location?:string;started_on?:string|null;ended_on?:string|null;is_current?:boolean;
 };
 type ParsedSections={ suggestions:SectionProposal[]; recognized:boolean; omitted:number };
 const headings:readonly [RegExp,CareerKind][]=[
@@ -37,6 +38,35 @@ function candidate(kind:CareerKind,block:string,title:string):SectionProposal|nu
   evidence_quote:excerpt.slice(0,2000),
  };
 }
+/**
+ * Only explicit labeled metadata can populate structured fields. No employer
+ * or date is inferred from prose or rewritten to look more precise than source.
+ */
+function explicitDetails(kind:CareerKind,block:string){
+ if(!['experience','education','project','certification','volunteering'].includes(kind))return {};
+ const lines=block.split('\n');
+ const tagged=(label:RegExp)=>lines.map(l=>l.trim().match(label)?.[1]?.trim()).find(Boolean);
+ const organization=tagged(/^(?:employer|organization|institution|company|issuer):\s*(.+)$/i)?.slice(0,180)||'';
+ const location=tagged(/^(?:location|city):\s*(.+)$/i)?.slice(0,150)||'';
+ const validDate=(label:RegExp)=>{
+  const date=tagged(label);
+  if(!date||!/^\d{4}-\d{2}-\d{2}$/.test(date))return null;
+  const value=new Date(date+'T00:00:00Z');
+  return !Number.isNaN(value.getTime())&&value.toISOString().slice(0,10)===date?date:null;
+ };
+ const started_on=validDate(/^(?:start|start date|from):\s*(.+)$/i);
+ let ended_on=validDate(/^(?:end|end date|to):\s*(.+)$/i);
+ const rawCurrent=tagged(/^(?:current|ongoing|present):\s*(.+)$/i);
+ const endLabel=tagged(/^(?:end|end date|to):\s*(.+)$/i);
+ const is_current=/^(?:yes|true)$/i.test(rawCurrent??'')||
+  /^(?:present|current|ongoing)$/i.test(endLabel??'');
+ // Conflicting or reversed dates stay unpopulated pending human correction.
+ if(started_on&&ended_on&&started_on>ended_on)ended_on=null;
+ if(ended_on&&is_current)return {organization,location,started_on,
+  ended_on, is_current:false};
+ return {organization,location,started_on,ended_on:is_current?null:ended_on,is_current};
+}
+
 export function extractCareerSections(text:string,max=6):ParsedSections{
  if(text.length<20||text.length>4000)throw new Error('CV text must contain 20–4,000 characters.');
  const lines=text.replace(/\r\n?/g,'\n').split('\n');
@@ -85,7 +115,7 @@ export function extractCareerSections(text:string,max=6):ParsedSections{
   }else{
    const title=block.text.split('\n')[0].trim();
    const proposal=candidate(block.kind,block.text,title);
-   if(proposal)candidates.push(proposal);
+   if(proposal)candidates.push({...proposal,...explicitDetails(block.kind,block.text)});
   }
  }
  // Source quotes must actually appear in the submitted CV. If a normalized
