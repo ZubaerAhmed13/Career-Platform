@@ -33,7 +33,7 @@ describe('AI validation and career evidence',()=>{
   expect(result.suggestions).toHaveLength(1);
  });
  it('removes suggestions without a verbatim user quote',()=>{
-  const result=validateInterviewOutput({reply:'Tell me more.',suggestions:[{
+  const result=validateInterviewOutput({scope:'career',reply:'Tell me more.',suggestions:[{
     kind:'achievement',title:'Reduced costs 40%',description:'Fabricated metric',
     evidence_quote:'reduced costs by 40%',
   }]},answer);
