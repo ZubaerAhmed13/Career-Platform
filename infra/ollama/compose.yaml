@@ -1,0 +1,38 @@
+# Private model stack for an operator-controlled host. NEVER publish 11434.
+services:
+  ollama:
+    image: ollama/ollama:${OLLAMA_VERSION:?Set a reviewed Ollama tag in .env}
+    restart: unless-stopped
+    volumes:
+      - model-weights:/root/.ollama
+    expose:
+      - "11434"
+    networks:
+      - model-internal
+    security_opt:
+      - no-new-privileges:true
+  gateway:
+    image: caddy:${CADDY_VERSION:?Set a reviewed Caddy tag in .env}
+    restart: unless-stopped
+    depends_on:
+      - ollama
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      MODEL_DOMAIN: ${MODEL_DOMAIN:?Set a DNS name pointing at this host}
+      INFERENCE_BEARER_TOKEN: ${INFERENCE_BEARER_TOKEN:?Generate a strong random secret}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - model-internal
+    security_opt:
+      - no-new-privileges:true
+networks:
+  model-internal:
+volumes:
+  model-weights:
+  caddy-data:
+  caddy-config:

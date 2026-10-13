@@ -1,0 +1,13 @@
+# HTTPS is automatic for a DNS name and reachable public 80/443.
+# The backing Ollama HTTP API is private to Docker; only chat is exposed.
+{$MODEL_DOMAIN} {
+  @authorized_chat {
+    path /api/chat
+    method POST
+    header Authorization "Bearer {$INFERENCE_BEARER_TOKEN}"
+  }
+  handle @authorized_chat {
+    reverse_proxy ollama:11434
+  }
+  respond "Forbidden" 403
+}
