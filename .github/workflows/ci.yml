@@ -18,8 +18,12 @@ jobs:
           CADDY_VERSION: "2.10.0"
           MODEL_DOMAIN: "example.com"
           INFERENCE_BEARER_TOKEN: "ci-only-placeholder-no-production-access"
+          CLAMAV_VERSION: "1.4.0"
+          SCAN_NODE_VERSION: "22.16.0-alpine"
+          CV_SCAN_BEARER_TOKEN: "ci-scanner-placeholder-no-production-access"
         run: |
           bash -n infra/ollama/setup.sh
+          node --test infra/ollama/scan-server.test.mjs
           python3 -m py_compile infra/ollama/check-gateway.py
           docker compose -f infra/ollama/compose.yaml config --quiet
           docker compose -f infra/ollama/compose.yaml -f infra/ollama/compose.gpu.yaml config --quiet
