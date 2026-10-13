@@ -1,24 +1,31 @@
-# CareerOS AI — Step 2 acceptance matrix (2026-10-13)
+# CareerOS AI — Step 2 live deployment status (13 October 2026)
 
-This matrix distinguishes **implemented code**, **verified local/CI behavior**, and **external acceptance**. A feature is not production-ready merely because it compiles.
+## Verified connected backend
+- **Supabase project:** CareerOS AI, ref `jtitfwzpfbyfsdpxxrbj` (eu-north-1).
+- **Connection:** authorized management connector successfully accessed this project.
+- **Migrations applied:** 15 additive migrations, from the initial account migration through `composite_fk_indexes`; all returned success.
+- **Live schema:** 11 public tables, all with RLS enabled; zero registered users and zero stored career records at deployment time.
+- **Private storage:** `career-private` bucket is configured nonpublic; browser upload policy remains disabled.
+- **Security hardening:** anonymous Data API table grants revoked; authenticated users limited to required operations. Direct calls to two internal definer trigger functions revoked; provider-only AI RPC execution restricted to service role.
+- **Performance:** six composite foreign-key indexes installed; no unindexed-FK advisor findings after deployment.
+- **Actual app deployment:** NOT confirmed. No Vercel/hosting configuration or server-side model/antivirus secrets were accessed.
 
-| Step 2 requirement | Implementation | Verification and gaps |
+## Step 2 acceptance matrix
+
+| Capability | Implementation | Live verification |
 |---|---|---|
-| Career Vault dashboard | Implemented | Source/production build; authenticated browser still needed |
-| Work experience, education, skills, projects | Manual CRUD implemented | Local PostgreSQL RLS/record tests; live persistence pending |
-| Achievements, languages, certifications, volunteering | All eight categories supported | Source tests; live account acceptance pending |
-| Server-backed career storage | Authenticated RLS code implemented | All migrations execute in disposable Postgres; hosted project not checked |
-| Career evidence and relationships | Owner-scoped composite FKs + link UI | Local RLS/FK tests; two-user Supabase checks blocked |
-| AI fact approval and selective merging | Owner-controlled RPCs, duplicate guards, structured field review | Local SQL execution and unit checks; hosted concurrency tests pending |
-| AI Career Interviewer | Real provider-backed code | Requires server-only credentials; real model not called |
-| PDF/DOCX CV import | Antivirus-gated extraction in code | Real ClamAV and sandboxed parser E2E blocked |
-| Structured CV import | Section-based extraction + optional AI proposals, structured manual corrections for organization/location/dates and explicit approval | Import logic/source and local SQL tested; no OCR, automatic field/date inference or real scanner integration |
-| Career profile JSON export | Authenticated owner-filtered export | Code present, live owner/export tests pending |
-| Database security migrations | **001–012** in source; local PostgreSQL migrations and assertions | Not applied/confirmed on hosted Supabase |
-| Real two-user security tests | Written and protected | Not executed; dedicated staging connection required |
-| Responsive browser testing | Public/anonymous desktop + mobile Chromium smoke tests **passed** | Logged-in Vault/accessibility/mobile review not completed |
-| Production release readiness | Not accepted | Hosted database, secrets, anti-malware, privacy and staging checks outstanding |
+| Account schema/profile initialization | Deployed | Database schema verified; user sign-up not tested |
+| Career Vault storage (eight types) | Deployed | 11 RLS-protected tables verified; signed-in CRUD not tested |
+| CRUD and structured fact review | Application source, functions deployed | Unit, local SQL tests; real-user E2E pending |
+| Career evidence/knowledge relationships | Composite FKs/indexes deployed | Schema verified; two-user hosted tests pending |
+| Duplicate guard/field-selective merges | RPCs deployed | SQL integration on disposable Postgres; hosted-user flow pending |
+| Profile JSON export | Application source | Needs deployed app and signed-in account |
+| AI Career Interviewer/extraction | Conditional source and SQL RPCs | OpenAI server secret and live model testing pending |
+| PDF/DOCX scanned import | Conditional source | ClamAV/private parser runtime absent; disabled |
+| Responsive browser smoke tests | Implemented | 8 public/anonymous cases passed in GitHub CI |
+| Private authenticated browser checks | Written staging plan | No real users yet; pending |
+| GDPR/privacy operational readiness | Incomplete | Retention/deletion/provider assessments pending |
 
-See [Pull Request #2](https://github.com/ZubaerAhmed13/Career-Platform/pull/2), \`docs/STEP2_ACCEPTANCE_MATRIX.md\`, \`docs/STAGING_SECURITY_RUNBOOK.md\` and \`docs/CV_SCAN_RUNBOOK.md\`.
+**Do not advertise Step 2 as production-ready until real authenticated flows, AI-provider runtime, scanner and deployment are validated.**
 
-**Do not merge into main or start Resume Studio based solely on CI.**
+Supabase migration history versions are assigned by the management connector on execution (`2026101306...`), and differ from the GitHub migration filename prefixes (`20261012...` and `20261013...`). Before enabling automated Supabase CLI migrations, reconcile version tracking to prevent accidental reapplication of already installed DDL.
