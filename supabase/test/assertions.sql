@@ -171,3 +171,58 @@ begin
  if not blocked then raise exception 'Other account was permitted to reapprove a suggestion'; end if;
 end $$;
 reset role;
+
+-- Structured review: a user explicitly corrects dates/employer before acceptance.
+set role authenticated;
+select set_config('request.jwt.claim.sub','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',false);
+select set_config('request.jwt.claim.role','authenticated',false);
+insert into public.career_suggestions(id,user_id,kind,title,description,origin)
+ values('66666666-6666-4666-8666-666666666666',
+  'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+  'experience','Working student (source reviewed)','Operations','cv_import');
+select public.edit_career_suggestion_details(
+ '66666666-6666-4666-8666-666666666666',
+ 'experience','Working student (source reviewed)','Inventory cycle counts',
+ 'Example GmbH','Worms','2025-01-01'::date,null,true
+);
+select public.approve_career_suggestion('66666666-6666-4666-8666-666666666666');
+do $$
+declare total integer;
+begin
+ select count(*) into total from public.career_records
+  where user_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+   and title='Working student (source reviewed)'
+   and organization='Example GmbH' and location='Worms'
+   and started_on='2025-01-01' and ended_on is null and is_current=true
+   and source='import';
+ if total<>1 then raise exception 'Structured career fields not preserved after approval'; end if;
+end $$;
+
+insert into public.career_suggestions(id,user_id,kind,title,description,origin)
+ values('77777777-7777-4777-8777-777777777777',
+  'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+  'experience','Updated inventory role','Better job description','cv_import');
+select public.edit_career_suggestion_details(
+ '77777777-7777-4777-8777-777777777777',
+ 'experience','Updated inventory role','Better job description',
+ 'Other employer','Mannheim','2026-01-01'::date,'2026-06-30'::date,false
+);
+select public.merge_career_suggestion_details(
+ '77777777-7777-4777-8777-777777777777',
+ (select id from public.career_records
+  where user_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+   and title='Working student (source reviewed)' limit 1),
+ 1,false,true,false,true,true
+);
+do $$
+declare total integer;
+begin
+ select count(*) into total from public.career_records
+ where user_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+  and title='Working student (source reviewed)' and organization='Example GmbH'
+  and description='Better job description' and location='Mannheim'
+  and started_on='2026-01-01' and ended_on='2026-06-30'
+  and is_current=false and source='import' and revision=2;
+ if total<>1 then raise exception 'Selected-field merge changed unselected fields or failed'; end if;
+end $$;
+reset role;
