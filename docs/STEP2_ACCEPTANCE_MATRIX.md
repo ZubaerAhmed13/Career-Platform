@@ -8,17 +8,17 @@ The words **implemented**, **CI passed**, **staging accepted** and **production 
 |---|---|---|---|---|
 | 1 | Real-account login, CRUD, save, reload, edit/delete and re-login | Signed-in Playwright staging case; server actions and RLS | Unit, PostgreSQL CI, anonymous browser; **not a real signed-in test** | Execute with disposable staging Account A |
 | 2 | Cross-user isolation | Two-account Supabase integration tests and owner/foreign export browser checks | Disposable PostgreSQL owner/RLS tests; hosted schema RLS enabled | Run with distinct confirmed Accounts A/B and record evidence |
-| 3 | PDF/DOCX-to-text through review and approved saved record | Browser Web Worker tests + signed-in end-to-end PDF case | Real desktop/mobile PDF/DOCX parsing in anonymous fixture CI | Run real signed-in staging save, pending review, approval, reload, secondary-user check |
+| 3 | PDF/DOCX-to-text through review and approved saved record | Browser Web Worker tests + signed-in end-to-end **PDF and DOCX** approval cases | Real desktop/mobile PDF/DOCX parsing in anonymous fixture CI | Run real signed-in staging save, pending review, approval, reload, secondary-user check |
 | 4 | Exports, Vault clear and hard account deletion | Account/Vault JSON exports, owner-only Vault clear RPC, password-confirmed account deletion code, extra manual opt-in destructive test | Anonymous export denial, local SQL clearing assertions and 11 live schema user-FK cascades | Run against **separate throwaway** Accounts C/D, verify no cross-user changes; complete operator backup/deletion review |
-| 5 | Logged-in mobile, keyboard, accessibility | Skip-to-main link, responsive overflow safeguards, keyboard focus and labeled-form checks; broader signed-in mobile suite | Anonymous desktop/mobile CI only | Run signed-in desktop/mobile; human keyboard + VoiceOver/NVDA screen-reader walkthrough |
+| 5 | Logged-in mobile, keyboard, accessibility | Skip-to-main link, responsive overflow safeguards, keyboard focus and labeled-form checks; broader signed-in mobile suite | Anonymous desktop/mobile CI only | Run signed-in desktop/mobile and complete `docs/STEP2_ACCESSIBILITY_SIGNOFF.md` with a real keyboard + VoiceOver/NVDA screen-reader walkthrough |
 | 6 | Privacy, retention, security | Server-side auth guards, RLS, explicit grants, provenance, scanner fail-closed; retention/erasure runbook | 18 hosted Supabase migrations; 11/11 public tables RLS; Supabase security advisories reviewed | Enable leaked-password protection; audit 9 definer RPC grants and execute permissions, obtain provider retention/backup contract, controller privacy notice and operator approval |
-| 7 | Current deployment, final docs, PR merge | Docs/runbook/CI automation in PR #2 | Prior older SHA Vercel previews READY, newest source commit CI to be recorded below | Deploy **exact PR head**, verify Vercel READY and private configured services, finish above tests then review/merge |
+| 7 | Current deployment, final docs, PR merge | Docs/runbook/CI automation in PR #2 | A Vercel READY preview and all three CI jobs were verified on a source commit in this release cycle; newest HEAD must be checked after changes | Reconfirm the final **exact PR head** has CI PASS + Vercel READY, finish live staging and privacy signoffs, then review/merge |
 
 ## Environments and test-data boundaries
 
 - **Production Supabase:** `jtitfwzpfbyfsdpxxrbj` (**NEVER** point authenticated mutation/erasure test suites at this project).
 - Dedicated disposable staging Supabase project: **not connected or provisioned at this audit**.
-- Production Vercel project: `career-platform`, prior preview builds READY at older commits; **do not infer current PR head was deployed**.
+- Production Vercel project: `career-platform`. Feature-branch Vercel previews can be READY on older commits; the final release checklist must match Vercel's `githubCommitSha` to **the latest PR head** before signoff.
 - The protected staging workflow `.github/workflows/staging-security.yml` is manual-only and requires the GitHub `staging` environment, six staging credentials and approval.
 - Destructive tests `tests/e2e/staging-privacy-erasure.spec.ts` require **two extra newly created empty accounts** in the same staging project, staging-only admin credentials and the exact environment acknowledgement `CAREER_STAGING_ERASURE=I_UNDERSTAND_DELETES_DISPOSABLE_USERS`.
 - Never run destructive testing against real applicants; never add credential values, user exports, traces or token contents to public logs.
@@ -36,4 +36,4 @@ The website must not claim GDPR compliance or a complete subject-access export u
 
 ## Merge decision
 
-**Current verdict: BLOCKED.** A passing build and PostgreSQL fixture smoke test are insufficient to establish real account isolation, effective erasure, AI host availability, or live deployment. Merge only after protected staging results and the exact-head Vercel preview are recorded, all critical release gates pass, and a human authorizes production promotion.
+**Current verdict: BLOCKED.** A passing build and PostgreSQL fixture smoke test are insufficient to establish real account isolation, effective erasure, AI host availability, or authenticated acceptance of a deployed preview. Merge only after protected staging results and the exact-head Vercel preview are recorded, all critical release gates pass, and a human authorizes production promotion.
