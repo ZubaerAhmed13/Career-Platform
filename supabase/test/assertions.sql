@@ -317,13 +317,13 @@ end $$;
 
 -- Account preservation uses privileged test administrator context, not user JWT.
 reset role;
-do $
+do $$
 declare auth_count integer;
 begin
  select count(*) into auth_count from auth.users
  where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
  if auth_count<>1 then raise exception 'Career Vault erasure deleted login account'; end if;
-end $;
+end $$;
 
 -- Separate authenticated test subject B must still see their untouched record.
 set role authenticated;
