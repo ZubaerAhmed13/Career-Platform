@@ -34,3 +34,10 @@ test('public forms fit mobile screens without horizontal scrolling',async({page}
   )).toBe(true);
  }
 });
+
+
+test('anonymous account export never returns another user\'s data',async({request})=>{
+ const response=await request.get('/api/account/export');
+ expect(response.status()).toBe(401);
+ expect(response.headers()['cache-control']).toContain('no-store');
+});
