@@ -1,25 +1,24 @@
-# CareerOS AI — current Career Vault status (2026-10-12)
+# CareerOS AI — Step 2 acceptance matrix (2026-10-13)
 
-| Requirement | Source state | Verification |
+This matrix distinguishes **implemented code**, **verified local/CI behavior**, and **external acceptance**. A feature is not production-ready merely because it compiles.
+
+| Step 2 requirement | Implementation | Verification and gaps |
 |---|---|---|
-| Login/onboarding/settings | Retained from Milestone 1 | Previous source CI; live Auth not tested |
-| Manual career records and stable IDs | Implemented | Unit, TypeScript, build; local SQL ownership checks |
-| Eight record categories and contextual forms | Implemented | Code verified, authenticated browser test pending |
-| Career fact provenance | Hardened | Migration 009; PostgreSQL CI tests, NOT hosted Supabase |
-| Career overview, organization/date/search filters | Implemented | Code verified; browser acceptance pending |
-| Evidence and cross-owned record constraints | Implemented | Local PostgreSQL RLS/FK smoke tests |
-| Approve/reject/edit/delete suggestions | Implemented | Local SQL approval tests and source tests |
-| Selective revision-safe merges | Implemented | Source tests; live Supabase staging required |
-| Pasted CV text and optional AI extraction | Implemented conditionally | Credentials and live AI tests absent |
-| PDF/DOCX scanner-gated text extraction | Implemented conditionally | Real ClamAV/parser isolation tests absent |
-| AI interviews, sessions and context ranking | Implemented conditionally | Server model/persistence credentials absent |
-| AI/source impersonation prevention | Implemented | SQL execution tests with compatibility stub; staging required |
-| Per-user AI rate quotas | Implemented | Local SQL assertions; live load/concurrency test pending |
-| Private JSON data export | Implemented | Code verified; authenticated browser/staging test pending |
-| Static unit suite | Implemented | CI |
-| Real SQL migration and policy smoke suite | Implemented | CI PostgreSQL 16; not actual Supabase |
-| Public/anonymous desktop-mobile browser suite | Implemented | Playwright CI (check latest run) |
-| Dedicated two-account Supabase integration suite | Written | BLOCKED — protected staging project not connected |
-| Public deployment, legal/privacy, scanner/AI providers | Not finished | Requires authorized infrastructure and live verification |
+| Career Vault dashboard | Implemented | Source/production build; authenticated browser still needed |
+| Work experience, education, skills, projects | Manual CRUD implemented | Local PostgreSQL RLS/record tests; live persistence pending |
+| Achievements, languages, certifications, volunteering | All eight categories supported | Source tests; live account acceptance pending |
+| Server-backed career storage | Authenticated RLS code implemented | All migrations execute in disposable Postgres; hosted project not checked |
+| Career evidence and relationships | Owner-scoped composite FKs + link UI | Local RLS/FK tests; two-user Supabase checks blocked |
+| AI fact approval and selective merging | Owner-controlled RPCs, duplicate guards, structured field review | Local SQL execution and unit checks; hosted concurrency tests pending |
+| AI Career Interviewer | Real provider-backed code | Requires server-only credentials; real model not called |
+| PDF/DOCX CV import | Antivirus-gated extraction in code | Real ClamAV and sandboxed parser E2E blocked |
+| Structured CV import | Section-based extraction + optional AI proposals, structured manual corrections for organization/location/dates and explicit approval | Import logic/source and local SQL tested; no OCR, automatic field/date inference or real scanner integration |
+| Career profile JSON export | Authenticated owner-filtered export | Code present, live owner/export tests pending |
+| Database security migrations | **001–012** in source; local PostgreSQL migrations and assertions | Not applied/confirmed on hosted Supabase |
+| Real two-user security tests | Written and protected | Not executed; dedicated staging connection required |
+| Responsive browser testing | Public/anonymous desktop + mobile Chromium smoke tests **passed** | Logged-in Vault/accessibility/mobile review not completed |
+| Production release readiness | Not accepted | Hosted database, secrets, anti-malware, privacy and staging checks outstanding |
 
-**Do not merge PR #2 as a production release based only on source checks.** The original acceptance criteria require live authenticated persistence, ownership, secure imports, model behavior and verified UX.
+See [Pull Request #2](https://github.com/ZubaerAhmed13/Career-Platform/pull/2), \`docs/STEP2_ACCEPTANCE_MATRIX.md\`, \`docs/STAGING_SECURITY_RUNBOOK.md\` and \`docs/CV_SCAN_RUNBOOK.md\`.
+
+**Do not merge into main or start Resume Studio based solely on CI.**

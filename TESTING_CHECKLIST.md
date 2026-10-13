@@ -53,3 +53,12 @@ Added `.github/workflows/staging-security.yml`. It is **not** invoked by a norma
 - Added `tests/integration/record-provenance.test.ts` for real two-account staging validation of fake AI attribution, preserved source/status and revision history. It is NOT executed by unit CI.
 - Added public/browser Playwright tests for unauthenticated Career Vault access, home, sign-in/signup/recovery screens and mobile overflow. Final CI outcome needs confirmation before marking as passed.
 - Unit checks alone are not evidence of hosted Supabase migration deployment, live AI calls, real ClamAV, logged-in end-to-end flows, cross-account database isolation or GDPR compliance.
+
+
+## Structured CV review verification (October 13, 2026)
+- [x] Added deterministic section parsing unit tests including source quotes, short skill headings and malformed spacing.
+- [x] Added local PostgreSQL duplicate-approval tests with explicit separate-record decision.
+- [x] Added local PostgreSQL SQL assertions for review edits (organization, location, start/end/current dates), approval and selected-field merges.
+- [ ] Apply migration 011–012 in an authorized staging Supabase project after preflight.
+- [ ] Run two-user authenticated staging tests and confirm full browser CRUD, upload, review, export, edit conflicts and session persistence.
+- [ ] Validate true scanner integration, isolated binary parsers, real AI provider, mobile screen readers and data deletion.

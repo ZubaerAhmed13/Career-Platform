@@ -18,3 +18,11 @@ When structured AI extraction is requested, source-quoted proposals now pass thr
 
 ## Conditional scanned-file structured extraction
 After a real clean ClamAV verdict, a user may choose **manual review** (one pending original-text entry, no AI transfer) or select **AI-assisted field proposals** with distinct permission to send extracted text to the provider. AI requires the configured model, database quota RPC and server-only trusted persistence. Up to six quote-backed facts become pending suggestions, never confirmed records. If the provider fails, no success is claimed and the user can retry with AI extraction unchecked. No original binary is saved.
+
+
+## October 2026 implementation: structured manual review
+The non-AI section parser now recognizes specific labeled CV sections and creates separate review proposals instead of treating every uploaded/pasted CV as one job. Every saved proposal includes a source excerpt appearing in the supplied text; if extraction is uncertain, the original can remain one pending item. A maximum of six proposals are created per import and omitted entries are reported.
+
+Migration 012 adds editable employer/institution, location, start date, end date and ongoing status to unconfirmed proposals. Each proposed record remains private and unconfirmed until the owner approves it. Users may reject it, correct it, keep an original record, merge only selected fields or explicitly save a genuinely separate same-titled record. Normal approval rejects a duplicate same-title/category record; the separate path requires a confirmation checkbox and owner-scoped SQL action.
+
+**Limitations:** the parser does not infer employer/dates from unstructured text, preserve a binary original for replay, parse images/OCR, or automatically guarantee accurate field-level extraction. AI proposals also require manual correction of their structured fields. This is a safer intermediate import workflow, not fully automatic CV understanding. Real AV scanner/hosted database tests remain unexecuted.

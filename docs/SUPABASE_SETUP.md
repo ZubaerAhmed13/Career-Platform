@@ -99,3 +99,11 @@ After backing up the intended Supabase project and confirming 001–008 were app
 Migration 009 disallows ordinary browser inserts that claim `source='ai'` or `source='import'`, and prevents ordinary edits from re-labeling career provenance or changing creator/record IDs. Migration 010 repairs an actual runtime SQL bug discovered by local PostgreSQL integration assertions.
 
 **Do not run the two-account staging test suite against the supplied primary project.** Create a separate project and two disposable confirmed users. The known primary project is rejected by the integration test harness. CI PostgreSQL compatibility fixtures are not proof of a successful hosted Supabase deployment.
+
+
+## Additional migrations for structured CV review (011–012)
+After environment/backup and migration-history checks, apply:
+- \`202610120011_review_duplicates.sql\`: explicit duplicate review, owner-scoped separate approval and serialized suggestion acceptance.
+- \`202610120012_structured_cv_review.sql\`: pending employer/location/date fields, updated approval functions, pending structured fact editor and selected-field merge RPC.
+
+Do **not** bypass production preflight, run staging test mutations on the primary project or assume PostgreSQL compatibility tests are sufficient for Supabase Auth/RLS release validation.

@@ -64,3 +64,11 @@ Manual record edits now preserve original record provenance and unrelated struct
 In addition to `npm run typecheck`, `npm run lint`, `npm test` and `npm run build`, the repository contains `npm run test:e2e` for public desktop/mobile flows and unauthorized vault access; Playwright browsers must be installed. CI validates migration SQL and browser smoke tests separately. Real authenticated staging acceptance still requires Supabase management access.
 
 **Remaining SQL migrations:** 009 enforces immutable source/status provenance on manual record edits; 010 fixes an AI persistence SQL alias ambiguity discovered by executing actual database assertions. Apply them after 001–008, only after backup and migration-history review.
+
+
+## Step 2 source updates — 13 October 2026
+Current additive migrations: **001–012**. New migration 011 serializes imported suggestion approval and blocks accidental same-title duplicates; a distinct separate-record choice requires explicit user confirmation. Migration 012 stores user-reviewed organization, location, start/end and ongoing status on pending import proposals. Approved records retain corrected structured fields. Selective merges can replace chosen title, description, organization, location or complete date range, using revision checks.
+
+**CV text segmentation:** labeled sections such as Work Experience, Education, Technical Skills, Languages, Projects, Certifications, Achievements and Volunteering can be split into up to six separately reviewable fact candidates, without using AI. Unrecognized text is saved as a single unreviewed item. Source excerpts are checked against original text; no employer, dates or credentials are inferred. Secure PDF/DOCX handling still requires ClamAV; optional AI extraction requires separate consent and provider credentials. OCR/advanced CV field extraction is not available.
+
+Check \`FEATURE_STATUS.md\` for the current verified status. The hosted Supabase project has not been modified in this development session.
