@@ -26,3 +26,12 @@ The interview structured response includes `scope = career | off_topic`. When a 
 **Trust boundary improvement:** Applicant-controlled career records are sent as bounded *reference data in a user message*, not appended to privileged model instructions. Past conversation and CV content are explicitly untrusted data; embedded commands cannot authorize new tools or overwrite confirmed facts. The CV extractor has a separate, narrow evidence-extraction prompt that refuses fabricated details.
 
 This makes the **coded assistant behavior purpose-specific**, not a separately fine-tuned proprietary model, and not proof of live provider behavior. Real model execution still requires protected `OPENAI_API_KEY` and `SUPABASE_SERVICE_ROLE_KEY` configuration, provider budget/consent, and staging acceptance.
+
+## Pro interview upgrades — October 2026
+- STAR-E professional question design: situation, personal responsibility, action, observed outcome and evidence.
+- Follow-up focus stored with the AI message. Each model response is committed for an exact user answer, preventing stale/double replies from silently polluting a session.
+- Account-owned interview specialty is durable across visits and targets one of eight career areas.
+- Current target role is optional relevance context only; the AI must never assume a role or infer qualifications from it.
+- Evidence candidate gate rejects invented metrics and requires text anchors supporting the description/title; duplicates are filtered. This is an intentionally conservative support check, not automatic verification.
+- Each session has a private evidence review summary and direct action to the approval queue.
+- See `docs/CAREER_AI_PRO_ACCEPTANCE.md` for the full test/acceptance criteria.

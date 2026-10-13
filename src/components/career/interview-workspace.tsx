@@ -74,7 +74,7 @@ function InterviewChat({session,messages,proposals}:{session:CareerSession;messa
    </div>
    <label className="label" htmlFor="answer">Your real career experience or answer (2,000 characters maximum)</label>
    <textarea className="field" id="answer" name="answer" rows={5} maxLength={2000} minLength={5} required/>
-   <label><input type="checkbox" name="consent" value="yes" required/> I consent to sending this answer and relevant approved career context to the configured AI service.</label>
+   <label><input type="checkbox" name="consent" value="yes" required/> I consent to sending my answer, recent interview messages, selected target role and relevant confirmed career summaries to the configured AI provider for this career interview.</label>
    <button disabled={pending} className="button">{pending?'Processing…':'Send answer to AI interviewer'}</button>
    {state.error&&<p className="error" role="alert">{state.error}</p>}
    {state.message&&<p className="success" role="status">{state.message}</p>}

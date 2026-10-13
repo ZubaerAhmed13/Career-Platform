@@ -29,3 +29,6 @@
 **Do not advertise Step 2 as production-ready until real authenticated flows, AI-provider runtime, scanner and deployment are validated.**
 
 Supabase migration history versions are assigned by the management connector on execution (`2026101306...`), and differ from the GitHub migration filename prefixes (`20261012...` and `20261013...`). Before enabling automated Supabase CLI migrations, reconcile version tracking to prevent accidental reapplication of already installed DDL.
+
+### Professional career-only AI upgrade (October 13, 2026)
+The professional interviewer source now includes eight durable tracks, STAR-E follow-ups, verified exact-turn persistence, numerical claim checks, deduplication, a target-role relevance hint and an evidence review panel. Supabase migration 004 was deployed and the new 005 track migration must be confirmed separately. The Vercel runtime still lacks protected AI secrets, so **real model conversations remain inactive**. See `docs/CAREER_AI_PRO_ACCEPTANCE.md`.
