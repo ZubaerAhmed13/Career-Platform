@@ -1,6 +1,7 @@
 import 'server-only';
+import {isCareerAIPurpose,type CareerAIPurpose} from './ai-purpose';
 
-/** Single, swappable server-side boundary for structured career AI operations. */
+/** Single server-side provider boundary for the TWO approved CareerOS Step 2 uses. */
 export class AIUnavailableError extends Error {}
 
 export async function requestStructuredCareerAI({
@@ -9,12 +10,18 @@ export async function requestStructuredCareerAI({
  instructions:string;
  input:Array<{role:'user'|'assistant';content:string}>;
  schema:Record<string,unknown>;
- name:string;maxOutputTokens?:number;
+ name:CareerAIPurpose;
+ maxOutputTokens?:number;
 }):Promise<unknown>{
+ // Keep the business boundary explicit even if runtime JavaScript bypasses TS.
+ if(!isCareerAIPurpose(name))throw new AIUnavailableError('Unsupported CareerOS AI operation.');
  const key=process.env.OPENAI_API_KEY;
- if(!key)throw new AIUnavailableError('The AI provider is not configured.');
- const model=process.env.CAREER_AI_MODEL??'gpt-4o-mini';
- if(input.length>12)throw new AIUnavailableError('Input context is too long.');
+ if(!key)throw new AIUnavailableError('Career AI provider is not configured.');
+ const model=process.env.CAREER_AI_MODEL||'gpt-4o-mini';
+ if(!input.length||input.length>12||
+    input.some(m=>m.role!=='user'&&m.role!=='assistant')||
+    !Number.isInteger(maxOutputTokens)||maxOutputTokens<1||maxOutputTokens>900)
+   throw new AIUnavailableError('Invalid scoped CareerOS AI input.');
  const request={
   model,store:false,max_output_tokens:maxOutputTokens,
   instructions,
@@ -24,10 +31,10 @@ export async function requestStructuredCareerAI({
  let response:Response;
  try{
   response=await fetch('https://api.openai.com/v1/responses',{
-    method:'POST',
-    headers:{'Content-Type':'application/json',Authorization:'Bearer '+key},
-    signal:AbortSignal.timeout(20000),
-    body:JSON.stringify(request),
+   method:'POST',
+   headers:{'Content-Type':'application/json',Authorization:'Bearer '+key},
+   signal:AbortSignal.timeout(20000),
+   body:JSON.stringify(request),
   });
  }catch{throw new AIUnavailableError('AI request timed out or could not connect.');}
  if(!response.ok)throw new AIUnavailableError('AI provider rejected the request ('+response.status+').');
