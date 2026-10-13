@@ -2,6 +2,7 @@ import {describe,it,expect,vi,afterEach} from 'vitest';
 import {scanGatewayConfig,scanGatewayConfigured} from '../src/lib/career/scan-gateway-config';
 vi.mock('server-only',()=>({}));
 const settings=(extra:Record<string,string|undefined>={})=>({
+ NODE_ENV:'production',
  CV_SCAN_GATEWAY_URL:'https://scan.example.com',
  CV_SCAN_GATEWAY_TOKEN:'test-token-longer-than-32-characters-do-not-use',
  ...extra,
