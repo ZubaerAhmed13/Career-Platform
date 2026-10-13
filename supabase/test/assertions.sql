@@ -293,9 +293,11 @@ begin
  select count(*) into own_count from public.career_records
  where user_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
  if own_count<>0 then raise exception 'Career Vault erasure did not remove owned records'; end if;
+ -- Cross-account data is intentionally hidden here by RLS; verify user B
+ -- with its own authenticated context in a separate assertion below.
  select count(*) into other_count from public.career_records
  where user_id='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
- if other_count<>1 then raise exception 'Career Vault erasure affected another user'; end if;
+ if other_count<>0 then raise exception 'RLS exposed another user''s career records'; end if;
  select count(*) into auth_count from auth.users
  where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
  if auth_count<>1 then raise exception 'Career Vault erasure deleted login account'; end if;
@@ -312,3 +314,17 @@ begin
   raise exception 'Anonymous users can clear Career Vault';
  end if;
 end $$;
+
+
+-- Separate authenticated test subject B must still see their untouched record.
+set role authenticated;
+select set_config('request.jwt.claim.sub','bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',false);
+select set_config('request.jwt.claim.role','authenticated',false);
+do $$
+declare owned integer;
+begin
+ select count(*) into owned from public.career_records
+ where id='22222222-2222-4222-8222-222222222222';
+ if owned<>1 then raise exception 'Erasing A affected B-owned data'; end if;
+end $$;
+reset role;
