@@ -44,7 +44,7 @@ begin
  return record_id;
 end; $$;
 
-create function public.approve_career_suggestion_separately(suggestion_id uuid)
+create or replace function public.approve_career_suggestion_separately(suggestion_id uuid)
 returns uuid language plpgsql security definer set search_path = '' as $$
 declare
  item public.career_suggestions%rowtype;
