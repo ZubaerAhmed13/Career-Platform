@@ -1,7 +1,7 @@
 import {describe,it,expect,vi,afterEach} from 'vitest';
 import {localModelConfiguration,localModelConfigured} from '../src/lib/career/local-model';
 vi.mock('server-only',()=>({}));
-const vars=(overrides:Record<string,string>={}):NodeJS.ProcessEnv=>({
+const vars=(overrides:Record<string,string|undefined>={}):NodeJS.ProcessEnv=>({
  NODE_ENV:'production',
  SELF_HOSTED_LLM_URL:'https://career-model.example.com',
  SELF_HOSTED_LLM_TOKEN:'test-token-must-be-at-least-24-characters',
