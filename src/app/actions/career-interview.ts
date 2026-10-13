@@ -14,10 +14,12 @@ const topicSchema=z.enum(interviewTopics);
 
 export async function startCareerInterview(_previous:VaultActionState,form:FormData):Promise<VaultActionState>{
  if(!process.env.OPENAI_API_KEY||!aiPersistenceConfigured())return {error:'AI interviewer is unavailable until the provider and secure persistence are configured.'};
+ const topic=topicSchema.safeParse(form.get('topic'));
+ if(!topic.success)return {error:'Select a supported career interview topic.'};
  const title=String(form.get('title')??'Career exploration').trim().slice(0,160)||'Career exploration';
  const {user,supabase}=await requireAccount();
  const {data,error}=await supabase.from('career_interview_sessions')
-   .insert({user_id:user.id,title}).select('id').single();
+   .insert({user_id:user.id,title,topic:topic.data}).select('id').single();
  if(error||!data)return {error:'Unable to start an interview session.'};
  redirect('/career-vault/interview?id='+data.id);
 }

@@ -261,3 +261,19 @@ begin
  if not blocked then raise exception 'User token called privileged turn persistence'; end if;
 end $$;
 reset role;
+
+-- New career interview tracks are durable server-side data, not inferred.
+reset role;
+select set_config('request.jwt.claim.role','service_role',false);
+insert into public.career_interview_sessions(id,user_id,title,topic)
+values('99999999-9999-4999-8999-999999999999',
+ 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+ 'Language experience','languages');
+do $$
+declare selected_topic text;
+begin
+ select topic into selected_topic from public.career_interview_sessions
+ where id='99999999-9999-4999-8999-999999999999';
+ if selected_topic<>'languages' then raise exception 'Interview track not persisted'; end if;
+end $$;
+reset role;

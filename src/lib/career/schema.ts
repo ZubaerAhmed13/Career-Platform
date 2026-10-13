@@ -43,7 +43,7 @@ export type CareerSuggestion = z.infer<typeof suggestionSchema> & {
 export type CareerEvidence = z.infer<typeof evidenceSchema> & {id:string;user_id:string;created_at:string};
 export type CareerLink = {id:string;user_id:string;from_record_id:string;to_record_id:string;relation:string;created_at:string};
 export type CareerEvidenceLink = {id:string;user_id:string;record_id:string;evidence_id:string;created_at:string};
-export type CareerSession = {id:string;user_id:string;title:string;status:'active'|'completed';created_at:string;updated_at:string};
+export type CareerSession = {id:string;user_id:string;title:string;topic:'experience'|'achievements'|'projects'|'skills'|'education'|'languages'|'certifications'|'volunteering';status:'active'|'completed';created_at:string;updated_at:string};
 export type CareerMessage = {id:string;user_id:string;session_id:string;role:'user'|'assistant';content:string;created_at:string;reply_to_user_message_id?:string|null;next_focus?:'context'|'responsibility'|'action'|'outcome'|'evidence'|null};
 export type CareerEvent = {id:string;user_id:string;record_id:string;action:'created'|'updated'|'deleted';created_at:string};
 

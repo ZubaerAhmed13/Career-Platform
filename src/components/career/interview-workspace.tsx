@@ -5,13 +5,17 @@ import { useRouter } from 'next/navigation';
 import { startCareerInterview, sendCareerInterviewAnswer, completeCareerInterview } from '@/app/actions/career-interview';
 import { interviewTopics, type InterviewTopic } from '@/lib/career/prompts';
 import {trackGuide,focusGuide} from '@/lib/career/interview-coach';
-import type {CareerMessage,CareerSession} from '@/lib/career/schema';
+import type {CareerMessage,CareerSession,CareerSuggestion} from '@/lib/career/schema';
 
 function StartInterview(){
  const [state,action,pending]=useActionState(startCareerInterview,{});
  return <form action={action} className="card stack">
    <h2>Start a real career interview</h2>
-   <label className="label" htmlFor="session-title">Session topic</label>
+   <label className="label" htmlFor="interview-track">Career focus area</label>
+   <select className="field" id="interview-track" name="topic" defaultValue="experience">
+    {interviewTopics.map(topic=><option key={topic} value={topic}>{trackGuide[topic].title}</option>)}
+   </select>
+   <label className="label" htmlFor="session-title">Session name</label>
    <input className="field" id="session-title" name="title" maxLength={160}
      placeholder="e.g. My supply chain experience" defaultValue="Career exploration"/>
    <button className="button" disabled={pending}>{pending?'Creating…':'Start session'}</button>
@@ -28,13 +32,25 @@ function FinishInterview({id}:{id:string}){
   {state.message&&<p role="status" className="success">{state.message}</p>}
  </form>;
 }
-function InterviewChat({session,messages}:{session:CareerSession;messages:CareerMessage[]}){
+function InterviewChat({session,messages,proposals}:{session:CareerSession;messages:CareerMessage[];proposals:CareerSuggestion[]}){
  const [state,action,pending]=useActionState(sendCareerInterviewAnswer,{});
- const [topic,setTopic]=useState<InterviewTopic>('experience');
+ const [topic,setTopic]=useState<InterviewTopic>(session.topic);
  const router=useRouter();
  useEffect(()=>{if(state.message||state.error)router.refresh();},[state.message,state.error,router]);
  return <section className="stack">
   <h2>{session.title}</h2>
+  <p className="subtle">{trackGuide[session.topic].title} · {messages.filter(m=>m.role==='user').length} answers · {messages.filter(m=>m.role==='assistant').length} AI follow-ups</p>
+  <section className="card stack" aria-label="Interview evidence review">
+   <h3 style={{margin:0}}>Career evidence review</h3>
+   <p className="subtle">Only the answers you provided are treated as evidence. These proposed facts stay outside your verified profile until you approve them.</p>
+   <p><strong>{proposals.filter(p=>p.review_status==='pending').length}</strong> awaiting review ·
+      {' '}<strong>{proposals.filter(p=>p.review_status==='approved').length}</strong> approved ·
+      {' '}<strong>{proposals.filter(p=>p.review_status==='rejected').length}</strong> rejected</p>
+   {proposals.filter(p=>p.review_status==='pending').slice(0,3).map(p=><p key={p.id}>
+    <strong>{p.title}</strong> — {p.kind}. <span className="subtle">Source: “{p.evidence_quote.slice(0,150)}”</span>
+   </p>)}
+   <Link href="/career-vault/review" className="button secondary">Review extracted career facts</Link>
+  </section>
   <p className="subtle">This is a focused career interview using a Situation–Responsibility–Action–Outcome–Evidence approach. It follows up on real details; all proposed facts still require your approval.</p>
   <div className="stack">{messages.length===0?<div className="muted-card">No messages yet. Choose a topic and describe one real situation. The interviewer will follow up on your personal contribution, actions, outcome and evidence.</div>:messages.map(m=>
    <article key={m.id} className="card" style={{marginLeft:m.role==='user'?24:0,marginRight:m.role==='assistant'?24:0}}>
@@ -65,8 +81,9 @@ function InterviewChat({session,messages}:{session:CareerSession;messages:Career
   </form>}
  </section>;
 }
-export function InterviewWorkspace({sessions,selected,messages,configured}:{
- sessions:CareerSession[];selected:CareerSession|null;messages:CareerMessage[];configured:boolean;
+export function InterviewWorkspace({sessions,selected,messages,proposals,configured}:{
+ sessions:CareerSession[];selected:CareerSession|null;messages:CareerMessage[];
+ proposals:CareerSuggestion[];configured:boolean;
 }){
  return <div className="stack" style={{gap:24}}>
   <header><Link href="/career-vault" className="eyebrow">← Career Vault</Link>
@@ -79,9 +96,9 @@ export function InterviewWorkspace({sessions,selected,messages,configured}:{
   </div>:<div className="page-grid">
    <aside className="card stack"><h2>Interview sessions</h2><StartInterview/>
     {sessions.length===0?<p className="subtle">No interviews yet.</p>:sessions.map(s=>
-     <Link key={s.id} href={'/career-vault/interview?id='+s.id} style={{textDecoration:'underline'}}>{s.title} · {s.status}</Link>)}
+     <Link key={s.id} href={'/career-vault/interview?id='+s.id} style={{textDecoration:'underline'}}>{s.title} · {trackGuide[s.topic].title} · {s.status}</Link>)}
    </aside>
-   <div>{selected?<InterviewChat key={selected.id} session={selected} messages={messages}/>:<div className="muted-card">Start an interview or select an existing session to resume.</div>}</div>
+   <div>{selected?<InterviewChat key={selected.id} session={selected} messages={messages} proposals={proposals}/>:<div className="muted-card">Start an interview or select an existing session to resume.</div>}</div>
   </div>}
  </div>;
 }
