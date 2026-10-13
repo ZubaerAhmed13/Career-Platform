@@ -162,7 +162,7 @@ export function ReviewWorkspace({suggestions,records,aiConfigured}:{suggestions:
   </header>
   <section className="card stack">
     <h2>Paste resume text for later review</h2>
-    <p className="subtle">Safe text-only intake (20–4,000 characters). This does not parse PDF/DOCX or automatically extract facts. A full secure CV upload pipeline is not enabled yet.</p>
+    <p className="subtle">Safe text-only intake (20–4,000 characters). This accepts pasted text only. For PDF/DOCX files, use the browser-local extractor above; server-side antivirus uploads remain disabled until a private scanner is available.</p>
     <form action={action} className="stack">
       <div className="form-row"><label className="label" htmlFor="cv-title">Record name</label><input className="field" id="cv-title" name="title" maxLength={180} placeholder="e.g. Work experience from old CV"/></div>
       <div className="form-row"><label className="label" htmlFor="cv-kind">Related category</label><select className="field" id="cv-kind" name="kind">

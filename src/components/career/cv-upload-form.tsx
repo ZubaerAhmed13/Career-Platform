@@ -6,8 +6,8 @@ import { careerKinds, kindLabels } from '@/lib/career/schema';
 export function CvUploadForm({scannerReady}:{scannerReady:boolean}){
  const [state,action,pending]=useActionState(importScannedCv,{});
  if(!scannerReady)return <section className="muted-card" role="status">
-  <strong>PDF and DOCX import is disabled</strong>
-  <p>Secure antivirus scanning is not configured. Use pasted text or manual record entry instead. No document is uploaded to public storage.</p>
+  <strong>Server-scanned document uploads are not available yet</strong>
+  <p>Private ClamAV scanning is not configured. You can already import PDF/DOCX text locally in your browser using the option above, or enter career details manually. Server file uploads remain disabled.</p>
  </section>;
  return <form action={action} className="card stack">
   <h2>Import a scanned CV section (PDF or DOCX)</h2>
