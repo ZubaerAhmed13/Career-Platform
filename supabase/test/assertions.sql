@@ -337,3 +337,17 @@ begin
  if owned<>1 then raise exception 'Erasing A affected B-owned data'; end if;
 end $$;
 reset role;
+
+-- Account-erasure prerequisite: EVERY public auth-user foreign key must cascade.
+-- This test runs only in disposable PostgreSQL CI, NEVER against real accounts.
+do $$
+declare not_cascading text;
+begin
+ select string_agg(c.conrelid::regclass::text, ', ') into not_cascading
+ from pg_constraint c
+ where c.contype='f' and c.confrelid='auth.users'::regclass
+   and c.connamespace='public'::regnamespace and c.confdeltype<>'c';
+ if not_cascading is not null then
+  raise exception 'Unsafe non-cascading account references: %',not_cascading;
+ end if;
+end $$;
