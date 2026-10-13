@@ -31,7 +31,7 @@ Deploy to a Next.js-capable platform such as Vercel; configure host environment 
 ## Milestone 2 — Career Intelligence Vault
 The authenticated `/career-vault` route supports manual career records, editing with optimistic revision checks, deletion with confirmation, record search/filter, evidence notes/URLs, same-owner relationship links, user-approved suggestions and a private downloadable JSON export. Categories include experience, education, skills, languages, projects, achievements, certifications, and volunteering. A separate `/career-vault/review` page accepts **pasted text only**, supports corrections and explicitly merging selected fields, and can request real provider-based structured extraction when configured; a fail-closed PDF/DOCX extraction form is now implemented but disabled unless an internal ClamAV scanner is configured and tested.
 
-AI interviews at `/career-vault/interview` are **real provider-dependent operations**, not a demo chatbot. Configure server-only `OPENAI_API_KEY` and `SUPABASE_SERVICE_ROLE_KEY` (optional `CAREER_AI_MODEL`, default `gpt-4o-mini`), or the UI honestly reports unavailable. Career data is only sent after explicit consent. AI suggestions are separately approved; no confirmed record is silently replaced.
+AI interviews at `/career-vault/interview` now use a **self-hosted Qwen3 / Ollama open-weight model**, not a commercial model API. Configure `SELF_HOSTED_LLM_URL`, `SELF_HOSTED_LLM_TOKEN`, and `SUPABASE_SERVICE_ROLE_KEY` only on the server. See `docs/SELF_HOSTED_AI.md`. Career data is processed only after consent. AI suggestions are separately approved; no confirmed record is silently replaced.
 
 ### Activation and validation
 The previously supplied Supabase URL/publishable-key configuration is still used. Apply migrations 001–008 **only to a reviewed, backed-up intended project**. Detailed source and environment requirements are in `docs/SUPABASE_SETUP.md`. Run `npm test` and the CI scripts. Two-user authorization checks are available through `npm run test:integration` against a dedicated disposable staging project. Do not run those mutation tests on real user accounts.
@@ -79,3 +79,7 @@ An authorized Supabase management connection applied all CareerOS schema and har
 
 ### AI Pro focus
 The AI is exclusively for eliciting, correcting and validating career evidence. It asks professional, scoped STAR-E follow-ups, does not manufacture accomplishments and never confirms a fact without owner review. Specialist session topics and exact AI reply-to-answer links are supported. Source and privacy details: `docs/CAREER_AI_PRO_ACCEPTANCE.md`.
+
+
+## Fully independent model inference (feature branch)
+CareerOS AI's inference adapter now calls only the private Ollama JSON-schema API. The default Qwen3 8B weights are Apache-2.0 open weights, not original CareerOS model weights. The operator owns inference hardware and the HTTPS gateway; neither OpenAI keys nor any paid AI inference service are required. An independent model server **still must be provisioned**; this repository does not automatically deploy GPU hardware. \`SUPABASE_SERVICE_ROLE_KEY\` remains a separate privileged database credential, not an AI inference provider credential. Setup: [docs/SELF_HOSTED_AI.md](docs/SELF_HOSTED_AI.md).

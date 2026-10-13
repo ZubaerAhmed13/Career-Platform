@@ -1,37 +1,27 @@
-# AI Career Interviewer
+# CareerOS independent AI — specialist interview and CV evidence
 
-**Provider:** OpenAI Responses API (server-only), optional in Milestone 2. Set `OPENAI_API_KEY` in an encrypted server environment; optional `CAREER_AI_MODEL` defaults to `gpt-4o-mini`. No credentials are committed. The UI displays an unavailable state if the provider is absent.
+**Engine:** Self-hosted Qwen3 8B open-weight language model running through Ollama. The CareerOS application sends no inference requests to a commercial AI provider. See [Self-hosted AI](SELF_HOSTED_AI.md).
 
-**Flow:** user creates a session → answers a question with explicit consent → authenticated server saves their answer → bounded, relevant confirmed career context and recent messages are sent to the provider → structured response is parsed and validated → only suggestions quoting the user's latest answer verbatim are saved pending review → the user approves/rejects each suggestion. Approvals are atomic and do not overwrite existing confirmed records.
+## Permitted operations
+- \`career_interview\`: eight professional tracks, STAR-E follow-ups, scope classification, next-question focus, and at most two evidence-backed pending suggestions per response.
+- \`career_cv_paste\`: at most six evidence-backed pending proposals from a manually provided or antivirus-extracted CV text.
 
-**Safeguards:** 2,000-character answer limit, 20-second provider timeout, six stored messages per minute (coarse rate-limit; hardening still required), 10-message context, eight confirmed career records at most, 600 max output tokens, a strict JSON output schema, Zod runtime validation and quote matching. `store:false` is requested from the provider. On timeout/rejection the user answer is retained but no invented assistant reply is stored. Do not treat a missing provider as a simulated AI.
+## Security and information flow
+1. A signed-in user selects a career track and gives explicit consent for model processing.
+2. The server retrieves a bounded number of confirmed career facts, optional target role and recent interview turns.
+3. The private, owner-controlled Ollama model receives these as untrusted context with a server-owned career-only instruction and strict JSON schema.
+4. App-level validation rejects incorrect schema, off-topic suggestions, unmatched excerpts, invented numbers and unsupported or duplicate claims.
+5. Only the backend can call service-role SQL functions, tying AI responses to exact user messages and storing suggestions as pending.
+6. The user must approve or correct a proposal before it becomes a confirmed Career Vault record.
 
-**Known limitations:** staging API key/test budget not supplied, so live provider calls cannot be claimed tested. Concurrency-aware rate limiting, granular deletion/retention policies, DPIA/transfer review, user opt-in privacy notice, monitoring and abuse prevention remain to be validated before public release. No unchecked AI suggestion becomes a confirmed career record.
+The model has no tools for browsing, sending job applications, writing to the database or accessing external accounts. CareerOS keeps manual storage usable when private inference is unavailable.
 
-## Pasted CV AI extraction
-A specialized text extraction prompt uses the same provider boundary and strict structured JSON output. User consent is required; the server rejects unsupported quotes, validates the extracted facts against category/length rules, limits input to 4,000 characters and at most six proposals, and writes them only to the pending suggestion queue. Missing provider access leaves manual intake operational. This is **not** automatic PDF/DOCX file parsing. Live model behavior has not been verified with an API credential.
-
-## Integrity boundary — server privileged persistence
-Trusted assistant messages and provider-generated suggestions are now committed together via the `persist_verified_ai_interview` PostgreSQL function. It checks a real active session owned by the authenticated account, that the most recent answer belongs to the same user, and that each proposal cites a verbatim substring of that answer. An authenticated browser can save only its own `user` messages. The server-only service-role key is required; without both model and secure persistence credentials, the interface reports AI unavailable. A second service-role-only SQL function persists evidence-matching suggestions from consented pasted-CV extraction. This design prevents a browser from fabricating provider-labeled content by writing directly to PostgREST. Production SQL staging tests are still outstanding.
-
-## Topic-based context ranking
-`src/lib/career/context.ts` ranks a bounded set of confirmed records by interview topic. For example, a project interview prioritizes saved projects, education and skills; an experience interview prioritizes confirmed employment records. It never creates or substitutes career facts. Final provider and session testing remains outstanding.
-
-## Dedicated career-only AI (October 2026)
-The AI has exactly two permitted request operations at the server provider boundary:
-`career_interview` and `career_cv_paste`. Unsupported purposes are rejected at runtime. There is **no general-purpose assistant route**. The interview covers the eight permanent Career Vault categories: experience, achievements, projects, skills, education, languages, certifications and volunteering.
-
-The interview structured response includes `scope = career | off_topic`. When a user asks for unrelated advice, programming, entertainment or broader chat, CareerOS replaces the provider's reply with a fixed career-only reminder and saves **zero** suggestions. When answering career questions, the model asks one focused follow-up, and any generated fact still needs a verbatim excerpt from the user's latest answer and human approval.
-
-**Trust boundary improvement:** Applicant-controlled career records are sent as bounded *reference data in a user message*, not appended to privileged model instructions. Past conversation and CV content are explicitly untrusted data; embedded commands cannot authorize new tools or overwrite confirmed facts. The CV extractor has a separate, narrow evidence-extraction prompt that refuses fabricated details.
-
-This makes the **coded assistant behavior purpose-specific**, not a separately fine-tuned proprietary model, and not proof of live provider behavior. Real model execution still requires protected `OPENAI_API_KEY` and `SUPABASE_SERVICE_ROLE_KEY` configuration, provider budget/consent, and staging acceptance.
-
-## Pro interview upgrades — October 2026
-- STAR-E professional question design: situation, personal responsibility, action, observed outcome and evidence.
-- Follow-up focus stored with the AI message. Each model response is committed for an exact user answer, preventing stale/double replies from silently polluting a session.
-- Account-owned interview specialty is durable across visits and targets one of eight career areas.
-- Current target role is optional relevance context only; the AI must never assume a role or infer qualifications from it.
-- Evidence candidate gate rejects invented metrics and requires text anchors supporting the description/title; duplicates are filtered. This is an intentionally conservative support check, not automatic verification.
-- Each session has a private evidence review summary and direct action to the approval queue.
-- See `docs/CAREER_AI_PRO_ACCEPTANCE.md` for the full test/acceptance criteria.
+## Configuration and operational boundaries
+- Required for live AI: \`SELF_HOSTED_LLM_URL\`, \`SELF_HOSTED_LLM_TOKEN\` and a model server that actually runs weights.
+- Optional: \`SELF_HOSTED_LLM_MODEL=qwen3:8b\`. HTTP only for loopback in non-production development.
+- Required for verified database persistence: server-only \`SUPABASE_SERVICE_ROLE_KEY\`. This credential authorizes database operations; it is not a hosted AI key.
+- The private inference gateway requires TLS, bearer authentication, disallows redirects and exposes only the native Ollama chat endpoint.
+- Model calls timeout after 45 seconds, do not stream, limit input/output and request JSON-schema-constrained responses.
+- These controls do not guarantee factual truth. A human remains the final authority for career claims.
+- Provider-free inference does not automatically make the entire CareerOS stack independent of Vercel or Supabase.
+- Actual model-server installation, GPU benchmarking, live example interviews, quality evaluation, and account data-protection audit are release gates. **Passing unit tests alone is not a running model.**

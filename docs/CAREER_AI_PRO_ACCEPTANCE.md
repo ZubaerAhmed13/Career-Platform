@@ -21,7 +21,7 @@
 - Migration \`202610130004_interview_turn_integrity.sql\`: binds each provider reply to the exact user message ID and locks the session during persistence. Stale, duplicate or mismatched replies fail atomically.
 - Migration \`202610130005_interview_tracks.sql\`: saves the selected topic with each account-owned interview.
 - Normal authenticated clients cannot forge \`assistant\` role messages or call the privileged AI persistence RPC. AI reply and associated pending proposals commit in a single database transaction.
-- Server-only AI provider key and database service-role key are required. Neither should be stored in frontend source, GitHub, or chat.
+- Server-only self-hosted inference gateway token and database service-role key are required. Neither should be stored in frontend source, GitHub, or chat.
 
 ## Verification that is and is not achieved
 - GitHub CI: TypeScript, lint, unit tests, build, disposable PostgreSQL 16 schema/RLS integration, desktop/mobile public browser smoke.
