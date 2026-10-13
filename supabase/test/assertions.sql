@@ -298,9 +298,8 @@ begin
  select count(*) into other_count from public.career_records
  where user_id='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
  if other_count<>0 then raise exception 'RLS exposed another user''s career records'; end if;
- select count(*) into auth_count from auth.users
- where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
- if auth_count<>1 then raise exception 'Career Vault erasure deleted login account'; end if;
+ -- An authenticated user must not read raw auth.users. The account
+ -- preservation assertion is performed below as the test administrator.
  if exists(select 1 from public.career_evidence_links where user_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa') or
     exists(select 1 from public.career_suggestions where user_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa') or
     exists(select 1 from public.career_interview_messages where user_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa') or
@@ -315,6 +314,16 @@ begin
  end if;
 end $$;
 
+
+-- Account preservation uses privileged test administrator context, not user JWT.
+reset role;
+do $
+declare auth_count integer;
+begin
+ select count(*) into auth_count from auth.users
+ where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+ if auth_count<>1 then raise exception 'Career Vault erasure deleted login account'; end if;
+end $;
 
 -- Separate authenticated test subject B must still see their untouched record.
 set role authenticated;
