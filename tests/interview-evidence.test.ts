@@ -18,6 +18,12 @@ describe('evidence-based, non-invented candidate facts',()=>{
   expect(onlySupportedSuggestions([candidate('Stock control','Managed 12 staff','helped our team reduce picking errors')],answer)).toHaveLength(0);
   expect(onlySupportedSuggestions([candidate('Stock control 2024','Helped','helped our team reduce picking errors')],answer)).toHaveLength(0);
  });
+ it('rejects semantically unrelated invented career titles and employers',()=>{
+  const src='I checked stock quantities while working in the store.';
+  const forged={kind:'experience',title:'Chief executive officer',description:'Directed global strategy',
+    evidence_quote:'checked stock quantities'};
+  expect(onlySupportedSuggestions([forged],src)).toHaveLength(0);
+ });
  it('does not accept quotes from some other conversation answer',()=>{
   expect(onlySupportedSuggestions([candidate('Excel','Used Excel','used Excel daily')],
    'I explained cycle counts today.')).toHaveLength(0);

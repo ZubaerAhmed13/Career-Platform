@@ -40,13 +40,14 @@ export async function sendCareerInterviewAnswer(_previous:VaultActionState,form:
    .eq('user_id',user.id).gte('created_at',new Date(Date.now()-60_000).toISOString()).limit(6);
  if(recent.error)return {error:'Could not check interview usage limits.'};
  if((recent.data??[]).length>=6)return {error:'Interview usage limit reached. Try again in a minute.'};
- const [history,records]=await Promise.all([
+ const [history,records,profile]=await Promise.all([
    supabase.from('career_interview_messages').select('role,content')
     .eq('user_id',user.id).eq('session_id',sessionId).order('created_at',{ascending:false}).limit(10),
    supabase.from('career_records').select('kind,title,description')
     .eq('user_id',user.id).eq('status','confirmed').order('updated_at',{ascending:false}).limit(40),
+   supabase.from('profiles').select('target_role').eq('id',user.id).maybeSingle(),
  ]);
- if(history.error||records.error)return {error:'Unable to retrieve the selected career context.'};
+ if(history.error||records.error||profile.error)return {error:'Unable to retrieve the selected career context.'};
  // User message is persisted first; if provider fails it remains truthfully marked as unanswered.
  const quota=await supabase.rpc('claim_career_ai_quota');
  if(quota.error||!quota.data)return {error:'AI usage limit reached or quota service unavailable. Try again later.'};
@@ -59,6 +60,7 @@ export async function sendCareerInterviewAnswer(_previous:VaultActionState,form:
      topic:topic.data,answer,
      history:(history.data??[]).reverse().map(m=>({role:m.role as 'user'|'assistant',content:m.content})),
      context:selectInterviewContext((records.data??[]),topic.data),
+     targetRole:profile.data?.target_role??undefined,
    });
    try {
      await persistVerifiedAI({
