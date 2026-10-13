@@ -1,6 +1,6 @@
 # CareerOS AI
 
-Secure account-based workspace with a **Career Intelligence Vault under Milestone 2 review**. Resume Studio, job discovery and application tracking are still future modules. Live service readiness is not confirmed.
+Secure account-based workspace with a **Career Intelligence Vault under Milestone 2 review**. Resume Studio, job discovery and application tracking are future modules. The current feature branch has a Vercel READY preview and active Supabase schema, but live authenticated staging and privacy signoff are still required.
 
 ## Stack
 Next.js 15 App Router, React 19, strict TypeScript, Tailwind CSS 4, Supabase Auth/PostgreSQL/Storage (private bucket), Zod, next-themes, Vitest and GitHub Actions.
@@ -26,10 +26,10 @@ Private pages require verified Supabase identity server-side; PostgreSQL RLS mig
 Deploy to a Next.js-capable platform such as Vercel; configure host environment and exact production Auth redirect URLs. Apply database migrations before release; test registration, verification, password reset, RLS, sessions and data privacy flows in staging first.
 
 ## Status and limitations
-**GitHub source validation:** [CI run #38301391444](https://github.com/ZubaerAhmed13/Career-Platform/actions/runs/38301391444) passed installation, TypeScript, lint, all fifteen unit tests, and production build. These are code/build checks, not live Supabase tests. Source configuration now targets the supplied project URL, but connection to its database is **not yet verified** and the SQL migration is **not yet confirmed applied**. Public launch requires monitoring, email delivery, abuse controls, uploads scanning, account export/deletion, privacy legal review, localization, integration tests, security review and a reproducible lockfile. See docs and FEATURE_STATUS.md.
+**GitHub source validation:** [CI run #38301391444](https://github.com/ZubaerAhmed13/Career-Platform/actions/runs/38301391444) passed installation, TypeScript, lint, all fifteen unit tests, and production build. These are code/build checks, not live Supabase tests. The connected CareerOS Supabase backend has **18 applied migrations and RLS enabled on all 11 public tables**. Authenticated staging acceptance is still outstanding. Public launch requires monitoring, email delivery, abuse controls, uploads scanning, account export/deletion, privacy legal review, localization, integration tests, security review and a reproducible lockfile. See docs and FEATURE_STATUS.md.
 
 ## Milestone 2 — Career Intelligence Vault
-The authenticated `/career-vault` route supports manual career records, editing with optimistic revision checks, deletion with confirmation, record search/filter, evidence notes/URLs, same-owner relationship links, user-approved suggestions and a private downloadable JSON export. Categories include experience, education, skills, languages, projects, achievements, certifications, and volunteering. A separate `/career-vault/review` page accepts **pasted text only**, supports corrections and explicitly merging selected fields, and can request real provider-based structured extraction when configured; a fail-closed PDF/DOCX extraction form is now implemented but disabled unless an internal ClamAV scanner is configured and tested.
+The authenticated `/career-vault` route supports manual career records, editing with optimistic revision checks, deletion with confirmation, record search/filter, evidence notes/URLs, same-owner relationship links, user-approved suggestions and a private downloadable JSON export. Categories include experience, education, skills, languages, projects, achievements, certifications, and volunteering. The `/career-vault/review` page accepts pasted text **and local text-based PDF/DOCX reading in the browser** with human approval; original file bytes stay on the device. It also supports corrections and selected-field merges. The separate optional server-upload pipeline remains fail-closed until ClamAV and the isolated parser are provisioned.
 
 AI interviews at `/career-vault/interview` now use a **self-hosted Qwen3 / Ollama open-weight model**, not a commercial model API. Configure `SELF_HOSTED_LLM_URL`, `SELF_HOSTED_LLM_TOKEN`, and `SUPABASE_SERVICE_ROLE_KEY` only on the server. See `docs/SELF_HOSTED_AI.md`. Career data is processed only after consent. AI suggestions are separately approved; no confirmed record is silently replaced.
 
@@ -38,10 +38,10 @@ The previously supplied Supabase URL/publishable-key configuration is still used
 
 See `docs/CAREER_VAULT_SPEC.md`, `docs/CAREER_EVIDENCE_MODEL.md`, `docs/CV_IMPORT_PIPELINE.md` and `docs/AI_CAREER_INTERVIEW_SPEC.md`. Code compilation is not evidence that the Supabase migration or external AI service has been tested.
 
-**Status:** The Career Vault source and tests are a reviewable Step 2 pull request, not a verified live deployment. Supabase SQL and external AI usage have not been executed from this session.
+**Status:** The Career Vault source is a draft PR with an exact-commit READY Vercel preview and an active Supabase schema. Real signed-in staging acceptance, independent AI hosting and retention signoff remain open.
 
 ### Document scanning
-PDF/DOCX imports can only run with a trusted internal ClamAV `clamd` service that supports the INSTREAM protocol. Set **server-only** `CLAMAV_HOST` and optional `CLAMAV_PORT` (default 3310). The app **does not scan by itself** or accept uploads without a configured reachable scanner. Import is bounded to 2 MB, 12 PDF pages, 4,000 readable text characters, and DOCX ZIP envelope limits; nothing is placed in public file storage. There is no OCR and no permanent binary file storage. See `docs/CV_SCAN_RUNBOOK.md` for staging setup, operational hardening and acceptance tests.
+Only the **optional server-upload path** requires a trusted ClamAV service. Browser-local PDF/DOCX reading is available without a scanner and sends only explicitly selected text for review. For the separate server-upload path, ClamAV `clamd` must support INSTREAM. Set **server-only** `CLAMAV_HOST` and optional `CLAMAV_PORT` (default 3310). The app **does not scan by itself** or accept uploads without a configured reachable scanner. Import is bounded to 2 MB, 12 PDF pages, 4,000 readable text characters, and DOCX ZIP envelope limits; nothing is placed in public file storage. There is no OCR and no permanent binary file storage. See `docs/CV_SCAN_RUNBOOK.md` for staging setup, operational hardening and acceptance tests.
 
 ### AI usage limits
 Migration 006 adds a secure server-side quota function; both interview and text extraction must claim it before contacting a model. Default limits: 4 model requests/minute and 50/day per authenticated account. These safeguards require deploying migration 006 and are not proof of production-scale abuse resistance.
@@ -67,11 +67,11 @@ In addition to `npm run typecheck`, `npm run lint`, `npm test` and `npm run buil
 
 
 ## Step 2 source updates — 13 October 2026
-Current additive migrations: **001–012**. New migration 011 serializes imported suggestion approval and blocks accidental same-title duplicates; a distinct separate-record choice requires explicit user confirmation. Migration 012 stores user-reviewed organization, location, start/end and ongoing status on pending import proposals. Approved records retain corrected structured fields. Selective merges can replace chosen title, description, organization, location or complete date range, using revision checks.
+Historical implementation note: migrations **001–012** were later supplemented through 018; see the current release matrix. New migration 011 serializes imported suggestion approval and blocks accidental same-title duplicates; a distinct separate-record choice requires explicit user confirmation. Migration 012 stores user-reviewed organization, location, start/end and ongoing status on pending import proposals. Approved records retain corrected structured fields. Selective merges can replace chosen title, description, organization, location or complete date range, using revision checks.
 
 **CV text segmentation:** labeled sections such as Work Experience, Education, Technical Skills, Languages, Projects, Certifications, Achievements and Volunteering can be split into up to six separately reviewable fact candidates, without using AI. Unrecognized text is saved as a single unreviewed item. Source excerpts are checked against original text; no employer, dates or credentials are inferred. Secure PDF/DOCX handling still requires ClamAV; optional AI extraction requires separate consent and provider credentials. OCR/advanced CV field extraction is not available.
 
-Check \`FEATURE_STATUS.md\` for the current verified status. The hosted Supabase project has not been modified in this development session.
+Check \`FEATURE_STATUS.md\` for the current verified status. The hosted CareerOS project was subsequently configured with 18 schema migrations; this paragraph describes an earlier stage.
 
 
 ## Confirmed Supabase activation — 13 October 2026
