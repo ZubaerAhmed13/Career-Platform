@@ -1,0 +1,12 @@
+# Isolated document parser: no publicly bound port, no shell access from app.
+# REVIEW and pin base/dependency image digests before production.
+FROM node:22.16.0-alpine
+WORKDIR /app
+COPY infra/ollama/parser-package.json ./package.json
+RUN npm install --omit=dev --ignore-scripts --no-fund --no-audit \
+ && npm cache clean --force
+COPY infra/ollama/cv-parser.mjs ./cv-parser.mjs
+USER node
+ENV NODE_ENV=production
+EXPOSE 3089
+CMD ["node","/app/cv-parser.mjs"]
