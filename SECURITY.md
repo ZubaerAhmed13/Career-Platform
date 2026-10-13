@@ -27,3 +27,11 @@ The new PostgreSQL CI job **actually executes SQL**, rather than only checking f
 ## Account export and permanent deletion (Step 2 continuation)
 
 The Settings page now provides an owner-scoped profile + Career Vault JSON archive, distinct from Vault-only export. Account deletion requires the verified signed-in identity, exact user confirmation, password reauthentication from an isolated unprivileged client, an available server-only admin key and a private Storage preflight. Only then can the Auth Admin hard-delete call occur; database rows cascade through existing foreign keys. OAuth-only identities, owner-held Storage objects, backup retention, regulatory controller notices and live staging acceptance remain operator-controlled release gates. See `docs/DATA_RETENTION_AND_ACCOUNT_ERASURE.md`. Do not claim that an archive contains every data category or a hard delete purges backups.
+
+## October 13, 2026 — read-only hosted security audit
+
+On the connected CareerOS Supabase project, migration history shows **18 applied migrations** and the schema catalog confirms **RLS enabled on all 11 exposed public tables**. `career_ai_usage` intentionally exposes zero normal-client policies; quota is operated through owner-scoped RPCs.
+
+For all **nine** authenticated `SECURITY DEFINER` RPCs reported by the Supabase security advisor, read-only catalog checks confirm: `anon` lacks `EXECUTE`, `authenticated` has `EXECUTE` by design, the function has an empty/restricted search path, and its code references `auth.uid()` and user ownership columns. These are **structural audit results, not proof that every complex RPC branch is exploit-free**. Two-user authenticated hostile-input and concurrency tests remain required before release. Do not revoke all nine user-facing RPC permissions merely to silence the linter; apply fixes only after a scope-by-scope review.
+
+**Security configuration remains incomplete:** [Supabase leaked-password protection](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection) is disabled and requires authorized operator configuration. CSP, realistic provider rate-limit and CSRF evaluation, automated dependency security checks, backup expiry and controller privacy disclosure are not yet signed off. No prod account or data was modified during these checks.
