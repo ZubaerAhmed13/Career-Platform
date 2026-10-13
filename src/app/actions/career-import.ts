@@ -2,12 +2,13 @@
 import { revalidatePath } from 'next/cache';
 import { requireAccount } from '@/lib/account';
 import { suggestFactsFromPastedCV } from '@/lib/career/import-ai';
+import { localModelConfigured } from '@/lib/career/local-model';
 import { aiPersistenceConfigured,persistVerifiedCVSuggestions } from '@/lib/career/ai-admin';
 import type { VaultActionState } from './career';
 
 export async function extractPastedCV(_previous:VaultActionState,form:FormData):Promise<VaultActionState>{
- if(!process.env.OPENAI_API_KEY||!aiPersistenceConfigured())return {error:'AI extraction requires both the provider and secure persistence configuration.'};
- if(form.get('consent')!=='yes')return {error:'Consent to sharing text with the AI provider is required.'};
+ if(!localModelConfigured()||!aiPersistenceConfigured())return {error:'Independent AI extraction requires a self-hosted model and secure database persistence.'};
+ if(form.get('consent')!=='yes')return {error:'Consent to processing your text on the private self-hosted CareerOS model is required.'};
  const content=String(form.get('resume_text')??'').trim();
  if(content.length<20||content.length>4000)return {error:'Paste 20–4,000 characters of text.'};
  const {user,supabase}=await requireAccount();

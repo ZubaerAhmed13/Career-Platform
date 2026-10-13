@@ -5,6 +5,7 @@ import { extractCareerSections } from '@/lib/career/cv-sections';
 import { extractScannedCv } from '@/lib/career/cv-file';
 import { scanningConfigured } from '@/lib/career/clamav';
 import { suggestFactsFromPastedCV } from '@/lib/career/import-ai';
+import { localModelConfigured } from '@/lib/career/local-model';
 import { aiPersistenceConfigured,persistVerifiedCVSuggestions } from '@/lib/career/ai-admin';
 import { revalidatePath } from 'next/cache';
 import type { VaultActionState } from './career';
@@ -19,8 +20,8 @@ export async function importScannedCv(
  if(!(file instanceof File)||!kind.success)return {error:'Select a PDF or DOCX and a career category.'};
  const wantsAI=form.get('extract_with_ai')==='yes';
  if(wantsAI && form.get('ai_consent')!=='yes')
-   return {error:'Separate consent is required to share extracted text with the AI provider.'};
- if(wantsAI && (!process.env.OPENAI_API_KEY||!aiPersistenceConfigured()))
+   return {error:'Separate consent is required to process extracted text on the private CareerOS model.'};
+ if(wantsAI && (!localModelConfigured()||!aiPersistenceConfigured()))
    return {error:'AI extraction is not configured. Uncheck AI extraction to keep a manually reviewable CV text.'};
  const {user,supabase}=await requireAccount();
  let extracted:{text:string;format:'pdf'|'docx'};

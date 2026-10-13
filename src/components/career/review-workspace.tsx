@@ -15,10 +15,10 @@ function AIExtractForm(){
  useEffect(()=>{if(state.message)router.refresh();},[state.message,router]);
  return <form action={action} className="card stack">
   <h2>Extract reviewable facts from pasted text with AI</h2>
-  <p className="subtle">This sends your supplied text to the configured third-party AI provider. Only proposals with direct supporting excerpts enter your private review queue; nothing is approved automatically.</p>
+  <p className="subtle">This sends your supplied text to the configured self-hosted CareerOS model. Only proposals with direct supporting excerpts enter your private review queue; nothing is approved automatically.</p>
   <label htmlFor="ai-cv-text" className="label">Paste existing CV text (20–4,000 characters)</label>
   <textarea className="field" id="ai-cv-text" name="resume_text" minLength={20} maxLength={4000} rows={6} required/>
-  <label><input type="checkbox" name="consent" value="yes" required/> I consent to sending this text to the configured AI provider for structured extraction.</label>
+  <label><input type="checkbox" name="consent" value="yes" required/> I consent to sending this text to the privately hosted CareerOS model for structured extraction.</label>
   <button className="button" disabled={pending}>{pending?'Extracting…':'Extract proposed facts for my review'}</button>
   {state.error&&<p role="alert" className="error">{state.error}</p>}
   {state.message&&<p role="status" className="success">{state.message}</p>}

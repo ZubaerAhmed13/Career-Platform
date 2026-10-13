@@ -61,7 +61,7 @@ function InterviewChat({session,messages,proposals,configured}:{session:CareerSe
      <p style={{whiteSpace:'pre-wrap'}}>{m.content}</p>
    </article>)}</div>
   {session.status==='active'&&<FinishInterview id={session.id}/>}
-  {session.status==='active'&&!configured&&<p className="muted-card" role="status">This saved interview remains available for review. New AI questions are temporarily unavailable until the private AI provider and database credentials are configured.</p>}
+  {session.status==='active'&&!configured&&<p className="muted-card" role="status">This saved interview remains available for review. New AI questions are temporarily unavailable until the private independent model server and database credentials are configured.</p>}
   {session.status==='active'&&configured&&<form action={action} className="card stack">
    <input type="hidden" name="session_id" value={session.id}/>
    <label className="label" htmlFor="topic">Focus for the next question</label>
@@ -93,7 +93,7 @@ export function InterviewWorkspace({sessions,selected,messages,proposals,configu
   </header>
   {!configured&&<div className="card stack" role="status">
     <h2>AI service not configured</h2>
-    <p className="subtle">You can still read saved career interviews and review extracted facts. Starting or continuing an AI conversation requires privately configured OPENAI_API_KEY and SUPABASE_SERVICE_ROLE_KEY. No fictional AI replies will be shown.</p>
+    <p className="subtle">You can still read saved career interviews and review extracted facts. Starting or continuing an AI conversation requires privately configured SELF_HOSTED_LLM_URL, SELF_HOSTED_LLM_TOKEN and SUPABASE_SERVICE_ROLE_KEY. No fictional AI replies will be shown.</p>
     <Link className="button secondary" href="/career-vault">Return to manual Career Vault</Link>
   </div>}
   <div className="page-grid">

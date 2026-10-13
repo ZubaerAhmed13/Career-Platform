@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { requireAccount } from '@/lib/account';
 import { getInterviewResponse, AIUnavailableError } from '@/lib/career/ai';
+import { localModelConfigured } from '@/lib/career/local-model';
 import { aiPersistenceConfigured, persistVerifiedAI } from '@/lib/career/ai-admin';
 import { interviewTopics } from '@/lib/career/prompts';
 import { selectInterviewContext } from '@/lib/career/context';
@@ -13,7 +14,7 @@ const uuid=z.uuid();
 const topicSchema=z.enum(interviewTopics);
 
 export async function startCareerInterview(_previous:VaultActionState,form:FormData):Promise<VaultActionState>{
- if(!process.env.OPENAI_API_KEY||!aiPersistenceConfigured())return {error:'AI interviewer is unavailable until the provider and secure persistence are configured.'};
+ if(!localModelConfigured()||!aiPersistenceConfigured())return {error:'Independent CareerOS AI requires your self-hosted model and secure persistence to be configured.'};
  const topic=topicSchema.safeParse(form.get('topic'));
  if(!topic.success)return {error:'Select a supported career interview topic.'};
  const title=String(form.get('title')??'Career exploration').trim().slice(0,160)||'Career exploration';
@@ -25,8 +26,8 @@ export async function startCareerInterview(_previous:VaultActionState,form:FormD
 }
 
 export async function sendCareerInterviewAnswer(_previous:VaultActionState,form:FormData):Promise<VaultActionState>{
- if(!process.env.OPENAI_API_KEY||!aiPersistenceConfigured())return {error:'AI interviewer or secure persistence is not configured.'};
- if(form.get('consent')!=='yes')return {error:'Confirm you agree to send this answer to the configured AI provider.'};
+ if(!localModelConfigured()||!aiPersistenceConfigured())return {error:'Independent CareerOS model or secure persistence is not configured.'};
+ if(form.get('consent')!=='yes')return {error:'Confirm you agree to send this answer to your private self-hosted CareerOS model.'};
  const sessionId=String(form.get('session_id')??'');
  const answer=String(form.get('answer')??'').trim();
  const topic=topicSchema.safeParse(form.get('topic'));
@@ -75,7 +76,7 @@ export async function sendCareerInterviewAnswer(_previous:VaultActionState,form:
      ?'CareerOS is limited to your real career background; no fact proposals were created.'
      :'Answer saved; any proposed facts are pending your approval.'};
  }catch(error){
-   const message=error instanceof AIUnavailableError?error.message:'The AI provider could not complete this response.';
+   const message=error instanceof AIUnavailableError?error.message:'Your private model could not complete this response.';
    revalidatePath('/career-vault/interview');
    return {error:message+' Your original answer was saved, and no artificial reply was created.'};
  }
