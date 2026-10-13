@@ -1,5 +1,5 @@
 import {describe,it,expect} from 'vitest';
-import {DELETE_ACCOUNT_CONFIRMATION,validateAccountDeletionInput} from '@/lib/account-deletion';
+import {DELETE_ACCOUNT_CONFIRMATION,validateAccountDeletionInput} from '../src/lib/account-deletion';
 
 describe('irreversible account deletion requires explicit action',()=>{
  it('rejects missing or incorrect typed confirmation',()=>{
