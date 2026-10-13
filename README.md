@@ -83,3 +83,7 @@ The AI is exclusively for eliciting, correcting and validating career evidence. 
 
 ## Fully independent model inference (feature branch)
 CareerOS AI's inference adapter now calls only the private Ollama JSON-schema API. The default Qwen3 8B weights are Apache-2.0 open weights, not original CareerOS model weights. The operator owns inference hardware and the HTTPS gateway; neither OpenAI keys nor any paid AI inference service are required. An independent model server **still must be provisioned**; this repository does not automatically deploy GPU hardware. \`SUPABASE_SERVICE_ROLE_KEY\` remains a separate privileged database credential, not an AI inference provider credential. Setup: [docs/SELF_HOSTED_AI.md](docs/SELF_HOSTED_AI.md).
+
+
+### Secure binary CV import
+PDF/DOCX uploads are intentionally fail-closed. The independent inference host can run an official ClamAV scanner sidecar and a Caddy-authenticated `/scan` gateway, with a separate bearer secret. Vercel uses private server-side `CV_SCAN_GATEWAY_URL` and `CV_SCAN_GATEWAY_TOKEN` variables. The system will not enable uploads until that private scanner is configured. Provisioning/real ClamAV tests and parser isolation remain outstanding. See `docs/CV_SCAN_RUNBOOK.md`.

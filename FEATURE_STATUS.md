@@ -25,3 +25,13 @@ Last reviewed: October 13, 2026.
 5. Finish GDPR data retention/deletion and authenticated mobile/accessibility acceptance.
 
 **Do not merge into main or claim complete private-model runtime before these tests.**
+
+
+## Secure PDF/DOCX import — scanner-connected source, scanner host pending
+- **Built:** 2 MiB PDF/DOCX binary gate, format checks, ClamAV scan-before-parse, strict clean-verdict validation, pending-only CV suggestions, separate AI consent.
+- **New (October 13):** The Vercel server action can send binaries to an **authenticated HTTPS scan gateway** (\`CV_SCAN_GATEWAY_URL\` / \`CV_SCAN_GATEWAY_TOKEN\`). Production no longer requires raw, unauthenticated ClamAV TCP.
+- **Infrastructure in repo:** \`infra/ollama/compose.yaml\` adds official ClamAV and a minimal, in-memory scan adapter behind Caddy with a **separate token** from Ollama. No TCP 3310 is exposed to the host.
+- **Tests:** mocked clean/infected/error scan cases, unauthorized route behavior, request-size restrictions and CI Compose validation. \`infra/ollama/check-scanner.py\` validates live ClamAV using the harmless EICAR fixture when an operator has a real server.
+- **Operationally disabled:** No owned scanner server or Vercel scan URL/token is configured. Live malware signature, uptime and PDF/DOCX import acceptance have not been performed.
+- **Outstanding defense-in-depth:** dedicated OS-sandboxed parser, two-account browser acceptance, GDPR retention, resource monitoring.
+- Setup: [CV scanner runbook](docs/CV_SCAN_RUNBOOK.md). Keep uploads **disabled** until the scanner and real tests pass.

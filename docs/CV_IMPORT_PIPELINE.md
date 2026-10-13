@@ -26,3 +26,7 @@ The non-AI section parser now recognizes specific labeled CV sections and create
 Migration 012 adds editable employer/institution, location, start date, end date and ongoing status to unconfirmed proposals. Each proposed record remains private and unconfirmed until the owner approves it. Users may reject it, correct it, keep an original record, merge only selected fields or explicitly save a genuinely separate same-titled record. Normal approval rejects a duplicate same-title/category record; the separate path requires a confirmation checkbox and owner-scoped SQL action.
 
 **Limitations:** the parser does not infer employer/dates from unstructured text, preserve a binary original for replay, parse images/OCR, or automatically guarantee accurate field-level extraction. AI proposals also require manual correction of their structured fields. This is a safer intermediate import workflow, not fully automatic CV understanding. Real AV scanner/hosted database tests remain unexecuted.
+
+
+## Scanner gateway addition (October 2026)
+The server now supports a token-protected HTTPS ClamAV gateway from Vercel instead of exposing clamd TCP over the internet. The official Docker image and dedicated scanner adapter are included alongside the independent AI model stack. The clean scan verdict remains a mandatory gate before PDF/DOCX parsing, and imported suggestions remain unapproved. Live gateway activation and an OS-isolated parser require separate acceptance. See `docs/CV_SCAN_RUNBOOK.md`.
