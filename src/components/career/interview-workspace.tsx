@@ -34,8 +34,8 @@ function InterviewChat({session,messages}:{session:CareerSession;messages:Career
  useEffect(()=>{if(state.message||state.error)router.refresh();},[state.message,state.error,router]);
  return <section className="stack">
   <h2>{session.title}</h2>
-  <p className="subtle">The AI may ask follow-up questions, but nothing becomes a career fact without your review.</p>
-  <div className="stack">{messages.length===0?<div className="muted-card">No messages yet. Share a real career experience to begin.</div>:messages.map(m=>
+  <p className="subtle">This is a career-only interviewer—not a general chatbot. It asks focused questions about real experience and offers only evidence-backed facts for your approval.</p>
+  <div className="stack">{messages.length===0?<div className="muted-card">No messages yet. Tell me about a real role, qualification, project, skill, achievement, language, certification or volunteering experience.</div>:messages.map(m=>
    <article key={m.id} className="card" style={{marginLeft:m.role==='user'?24:0,marginRight:m.role==='assistant'?24:0}}>
      <p className="eyebrow">{m.role==='assistant'?'AI response':'Your answer'}</p>
      <p style={{whiteSpace:'pre-wrap'}}>{m.content}</p>
@@ -47,7 +47,7 @@ function InterviewChat({session,messages}:{session:CareerSession;messages:Career
    <select className="field" id="topic" name="topic" value={topic} onChange={e=>setTopic(e.target.value as InterviewTopic)}>
      {interviewTopics.map(t=><option key={t} value={t}>{t[0].toUpperCase()+t.slice(1)}</option>)}
    </select>
-   <label className="label" htmlFor="answer">Your answer (2,000 characters maximum)</label>
+   <label className="label" htmlFor="answer">Your real career experience or answer (2,000 characters maximum)</label>
    <textarea className="field" id="answer" name="answer" rows={5} maxLength={2000} minLength={5} required/>
    <label><input type="checkbox" name="consent" value="yes" required/> I consent to sending this answer and relevant approved career context to the configured AI service.</label>
    <button disabled={pending} className="button">{pending?'Processing…':'Send answer to AI interviewer'}</button>
@@ -62,7 +62,7 @@ export function InterviewWorkspace({sessions,selected,messages,configured}:{
  return <div className="stack" style={{gap:24}}>
   <header><Link href="/career-vault" className="eyebrow">← Career Vault</Link>
    <h1 className="heading">AI Career Interviewer</h1>
-   <p className="subtle">Explore career stories with a real AI provider, then approve individual fact proposals. Your verified career records are never silently rewritten.</p>
+   <p className="subtle">Dedicated CareerOS AI for uncovering your real career facts in eight categories. It does not answer unrelated questions, invent accomplishments, send job applications or change confirmed records without approval.</p>
   </header>
   {!configured?<div className="card stack" role="status">
     <h2>AI service not configured</h2><p className="subtle">The manual Career Vault remains available. To activate interviews, configure both OPENAI_API_KEY and SUPABASE_SERVICE_ROLE_KEY privately on the server; no simulated messages will be shown.</p>

@@ -16,3 +16,13 @@ Trusted assistant messages and provider-generated suggestions are now committed 
 
 ## Topic-based context ranking
 `src/lib/career/context.ts` ranks a bounded set of confirmed records by interview topic. For example, a project interview prioritizes saved projects, education and skills; an experience interview prioritizes confirmed employment records. It never creates or substitutes career facts. Final provider and session testing remains outstanding.
+
+## Dedicated career-only AI (October 2026)
+The AI has exactly two permitted request operations at the server provider boundary:
+`career_interview` and `career_cv_paste`. Unsupported purposes are rejected at runtime. There is **no general-purpose assistant route**. The interview covers the eight permanent Career Vault categories: experience, achievements, projects, skills, education, languages, certifications and volunteering.
+
+The interview structured response includes `scope = career | off_topic`. When a user asks for unrelated advice, programming, entertainment or broader chat, CareerOS replaces the provider's reply with a fixed career-only reminder and saves **zero** suggestions. When answering career questions, the model asks one focused follow-up, and any generated fact still needs a verbatim excerpt from the user's latest answer and human approval.
+
+**Trust boundary improvement:** Applicant-controlled career records are sent as bounded *reference data in a user message*, not appended to privileged model instructions. Past conversation and CV content are explicitly untrusted data; embedded commands cannot authorize new tools or overwrite confirmed facts. The CV extractor has a separate, narrow evidence-extraction prompt that refuses fabricated details.
+
+This makes the **coded assistant behavior purpose-specific**, not a separately fine-tuned proprietary model, and not proof of live provider behavior. Real model execution still requires protected `OPENAI_API_KEY` and `SUPABASE_SERVICE_ROLE_KEY` configuration, provider budget/consent, and staging acceptance.

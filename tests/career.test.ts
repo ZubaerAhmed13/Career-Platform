@@ -26,7 +26,7 @@ describe('Career Vault schema',()=>{
 describe('AI validation and career evidence',()=>{
  const answer='I led inventory checks and used Excel daily for replenishment decisions.';
  it('accepts schema-valid responses without auto-confirming facts',()=>{
-  const result=validateInterviewOutput({reply:'What did you improve?',suggestions:[{
+  const result=validateInterviewOutput({scope:'career',reply:'What did you improve?',suggestions:[{
    kind:'skill',title:'Excel',description:'Used Excel for replenishment decisions.',
    evidence_quote:'used Excel daily',
   }]},answer);
@@ -39,8 +39,18 @@ describe('AI validation and career evidence',()=>{
   }]},answer);
   expect(result.suggestions).toHaveLength(0);
  });
+ it('refuses off-topic requests without copying a model-generated general answer',()=>{
+  const result=validateInterviewOutput({scope:'off_topic',reply:'Here is unrelated advice',
+   suggestions:[{kind:'skill',title:'Fake result',description:'Never approve this',evidence_quote:'used Excel daily'}]},answer);
+  expect(result.scope).toBe('off_topic');
+  expect(result.reply).toContain('only to help document your real career');
+  expect(result.suggestions).toEqual([]);
+ });
+ it('rejects unrecognized intent classifications',()=>{
+  expect(()=>validateInterviewOutput({scope:'general_chat',reply:'Chat',suggestions:[]},answer)).toThrow();
+ });
  it('rejects malformed AI output',()=>{
-  expect(()=>validateInterviewOutput({reply:'',suggestions:[{}]},answer)).toThrow();
-  expect(()=>validateInterviewOutput({reply:'Hi',suggestions:[]},answer)).not.toThrow();
+  expect(()=>validateInterviewOutput({scope:'career',reply:'',suggestions:[{}]},answer)).toThrow();
+  expect(()=>validateInterviewOutput({scope:'career',reply:'Hi',suggestions:[]},answer)).not.toThrow();
  });
 });

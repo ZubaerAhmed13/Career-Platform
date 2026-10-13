@@ -9,6 +9,9 @@ const preference:Record<InterviewTopic,readonly string[]>={
  projects:['project','education','achievement','skill'],
  skills:['skill','experience','project','certification'],
  education:['education','project','certification','skill'],
+ languages:['language','experience','education','volunteering'],
+ certifications:['certification','skill','experience','education'],
+ volunteering:['volunteering','achievement','skill','experience'],
 };
 export function selectInterviewContext(
  records:InterviewContextRecord[],topic:InterviewTopic,max=8,

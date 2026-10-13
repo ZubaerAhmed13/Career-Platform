@@ -66,7 +66,9 @@ export async function sendCareerInterviewAnswer(_previous:VaultActionState,form:
      return {error:'Your answer was saved, but the verified AI response could not be stored safely. No assistant reply was fabricated.'};
    }
    revalidatePath('/career-vault/interview');revalidatePath('/career-vault/review');
-   return {message:'Answer saved; any proposed facts are pending your approval.'};
+   return {message:result.scope==='off_topic'
+     ?'CareerOS is limited to your real career background; no fact proposals were created.'
+     :'Answer saved; any proposed facts are pending your approval.'};
  }catch(error){
    const message=error instanceof AIUnavailableError?error.message:'The AI provider could not complete this response.';
    revalidatePath('/career-vault/interview');
