@@ -45,3 +45,11 @@ A public repository test that mocks an AI response or antivirus verdict is not a
 
 ## Browser-local CV alternative — added October 13
 CareerOS now offers a separate **no-scanner-required** PDF/DOCX text extraction workflow in the browser, with editable preview and pending Supabase review. It does NOT require the private scanner or model server. No original file bytes are submitted. This allows signed-in users to populate the manual Vault via real CV files while waiting for independent AI hardware. Security scope is different: it provides privacy-first parsing in a Web Worker, **not malware scanning**; the optional server-upload route must stay disabled until ClamAV is deployed. Signed-in browser acceptance for actual Supabase persistence and cross-account protection remains a release gate.
+
+## Account privacy continuation — October 13
+
+- Added a signed-in profile + Vault JSON account export (`/api/account/export`) and two explicit levels of deletion (Vault-only clearing or full account deletion).
+- Full account deletion is a server-only, password-reauthenticated hard delete; it checks private Storage before acting, requires the service-role secret and never runs automatically. Hosted primary schema has eleven cascade-on-delete user tables; no live account deletion was attempted.
+- Protected staging browser acceptance code has been added, but it remains **unexecuted** until a separate authorized staging project with disposable users is configured.
+- Open gate: operator-approved retention/backup expiration, support contact, SSO/legacy Storage handling, live delete+export acceptance. See `docs/DATA_RETENTION_AND_ACCOUNT_ERASURE.md`.
+- Green public CI **does not** imply working model hosting, full deletion GDPR compliance or authenticated staging sign-off.
