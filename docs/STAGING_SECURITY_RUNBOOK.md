@@ -48,3 +48,9 @@ The optional workflow step also requires `SUPABASE_TEST_DELETE_SERVICE_ROLE_KEY`
 The destructive test confirms export-before-clear, typed-confirmed clearing, disappearance of Vault records after export, relogin after Vault-only clear, a separately typed/password-confirmed account deletion, and denied login after hard deletion. It should also be independently audited for backup retention, non-primary identity preservation, and operator approval.
 
 Screen-reader testing (VoiceOver/NVDA), real identity email delivery and hardware/browser variants require explicit human signoff. Automatic keyboard and overflow assertions alone do not prove WCAG compliance.
+
+## PDF and DOCX staging parity
+
+The owner acceptance now contains separate PDF and DOCX local-import cases. For each format it saves only pending owner-controlled text, waits for the persisted approved review-history state, confirms an owner-specific, source-preserving record, and cleans up test-only data. The normal PR workflow runs Playwright `--list` to detect staging test collection failures; it **never** executes authenticated mutation/erasure tests without an approved isolated staging configuration.
+
+For manual screen-reader, focus and keyboard acceptance, follow `docs/STEP2_ACCESSIBILITY_SIGNOFF.md`. No automated checks alone establish full accessibility compliance.
