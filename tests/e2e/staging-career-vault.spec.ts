@@ -61,6 +61,40 @@ function textPdf(text:string):Buffer{
  return Buffer.from(pieces.join(''),'latin1');
 }
 
+function crc32(input:Buffer){
+ let crc=0xffffffff;
+ for(const byte of input){
+  crc^=byte;
+  for(let i=0;i<8;i++)crc=crc&1?((crc>>>1)^0xedb88320):(crc>>>1);
+ }
+ return (crc^0xffffffff)>>>0;
+}
+function textDocx(text:string):Buffer{
+ const files={
+  '[Content_Types].xml':'<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="xml" ContentType="application/xml"/><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>',
+  '_rels/.rels':'<?xml version="1.0"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>',
+  'word/document.xml':'<?xml version="1.0"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:r><w:t>'+text+'</w:t></w:r></w:p></w:body></w:document>',
+ };
+ const entries:Buffer[]=[],central:Buffer[]=[];let offset=0;
+ for(const [name,contents] of Object.entries(files)){
+  const n=Buffer.from(name),d=Buffer.from(contents),crc=crc32(d);
+  const header=Buffer.alloc(30);
+  header.writeUInt32LE(0x04034b50,0);header.writeUInt16LE(20,4);
+  header.writeUInt32LE(crc,14);header.writeUInt32LE(d.length,18);
+  header.writeUInt32LE(d.length,22);header.writeUInt16LE(n.length,26);
+  entries.push(header,n,d);
+  const c=Buffer.alloc(46);
+  c.writeUInt32LE(0x02014b50,0);c.writeUInt16LE(20,4);c.writeUInt16LE(20,6);
+  c.writeUInt32LE(crc,16);c.writeUInt32LE(d.length,20);c.writeUInt32LE(d.length,24);
+  c.writeUInt16LE(n.length,28);c.writeUInt32LE(offset,42);
+  central.push(c,n);offset+=header.length+n.length+d.length;
+ }
+ const cd=Buffer.concat(central),eocd=Buffer.alloc(22);
+ eocd.writeUInt32LE(0x06054b50,0);eocd.writeUInt16LE(3,8);eocd.writeUInt16LE(3,10);
+ eocd.writeUInt32LE(cd.length,12);eocd.writeUInt32LE(offset,16);
+ return Buffer.concat([...entries,cd,eocd]);
+}
+
 test.describe('CareerOS staging authenticated browser acceptance',()=>{
  test.skip(!enabled,'Requires an explicitly authorized separate Supabase staging project.');
  test.describe.configure({mode:'serial'});
@@ -155,6 +189,50 @@ test.describe('CareerOS staging authenticated browser acceptance',()=>{
    await expect(otherPage.locator('article.card').filter({hasText:marker})).toHaveCount(0);
   }finally{
    if(other)await other.close();
+   await cleanupRecord(page,marker);
+   await cleanupSuggestion(page,marker);
+  }
+ });
+
+
+ test('DOCX local import stays pending until explicit approval and persists as an owned record',async({page},testInfo)=>{
+  test.skip(testInfo.project.name!=='desktop-chromium','Desktop executes the DOCX mutation case.');
+  const marker='QA_DOCX_'+randomUUID().replace(/-/g,'').slice(0,12);
+  await signIn(page,'a');
+  try {
+   await page.goto('/career-vault/review');
+   const observedPosts:string[]=[];
+   page.on('request',request=>{
+    if(request.method()==='POST')observedPosts.push(request.postData()??'');
+   });
+   await page.locator('#local-cv-file').setInputFiles({
+    name:'local-acceptance.docx',
+    mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    buffer:textDocx('I coordinated actual inventory cycle counts under the test marker '+marker+'.'),
+   });
+   await page.getByRole('button',{name:'Extract text locally'}).click();
+   await expect(page.locator('#local-cv-preview')).toHaveValue(new RegExp(marker),{timeout:30000});
+   expect(observedPosts).toHaveLength(0);
+   await page.getByLabel('I have permission to use this CV text.').check();
+   await page.getByLabel(/I understand only this edited text is sent to Supabase/).check();
+   await page.getByRole('button',{name:'Save selected text to my review queue'}).click();
+   await expect(page.getByText(/Saved 1 draft career fact/)).toBeVisible({timeout:20000});
+   expect(observedPosts.every(body=>!body.includes('word/document.xml')&&!body.includes('local-acceptance.docx'))).toBe(true);
+   await page.goto('/career-vault');
+   await page.getByLabel('Search your records').fill(marker);
+   await expect(page.locator('article.card').filter({hasText:marker})).toHaveCount(0);
+   await page.goto('/career-vault/review');
+   const proposal=page.locator('article.card').filter({hasText:marker}).first();
+   await expect(proposal).toContainText('pending');
+   await proposal.getByRole('button',{name:'Approve as new fact'}).click();
+   await page.goto('/career-vault');
+   await page.getByLabel('Search your records').fill(marker);
+   await expect(page.locator('article.card').filter({hasText:marker})).toBeVisible();
+   const response=await page.request.get('/api/career-vault/export');
+   expect(response.ok()).toBe(true);
+   const archive=await response.json();
+   expect(archive.vault.career_records.some((record:{title:string;source:string})=>record.title.includes(marker)&&record.source==='import')).toBe(true);
+  } finally {
    await cleanupRecord(page,marker);
    await cleanupSuggestion(page,marker);
   }
