@@ -20,3 +20,45 @@ Tests verify form schema, profile completion, owner-ID stripping and local redir
 - [ ] Configure the deployed public origin, redirect allowlist, verified email provider, monitoring and privacy rights flows.
 
 **Blocking dependencies:** Connected, authorized Supabase management access is not available in this session; neither migration execution nor live user authentication has been verified. A deployment target/domain also has not been specified.
+
+## Milestone 2 status (2026-10-12)
+Automated unit tests include career record validation, localized text, counts, date consistency, and invalid AI outputs/unsupported quotes. GitHub CI runs install/typecheck/lint/unit/build using dummy public Supabase credentials, and does **not** apply database migrations or call OpenAI. The staging integration suite `tests/integration/career-vault.test.ts` exercises cross-owner operations, composite foreign key constraints, AI-session scoping, suggestion approval, and unauthorized record writes. It requires disposable staging credentials, so results must remain **blocked** until the actual command runs.
+
+Manual checks still required: apply migrations in a backed-up staging database, registration/login persistence, edit conflicts across two sessions, mobile/keyboard/screen reader review, export ownership test, real AI service timeout and structured response testing, multilingual export, user-directed deletions, authorization of related references and provider failure states. PDF/DOCX import is **not implemented**, so its upload/extraction tests cannot be marked passed.
+
+## Milestone 2 review refinements
+Migration 005 adds edit/merge RPCs with explicit confirmation and a stale-revision check. The review UI supports keep/reject, edit, save separately and selective merge. The pasted-text AI extraction route requires a server-side OpenAI key and consent; it has not been tested live. Relationship unlinking, interview completion, date filtering and career event summaries have been added; browser and staging database acceptance tests remain outstanding.
+
+## Milestone 2 verified code checks
+2026-10-12 [GitHub CI #38301391444](https://github.com/ZubaerAhmed13/Career-Platform/actions/runs/38301391444): dependency installation **PASS**, `npm run typecheck` **PASS**, `npm run lint` **PASS**, `npm test` **PASS (15 unit tests: 7 account + 8 career)**, `npm run build` **PASS**. Staging integration/E2E and live AI API requests **not run**. Subsequent documentation/test-only commits must be rechecked before merge.
+
+## New document/AI cost safeguards
+GitHub CI [#38303064913](https://github.com/ZubaerAhmed13/Career-Platform/actions/runs/38303064913) passed TypeScript, ESLint, unit tests and Next.js build including `cv-format` and DOCX preflight tests. Added migration 006 for durable authenticated AI request limits. Still blocked: clamd connection, malicious-file scanner acceptance tests, PDF/DOCX extraction E2E, zip-bomb sandbox/fuzz checks, quota enforcement against real Supabase, cross-user persistence and real model calls. Do not mark these as passed.
+
+## Trust-boundary staging tests (migrations 007–008)
+- [ ] With two real staging accounts, normal tokens attempting to insert `role=assistant` or `origin=ai` must fail.
+- [ ] Normal tokens calling `persist_verified_ai_interview` or `persist_verified_ai_cv_suggestions` must fail even when using a valid own session.
+- [ ] Protected server with valid service-role credentials can persist a real provider response; invalid quotes must abort the entire transaction without creating an assistant message.
+- [ ] Anonymous/other-account IDs cannot read, merge or remove these records.
+- [ ] Old evidence with invalid URL (if any) is reviewed before validating the HTTP(S) constraint.
+- [ ] Browser CV upload reaches the action with the 3 MB cap, rejects files exceeding 2 MiB, and uses a real internal clamd scanner and isolated parser.
+These tests are **not** covered by unit CI and remain blocked pending staging access.
+
+## Manually triggered staging CI
+Added `.github/workflows/staging-security.yml`. It is **not** invoked by a normal PR/push. Configure a protected GitHub Environment named `staging` and six encrypted environment secrets as described in `docs/STAGING_SECURITY_RUNBOOK.md`. Then manually run the action on the feature branch. This workflow **has not been executed** because authorized isolated staging credentials are not available. Its guard and the test code reject the known primary CareerOS Supabase URL.
+
+## Latest acceptance upgrades
+- Added disposable PostgreSQL 16 GitHub CI job which installs minimal Supabase-compatible auth/storage fixtures, runs ALL numbered migrations 001–010 and executes actual SQL assertions for account ownership, forbidden client AI attribution, verified AI/CV writes, approval and database-backed quotas.
+- The first SQL execution uncovered an ambiguous `item` reference in `persist_verified_ai_interview`. Migration 010 fixes it; an updated run passed all SQL assertions.
+- Added `tests/integration/record-provenance.test.ts` for real two-account staging validation of fake AI attribution, preserved source/status and revision history. It is NOT executed by unit CI.
+- Added public/browser Playwright tests for unauthenticated Career Vault access, home, sign-in/signup/recovery screens and mobile overflow. Final CI outcome needs confirmation before marking as passed.
+- Unit checks alone are not evidence of hosted Supabase migration deployment, live AI calls, real ClamAV, logged-in end-to-end flows, cross-account database isolation or GDPR compliance.
+
+
+## Structured CV review verification (October 13, 2026)
+- [x] Added deterministic section parsing unit tests including source quotes, short skill headings and malformed spacing.
+- [x] Added local PostgreSQL duplicate-approval tests with explicit separate-record decision.
+- [x] Added local PostgreSQL SQL assertions for review edits (organization, location, start/end/current dates), approval and selected-field merges.
+- [ ] Apply migration 011–012 in an authorized staging Supabase project after preflight.
+- [ ] Run two-user authenticated staging tests and confirm full browser CRUD, upload, review, export, edit conflicts and session persistence.
+- [ ] Validate true scanner integration, isolated binary parsers, real AI provider, mobile screen readers and data deletion.

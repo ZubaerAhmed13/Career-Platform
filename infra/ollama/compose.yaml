@@ -1,0 +1,97 @@
+# Private model stack for an operator-controlled host. NEVER publish 11434.
+services:
+  ollama:
+    image: ollama/ollama:${OLLAMA_VERSION:?Set a reviewed Ollama tag in .env}
+    restart: unless-stopped
+    volumes:
+      - model-weights:/root/.ollama
+    environment:
+      OLLAMA_HOST: 0.0.0.0:11434
+    expose:
+      - "11434"
+    networks:
+      - model-internal
+    security_opt:
+      - no-new-privileges:true
+  clamav:
+    image: clamav/clamav:${CLAMAV_VERSION:?Pin a supported ClamAV version}
+    restart: unless-stopped
+    networks:
+      - model-internal
+    volumes:
+      - clamav-definitions:/var/lib/clamav
+    expose:
+      - "3310"
+    mem_limit: 4g
+    security_opt:
+      - no-new-privileges:true
+  scan-gateway:
+    image: node:${SCAN_NODE_VERSION:?Pin a reviewed Node Alpine image}
+    restart: unless-stopped
+    command: ["node","/app/scan-server.mjs"]
+    read_only: true
+    pids_limit: 64
+    mem_limit: 192m
+    tmpfs:
+      - /tmp:noexec,nosuid,size=16m
+    volumes:
+      - ./scan-server.mjs:/app/scan-server.mjs:ro
+    depends_on:
+      - clamav
+      - cv-parser
+    networks:
+      - model-internal
+      - parse-internal
+    expose:
+      - "3088"
+    security_opt:
+      - no-new-privileges:true
+  cv-parser:
+    build:
+      context: ../..
+      dockerfile: infra/ollama/Dockerfile.cv-parser
+    restart: unless-stopped
+    read_only: true
+    user: '1000:1000'
+    mem_limit: 512m
+    cpus: 1.5
+    pids_limit: 64
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp:noexec,nosuid,size=24m
+    networks:
+      - parse-internal
+    expose:
+      - "3089"
+    security_opt:
+      - no-new-privileges:true
+  gateway:
+    image: caddy:${CADDY_VERSION:?Set a reviewed Caddy tag in .env}
+    restart: unless-stopped
+    depends_on:
+      - ollama
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      MODEL_DOMAIN: ${MODEL_DOMAIN:?Set a DNS name pointing at this host}
+      INFERENCE_BEARER_TOKEN: ${INFERENCE_BEARER_TOKEN:?Generate a strong random secret}
+      CV_SCAN_BEARER_TOKEN: ${CV_SCAN_BEARER_TOKEN:?Generate a separate scanner secret}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - model-internal
+    security_opt:
+      - no-new-privileges:true
+networks:
+  model-internal:
+  parse-internal:
+    internal: true
+volumes:
+  model-weights:
+  caddy-data:
+  caddy-config:
+  clamav-definitions:

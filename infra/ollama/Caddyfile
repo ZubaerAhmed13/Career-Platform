@@ -1,0 +1,57 @@
+# Only one authenticated POST API route is reachable on the HTTPS gateway.
+# Caddy 2.10+ is required for request_body's size limit.
+{$MODEL_DOMAIN} {
+  @authorized_chat {
+    path /api/chat
+    method POST
+    header Authorization "Bearer {$INFERENCE_BEARER_TOKEN}"
+  }
+  handle @authorized_chat {
+    request_body {
+      max_size 128KB
+    }
+    reverse_proxy ollama:11434 {
+      # The bearer credential authenticates the gateway, not Ollama itself.
+      header_up -Authorization
+      transport http {
+        dial_timeout 4s
+        response_header_timeout 90s
+      }
+    }
+  }
+  @authorized_scan {
+    path /scan
+    method POST
+    header Authorization "Bearer {$CV_SCAN_BEARER_TOKEN}"
+  }
+  handle @authorized_scan {
+    request_body {
+      max_size 3MB
+    }
+    reverse_proxy scan-gateway:3088 {
+      header_up -Authorization
+      transport http {
+        dial_timeout 3s
+        response_header_timeout 25s
+      }
+    }
+  }
+  @authorized_extract {
+    path /extract
+    method POST
+    header Authorization "Bearer {$CV_SCAN_BEARER_TOKEN}"
+  }
+  handle @authorized_extract {
+    request_body {
+      max_size 3MB
+    }
+    reverse_proxy scan-gateway:3088 {
+      header_up -Authorization
+      transport http {
+        dial_timeout 3s
+        response_header_timeout 40s
+      }
+    }
+  }
+  respond "Forbidden" 403
+}

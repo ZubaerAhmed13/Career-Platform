@@ -1,0 +1,11 @@
+{
+  "name": "careeros-private-cv-parser",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Network-isolated PDF/DOCX text extractor; invocation only after antivirus scanning",
+  "dependencies": {
+    "mammoth": "1.13.0",
+    "unpdf": "1.8.1"
+  }
+}

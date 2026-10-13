@@ -12,6 +12,27 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-audit --no-fund
+      - name: Validate owned inference configuration
+        env:
+          OLLAMA_VERSION: "0.0.0-ci-configuration-only"
+          CADDY_VERSION: "2.10.0"
+          MODEL_DOMAIN: "example.com"
+          INFERENCE_BEARER_TOKEN: "ci-only-placeholder-no-production-access"
+          CLAMAV_VERSION: "1.4.0"
+          SCAN_NODE_VERSION: "22.16.0-alpine"
+          CV_SCAN_BEARER_TOKEN: "ci-scanner-placeholder-no-production-access"
+        run: |
+          bash -n infra/ollama/setup.sh
+          node --test infra/ollama/scan-server.test.mjs
+          node --test infra/ollama/cv-parser.test.mjs
+          python3 -m py_compile infra/ollama/check-scanner.py
+          python3 -m py_compile infra/ollama/check-gateway.py
+          docker compose -f infra/ollama/compose.yaml config --quiet
+          docker compose -f infra/ollama/compose.yaml -f infra/ollama/compose.gpu.yaml config --quiet
+      - name: Build and test isolated CV parser container
+        run: |
+          docker build --file infra/ollama/Dockerfile.cv-parser --tag careeros-cv-parser:ci .
+          docker run --rm --network none --entrypoint node careeros-cv-parser:ci --test /app/cv-parser.test.mjs
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test
@@ -19,3 +40,58 @@ jobs:
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: dummy-build-only-publishable-key
+
+  postgres-migrations:
+    name: PostgreSQL migration and RLS smoke tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: temporary-ci-only
+          POSTGRES_DB: careeros_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d careeros_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 6
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: temporary-ci-only
+      PGDATABASE: careeros_test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client if absent
+        run: command -v psql || (sudo apt-get update && sudo apt-get install -y postgresql-client)
+      - name: Initialize auth/storage SQL compatibility fixture
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/test/compat.sql
+      - name: Execute ALL numbered migrations in order
+        run: |
+          for migration in supabase/migrations/*.sql; do
+            echo "Checking $migration"
+            psql -X -v ON_ERROR_STOP=1 -f "$migration"
+          done
+      - name: Assert RLS, AI provenance, and approval
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/test/assertions.sql
+
+  browser-smoke:
+    name: Desktop and mobile public/browser access
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      # Parse opt-in suites in ordinary CI without executing any staging tests,
+      # starting a credentialed web server, or touching a real Supabase account.
+      - name: Collect protected staging tests without running them
+        run: npx playwright test tests/e2e/staging-career-vault.spec.ts tests/e2e/staging-privacy-erasure.spec.ts --list
+      - run: npm run test:e2e

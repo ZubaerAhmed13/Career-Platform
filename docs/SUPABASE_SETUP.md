@@ -65,3 +65,45 @@ The default `npm test` suite is unit-only. GitHub CI uses dummy public configura
 Deploy the application to a hosting service supporting Next.js server actions and set its 3 public environment variables. Update Supabase Auth Site URL and redirect allowlist for that HTTPS domain; apply migration and recheck authorization in staging. Before public launch, complete rate limiting, email deliverability, privacy notices, data export/deletion, document scanning, live integration/E2E tests, monitoring, dependency security review, localization review and a GDPR legal/privacy assessment.
 
 **Current connection status:** Supabase provider management access is not connected in this ChatGPT environment; the source repository alone does not execute SQL on the hosted database.
+
+## Milestone 2 additional migrations
+After 001 and 002, review and apply in ascending order:
+- `supabase/migrations/202610120003_career_vault.sql`
+- `supabase/migrations/202610120004_career_suggestion_review.sql`
+- `supabase/migrations/202610120005_suggestion_conflicts.sql`
+- `supabase/migrations/202610120006_ai_usage_limits.sql`
+
+Before applying, confirm the target project, staging/production environment, migration history, backups, and table names. The publishable key is not permission to run SQL. Use an authorized Supabase project connection or the project's SQL Editor. Never assume these migrations have been applied just because their files exist in GitHub.
+
+**Postmigration checks:** inspect RLS on every new private table, verify composite owner constraints, use two separate staging users, run `npm run test:integration` with explicit staging credentials, verify suggestion approval/merge RPC ownership and session privacy, then manually test account persistence and email recovery. Do not use real applicants' records as test data.
+
+## Additional migration prerequisites — trusted AI operations
+Review and apply **after migrations 001–006**:
+- `supabase/migrations/202610120007_ai_provenance.sql`
+- `supabase/migrations/202610120008_verified_cv_and_urls.sql`
+
+These replace previously permissive owner INSERT policies for provider-labeled data. Confirm the new functions are executable by `service_role` only, verify a normal user cannot insert `role='assistant'` or `origin='ai'`, and verify that one user cannot use another user's session ID.
+
+If you activate AI, configure the **server-only** `OPENAI_API_KEY` and `SUPABASE_SERVICE_ROLE_KEY` on the deployment host; never place them in the public repository, browser settings or `NEXT_PUBLIC_` variables. Without these, manual vault functionality remains available and AI paths must stay disabled. Secure deployment key access should be restricted to the application backend.
+
+Evidence URLs are constrained for new writes; pre-existing bad URLs, if any, require a migration-aware review before separately validating the NOT VALID constraint. Also verify the user-owned JSON export, browser session lifetime and password-recovery flows.
+
+## Dedicated staging CI
+See `docs/STAGING_SECURITY_RUNBOOK.md` for a manual, environment-protected GitHub Actions workflow. Never supply production credentials or enable mutation testing against the primary project.
+
+## Additional migration activation (009–010)
+After backing up the intended Supabase project and confirming 001–008 were applied correctly, apply:
+1. `supabase/migrations/202610120009_record_provenance.sql`
+2. `supabase/migrations/202610120010_fix_ai_persistence.sql`
+
+Migration 009 disallows ordinary browser inserts that claim `source='ai'` or `source='import'`, and prevents ordinary edits from re-labeling career provenance or changing creator/record IDs. Migration 010 repairs an actual runtime SQL bug discovered by local PostgreSQL integration assertions.
+
+**Do not run the two-account staging test suite against the supplied primary project.** Create a separate project and two disposable confirmed users. The known primary project is rejected by the integration test harness. CI PostgreSQL compatibility fixtures are not proof of a successful hosted Supabase deployment.
+
+
+## Additional migrations for structured CV review (011–012)
+After environment/backup and migration-history checks, apply:
+- \`202610120011_review_duplicates.sql\`: explicit duplicate review, owner-scoped separate approval and serialized suggestion acceptance.
+- \`202610120012_structured_cv_review.sql\`: pending employer/location/date fields, updated approval functions, pending structured fact editor and selected-field merge RPC.
+
+Do **not** bypass production preflight, run staging test mutations on the primary project or assume PostgreSQL compatibility tests are sufficient for Supabase Auth/RLS release validation.

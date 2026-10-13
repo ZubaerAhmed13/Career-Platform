@@ -14,3 +14,12 @@
 12. Public-launch security, localization, privacy, operations and reliability hardening
 
 Each stage requires reviewed migrations, tests, truthful feature status and preservation of previous stages.
+
+## Milestone 2 implementation note
+Career Vault code, evidence model, unreviewed text intake and a provider-backed interview path have been submitted in a feature branch. Full Milestone 2 acceptance remains conditional on applying and testing the database migrations in staging and completing secure PDF/DOCX import and conflict resolution. Do not start Resume Studio implementation until the verified data ownership and relationship model is stable.
+
+Milestone 2 conflict-review SQL uses migration 005. The next Resume Studio stage remains blocked until staging migrations, RLS verification and source-of-truth stability are checked.
+
+Milestone 2 continued: scanner-gated PDF/DOCX extraction and SQL-based per-user AI quota have source implementations. Public document importing is still blocked on a correctly isolated malware scanner, resource sandboxing and external staging acceptance tests; the third milestone must not start solely on source CI.
+
+Milestone 2 now has local PostgreSQL migration execution, source-level provider/provenance safeguards and optional public browser tests. Stage 3 remains gated on actual Supabase staging integration, browser persistence, security validation and user acceptance.

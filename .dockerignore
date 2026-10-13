@@ -1,0 +1,15 @@
+# Never include local credentials or user documents in Docker build context.
+.git
+.git/**
+.next
+node_modules
+**/node_modules
+**/.env
+**/.env.*
+.env
+.env.*
+*.pdf
+*.docx
+*.key
+*.pem
+*.log

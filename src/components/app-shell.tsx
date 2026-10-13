@@ -6,6 +6,7 @@ import { MobileNavigation } from '@/components/mobile-navigation';
 export function AppShell({ children, email }: { children: React.ReactNode; email: string }) {
   return (
     <div className="app-layout">
+      <a className="skip-link" href="#main-content">Skip to main content</a>
       <aside className="sidebar">
         <Link href="/dashboard" style={{ fontWeight: 800, fontSize: 22 }}>
           CareerOS <span style={{ color: 'var(--accent)' }}>AI</span>
