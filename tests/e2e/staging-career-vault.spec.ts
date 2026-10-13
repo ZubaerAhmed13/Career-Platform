@@ -181,7 +181,7 @@ test.describe('CareerOS staging authenticated browser acceptance',()=>{
    await page.goto('/career-vault/review');
    const ownDraft=page.locator('article.card').filter({hasText:marker}).first();
    await ownDraft.getByRole('button',{name:'Approve as new fact'}).click();
-   await expect(ownDraft.getByRole('status')).toContainText('Approved fact added to your Career Vault.',{timeout:20000});
+   await expect(page.getByRole('heading',{name:'Review history'}).locator('..').locator('article.card').filter({hasText:marker})).toContainText('approved',{timeout:20000});
    await page.goto('/career-vault');
    await page.getByLabel('Search your records').fill(marker);
    await expect(page.locator('article.card').filter({hasText:marker})).toBeVisible();
@@ -226,7 +226,7 @@ test.describe('CareerOS staging authenticated browser acceptance',()=>{
    const proposal=page.locator('article.card').filter({hasText:marker}).first();
    await expect(proposal).toContainText('pending');
    await proposal.getByRole('button',{name:'Approve as new fact'}).click();
-   await expect(proposal.getByRole('status')).toContainText('Approved fact added to your Career Vault.',{timeout:20000});
+   await expect(page.getByRole('heading',{name:'Review history'}).locator('..').locator('article.card').filter({hasText:marker})).toContainText('approved',{timeout:20000});
    await page.goto('/career-vault');
    await page.getByLabel('Search your records').fill(marker);
    await expect(page.locator('article.card').filter({hasText:marker})).toBeVisible();
