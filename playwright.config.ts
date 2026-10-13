@@ -1,12 +1,35 @@
 import {defineConfig,devices} from '@playwright/test';
 
+// Separate authenticated staging acceptance is opt-in only. The ordinary
+// public smoke suite continues using a dummy/no-data Supabase configuration.
+const staging=process.env.CAREER_STAGING_E2E==='I_UNDERSTAND_STAGING_ONLY';
+if(staging){
+ const required=['SUPABASE_TEST_PROJECT_URL','SUPABASE_TEST_PUBLISHABLE_KEY',
+  'SUPABASE_TEST_USER_A_EMAIL','SUPABASE_TEST_USER_A_PASSWORD',
+  'SUPABASE_TEST_USER_B_EMAIL','SUPABASE_TEST_USER_B_PASSWORD'];
+ const missing=required.filter(key=>!process.env[key]);
+ if(missing.length)throw new Error('Protected staging acceptance needs: '+missing.join(', '));
+ const url=new URL(process.env.SUPABASE_TEST_PROJECT_URL!);
+ if(url.protocol!=='https:'||!url.hostname.endsWith('.supabase.co')||
+    url.hostname==='jtitfwzpfbyfsdpxxrbj.supabase.co'||url.pathname!=='/')
+  throw new Error('Refusing browser mutation tests without a dedicated Supabase staging project.');
+ if(process.env.SUPABASE_TEST_USER_A_EMAIL===process.env.SUPABASE_TEST_USER_B_EMAIL)
+  throw new Error('Two different staging users are required.');
+}
+
 export default defineConfig({
  testDir:'./tests/e2e',
- fullyParallel:true,
- retries:process.env.CI?1:0,
+ fullyParallel:!staging,
+ workers:staging?1:undefined,
+ retries:staging?0:process.env.CI?1:0,
  reporter:'list',
- timeout:45_000,
- use:{baseURL:'http://127.0.0.1:3100',trace:'retain-on-failure'},
+ timeout:staging?60_000:45_000,
+ use:{
+  baseURL:'http://127.0.0.1:3100',
+  // A failing sign-in test must never publish passwords or sessions in traces.
+  trace:staging?'off':'retain-on-failure',
+  screenshot:'off',video:'off',
+ },
  projects:[
   {name:'desktop-chromium',use:{...devices['Desktop Chrome']}},
   {name:'mobile-chromium',use:{...devices['Pixel 7']}},
@@ -17,8 +40,8 @@ export default defineConfig({
   reuseExistingServer:!process.env.CI,
   timeout:120_000,
   env:{
-   NEXT_PUBLIC_SUPABASE_URL:'https://example.supabase.co',
-   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:'dummy-build-only-publishable-key',
+   NEXT_PUBLIC_SUPABASE_URL:staging?process.env.SUPABASE_TEST_PROJECT_URL!:'https://example.supabase.co',
+   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:staging?process.env.SUPABASE_TEST_PUBLISHABLE_KEY!:'dummy-build-only-publishable-key',
    NEXT_PUBLIC_SITE_URL:'http://127.0.0.1:3100',
   },
  },
