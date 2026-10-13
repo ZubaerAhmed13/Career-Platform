@@ -42,3 +42,6 @@ Last reviewed: October 13, 2026.
 - Added authenticated Career Vault privacy/export page, with owner-controlled and explicitly confirmed career-data clearing; a new additive database migration defines the delete-own-data function.
 - No external AI/scanner host or protected runtime secrets have been configured. **Do not claim live Qwen or antivirus operation.**
 - Complete acceptance checklist: \`docs/STEP2_RELEASE_GATES.md\`.
+
+
+**Hosted privacy RPC verified:** Eighteen Supabase migrations have now been applied. The confirmation-gated Vault data-clearing feature is installed; no existing user data was removed during migration. See `docs/STEP2_DELIVERY_REPORT.md`.

@@ -40,3 +40,7 @@ Two further additive migrations were applied successfully to the connected Caree
 **Verification:** 17 migrations recorded. Column \`career_interview_sessions.topic\` exists and defaults to \`experience\`. The new \`persist_verified_ai_interview_turn\` function allows the \`service_role\` but denies direct \`anon\` and \`authenticated\` execution. The local PostgreSQL migration/security test suite also passed.
 
 **Status boundary:** A verified live database deployment is not a successful paid AI model interaction. The protected Vercel preview currently has Supabase public settings but lacks both required server-only AI credentials. Accordingly, provider-backed interview generation has **not** been exercised, and no billable AI request is claimed. Signed-in owner/account flows were reported working by the user but were not re-run in this integration.
+
+
+## October 13 lifecycle update: 18th migration
+Migration \`202610130006_vault_erasure.sql\` was applied successfully as \`vault_erasure\`. Database checks verified \`public.clear_my_career_vault()\` is executable by \`authenticated\` but **not** by \`anon\`; user data was not touched during deployment. The user-triggered function scopes every delete to \`auth.uid()\` and preserves the authentication account and general profile. It does not purge backups or constitute an entire account-deletion procedure.

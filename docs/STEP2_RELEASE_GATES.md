@@ -11,8 +11,8 @@
 - Section-labelled CV import, with only pending fact suggestions and separate AI consent.
 - PDF/DOCX format and resource limits, ClamAV scan-before-parse, and **new isolated parser worker**; all fail closed when the private scanner is absent.
 - Specialist career-only STAR-E interviewing and private Qwen3/Ollama model *adapter*, with no paid model API dependency.
-- Owner-only JSON data export and confirmation-gated Career Vault clearing (pending deployment of erasure RPC).
-- Private Vercel feature-branch preview; existing 17 migrations already deployed to Supabase.
+- Owner-only JSON data export and confirmation-gated Career Vault clearing (erasure RPC deployed and verified in Supabase).
+- Private Vercel feature-branch preview; existing 18 migrations already deployed to Supabase.
 - GitHub CI: application/static tests, real PostgreSQL migration/RLS smoke tests, public Chromium desktop/mobile checks, and parser Docker image build/smoke.
 
 ## 2. Outstanding infrastructure and acceptance gates
