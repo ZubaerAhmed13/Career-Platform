@@ -10,7 +10,7 @@ jobs:
     name: Two-account RLS / Provider Spoofing / SQL Transactions
     runs-on: ubuntu-latest
     environment: staging
-    timeout-minutes: 15
+    timeout-minutes: 25
     permissions:
       contents: read
     env:
@@ -40,3 +40,9 @@ jobs:
           esac
       - run: npm install --no-audit --no-fund
       - run: npm run test:integration
+      - name: Install Chromium for authenticated browser acceptance
+        run: npx playwright install --with-deps chromium
+      - name: Test owner CRUD, PDF review, cross-account exports, and mobile Vault
+        run: npx playwright test tests/e2e/staging-career-vault.spec.ts
+        env:
+          CAREER_STAGING_E2E: I_UNDERSTAND_STAGING_ONLY
