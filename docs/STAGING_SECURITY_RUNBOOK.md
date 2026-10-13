@@ -34,3 +34,17 @@ Record the workflow run ID, exact staging project reference (not its secrets), d
 The normal PR CI still uses dummy Supabase credentials for public/anonymous browser smoke tests. It **cannot** be counted as authenticated staging acceptance. The protected manual workflow must run with the staging credentials, and its Chromium tests must actually pass. For branch-local review before the manual workflow is on `main`, set the six `SUPABASE_TEST_*` variables from the dedicated disposable test project, set `CAREER_STAGING_E2E=I_UNDERSTAND_STAGING_ONLY`, and run `npx playwright test tests/e2e/staging-career-vault.spec.ts` with the reviewed branch checked out. Keep credentials out of terminal output and source files.
 
 No production database mutations are authorized by this runbook. The primary CareerOS project is `jtitfwzpfbyfsdpxxrbj` and must never be used for these mutation tests. A READY Vercel preview or green anonymous smoke checks do not replace this sign-off.
+
+## Protected destructive acceptance and keyboard update — 13 October 2026
+
+Regular staging security tests now include **relogin persistence** and additional labeled-form / keyboard skip-link and responsive-private-route checks. Those are test definitions, not live pass results.
+
+Optional irreversible tests are in `tests/e2e/staging-privacy-erasure.spec.ts`. They must **not run** unless an authorized operator explicitly sets `CAREER_STAGING_ERASURE=I_UNDERSTAND_DELETES_DISPOSABLE_USERS` as an approved **GitHub staging Environment variable**. Two **additional distinct, empty, throwaway users** are needed, besides the two users for regular RLS tests:
+- `SUPABASE_TEST_PURGE_USER_EMAIL` / `SUPABASE_TEST_PURGE_USER_PASSWORD` (Vault clear; account remains)
+- `SUPABASE_TEST_DELETE_USER_EMAIL` / `SUPABASE_TEST_DELETE_USER_PASSWORD` (permanent hard account deletion)
+
+The optional workflow step also requires `SUPABASE_TEST_DELETE_SERVICE_ROLE_KEY` configured in the protected staging Environment as a secret, passed only to that isolated step under `SUPABASE_SERVICE_ROLE_KEY`. **Never reuse production's service-role key.** The Playwright preflight rejects missing configuration, a production project URL or duplicate identities; any failure must block release rather than be bypassed.
+
+The destructive test confirms export-before-clear, typed-confirmed clearing, disappearance of Vault records after export, relogin after Vault-only clear, a separately typed/password-confirmed account deletion, and denied login after hard deletion. It should also be independently audited for backup retention, non-primary identity preservation, and operator approval.
+
+Screen-reader testing (VoiceOver/NVDA), real identity email delivery and hardware/browser variants require explicit human signoff. Automatic keyboard and overflow assertions alone do not prove WCAG compliance.
