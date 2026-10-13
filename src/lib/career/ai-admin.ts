@@ -13,9 +13,9 @@ export function aiPersistenceConfigured() {
 }
 
 export async function persistVerifiedAI({
- verifiedUserId, sessionId, reply, suggestions,
+ verifiedUserId, sessionId, answerMessageId, reply, nextFocus, suggestions,
 }:{
- verifiedUserId:string;sessionId:string;reply:string;
+ verifiedUserId:string;sessionId:string;answerMessageId:string;reply:string;nextFocus:string;
  suggestions:Pick<CareerSuggestion,'kind'|'title'|'description'|'evidence_quote'>[];
 }) {
  const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -26,10 +26,12 @@ export async function persistVerifiedAI({
  });
  // The SQL RPC re-verifies the account/session binding, validates each quoted
  // proposal, and commits the answer + proposals atomically.
- const {data,error}=await client.rpc('persist_verified_ai_interview',{
+ const {data,error}=await client.rpc('persist_verified_ai_interview_turn',{
   target_user_id:verifiedUserId,
   target_session_id:sessionId,
+  target_user_message_id:answerMessageId,
   ai_reply:reply,
+  next_question_focus:nextFocus,
   proposals:suggestions,
  });
  if(error||data!==true)throw new Error('Verified AI output could not be saved');

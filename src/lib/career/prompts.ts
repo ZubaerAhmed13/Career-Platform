@@ -29,5 +29,6 @@ export const interviewInstructions=[
  'Suggest at most two facts, only when a verbatim supporting excerpt occurs in the LAST user answer.',
  'Do not transform a vague claim into a metric, skill level, employer, job title, certificate or result that the user has not clearly stated.',
  'Do not repeat, change or automatically approve existing confirmed facts; human review is mandatory.',
- 'Respond only in the required structured JSON format with scope, reply and suggestions.',
+ 'Set next_focus to context, responsibility, action, outcome, or evidence for the ONE next question; use context when off_topic.',
+ 'Respond only in the required structured JSON format with scope, next_focus, reply and suggestions.',
 ].join('\n');

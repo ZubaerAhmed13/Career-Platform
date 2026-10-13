@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { startCareerInterview, sendCareerInterviewAnswer, completeCareerInterview } from '@/app/actions/career-interview';
 import { interviewTopics, type InterviewTopic } from '@/lib/career/prompts';
+import {trackGuide,focusGuide} from '@/lib/career/interview-coach';
 import type {CareerMessage,CareerSession} from '@/lib/career/schema';
 
 function StartInterview(){
@@ -34,10 +35,13 @@ function InterviewChat({session,messages}:{session:CareerSession;messages:Career
  useEffect(()=>{if(state.message||state.error)router.refresh();},[state.message,state.error,router]);
  return <section className="stack">
   <h2>{session.title}</h2>
-  <p className="subtle">This is a career-only interviewer—not a general chatbot. It asks focused questions about real experience and offers only evidence-backed facts for your approval.</p>
-  <div className="stack">{messages.length===0?<div className="muted-card">No messages yet. Tell me about a real role, qualification, project, skill, achievement, language, certification or volunteering experience.</div>:messages.map(m=>
+  <p className="subtle">This is a focused career interview using a Situation–Responsibility–Action–Outcome–Evidence approach. It follows up on real details; all proposed facts still require your approval.</p>
+  <div className="stack">{messages.length===0?<div className="muted-card">No messages yet. Choose a topic and describe one real situation. The interviewer will follow up on your personal contribution, actions, outcome and evidence.</div>:messages.map(m=>
    <article key={m.id} className="card" style={{marginLeft:m.role==='user'?24:0,marginRight:m.role==='assistant'?24:0}}>
      <p className="eyebrow">{m.role==='assistant'?'AI response':'Your answer'}</p>
+     {m.role==='assistant'&&m.next_focus&&<p className="subtle" style={{marginBottom:6}}>
+       Next focus: {focusGuide[m.next_focus].label}
+     </p>}
      <p style={{whiteSpace:'pre-wrap'}}>{m.content}</p>
    </article>)}</div>
   {session.status==='active'&&<FinishInterview id={session.id}/>}
@@ -47,6 +51,11 @@ function InterviewChat({session,messages}:{session:CareerSession;messages:Career
    <select className="field" id="topic" name="topic" value={topic} onChange={e=>setTopic(e.target.value as InterviewTopic)}>
      {interviewTopics.map(t=><option key={t} value={t}>{t[0].toUpperCase()+t.slice(1)}</option>)}
    </select>
+   <div className="muted-card" aria-live="polite">
+    <strong>{trackGuide[topic].title}</strong>
+    <p style={{margin:'6px 0'}}>{trackGuide[topic].opener}</p>
+    <p className="subtle">{trackGuide[topic].goal}</p>
+   </div>
    <label className="label" htmlFor="answer">Your real career experience or answer (2,000 characters maximum)</label>
    <textarea className="field" id="answer" name="answer" rows={5} maxLength={2000} minLength={5} required/>
    <label><input type="checkbox" name="consent" value="yes" required/> I consent to sending this answer and relevant approved career context to the configured AI service.</label>

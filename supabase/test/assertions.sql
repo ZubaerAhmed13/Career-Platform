@@ -35,8 +35,8 @@ end $$;
 insert into public.career_interview_sessions(id,user_id,title)
  values('33333333-3333-4333-8333-333333333333',
  'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','Test session');
-insert into public.career_interview_messages(user_id,session_id,role,content)
- values('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+insert into public.career_interview_messages(id,user_id,session_id,role,content)
+ values('88888888-8888-4888-8888-888888888888','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
  '33333333-3333-4333-8333-333333333333','user',
  'I used SQL reporting during my internship.');
 do $$
@@ -69,10 +69,11 @@ begin
 end $$;
 reset role;
 select set_config('request.jwt.claim.role','service_role',false);
-select public.persist_verified_ai_interview(
+select public.persist_verified_ai_interview_turn(
  'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
  '33333333-3333-4333-8333-333333333333',
- 'What kind of reports did you build?',
+ '88888888-8888-4888-8888-888888888888',
+ 'What kind of reports did you build?','evidence',
  '[{"kind":"skill","title":"SQL reporting","description":"Used SQL in an internship.","evidence_quote":"used SQL reporting"}]'::jsonb
 );
 select public.persist_verified_ai_cv_suggestions(
@@ -224,5 +225,39 @@ begin
   and started_on='2026-01-01' and ended_on='2026-06-30'
   and is_current=false and source='import' and revision=2;
  if total<>1 then raise exception 'Selected-field merge changed unselected fields or failed'; end if;
+end $$;
+reset role;
+
+-- An answer gets only one provider reply and may never be responded to twice.
+reset role;
+select set_config('request.jwt.claim.role','service_role',false);
+do $$
+declare blocked boolean:=false;
+begin
+ begin
+  perform public.persist_verified_ai_interview_turn(
+   'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+   '33333333-3333-4333-8333-333333333333',
+   '88888888-8888-4888-8888-888888888888',
+   'Duplicate assistant response','evidence','[]'::jsonb
+  );
+ exception when others then blocked:=true; end;
+ if not blocked then raise exception 'Second AI response accepted for one answer'; end if;
+end $$;
+set role authenticated;
+select set_config('request.jwt.claim.role','authenticated',false);
+select set_config('request.jwt.claim.sub','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',false);
+do $$
+declare blocked boolean:=false;
+begin
+ begin
+  perform public.persist_verified_ai_interview_turn(
+   'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+   '33333333-3333-4333-8333-333333333333',
+   '88888888-8888-4888-8888-888888888888',
+   'Forged assistant response','evidence','[]'::jsonb
+  );
+ exception when others then blocked:=true; end;
+ if not blocked then raise exception 'User token called privileged turn persistence'; end if;
 end $$;
 reset role;

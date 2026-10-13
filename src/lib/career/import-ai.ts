@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { careerKind, suggestionSchema } from './schema';
 import { careerAIScope } from './ai-purpose';
 import { requestStructuredCareerAI, AIUnavailableError } from './provider';
+import {onlySupportedSuggestions} from './interview-evidence';
 
 const importSchema={
  type:'object',additionalProperties:false,
@@ -40,5 +41,5 @@ export async function suggestFactsFromPastedCV(source:string){
  });
  const parsed=outputSchema.safeParse(data);
  if(!parsed.success)throw new AIUnavailableError('Extracted records did not pass validation.');
- return parsed.data.suggestions.filter(s=>s.evidence_quote.length>=6&&source.includes(s.evidence_quote));
+ return onlySupportedSuggestions(parsed.data.suggestions,source,6);
 }

@@ -50,8 +50,8 @@ export async function sendCareerInterviewAnswer(_previous:VaultActionState,form:
  if(quota.error||!quota.data)return {error:'AI usage limit reached or quota service unavailable. Try again later.'};
  const saved=await supabase.from('career_interview_messages').insert({
    user_id:user.id,session_id:sessionId,role:'user',content:answer,
- });
- if(saved.error)return {error:'Your answer could not be saved.'};
+ }).select('id').single();
+ if(saved.error||!saved.data)return {error:'Your answer could not be saved.'};
  try{
    const result=await getInterviewResponse({
      topic:topic.data,answer,
@@ -60,7 +60,8 @@ export async function sendCareerInterviewAnswer(_previous:VaultActionState,form:
    });
    try {
      await persistVerifiedAI({
-       verifiedUserId:user.id,sessionId,reply:result.reply,suggestions:result.suggestions,
+       verifiedUserId:user.id,sessionId,answerMessageId:saved.data.id,
+       reply:result.reply,nextFocus:result.next_focus,suggestions:result.suggestions,
      });
    } catch {
      return {error:'Your answer was saved, but the verified AI response could not be stored safely. No assistant reply was fabricated.'};

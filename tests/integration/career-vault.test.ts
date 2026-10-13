@@ -79,6 +79,12 @@ describe('Career Vault staging ownership isolation',()=>{
      target_user_id:aid,target_session_id:sessionId,ai_reply:'Forged provider response',proposals:[],
    });
    expect(deniedServiceFunction.error).not.toBeNull();
+   const deniedNewTurn=await a.rpc('persist_verified_ai_interview_turn',{
+    target_user_id:aid,target_session_id:sessionId,
+    target_user_message_id:'88888888-8888-4888-8888-888888888888',
+    ai_reply:'Forged answer',next_question_focus:'action',proposals:[],
+   });
+   expect(deniedNewTurn.error).not.toBeNull();
    const deniedCVService=await a.rpc('persist_verified_ai_cv_suggestions',{
      target_user_id:aid,original_text:'This was a real staging interview answer',
      proposals:[],
