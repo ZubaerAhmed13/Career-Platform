@@ -24,7 +24,7 @@ function DeleteButton({record}:{record:CareerRecord}){
   {state.message&&<p role="status" className="success">{state.message}</p>}
  </div>;
 }
-export function VaultWorkspace({records,linkedCount,targetRole}:{records:CareerRecord[];linkedCount:number;targetRole?:string}){
+export function VaultWorkspace({records,linkedCount,pendingSuggestionCount,targetRole}:{records:CareerRecord[];linkedCount:number;pendingSuggestionCount:number;targetRole?:string}){
  const [adding,setAdding]=useState(false);
  const [editing,setEditing]=useState<string|null>(null);
  const [kind,setKind]=useState<string>('all');
@@ -68,7 +68,7 @@ export function VaultWorkspace({records,linkedCount,targetRole}:{records:CareerR
   </header>
   <div className="page-grid">
    <div className="card"><p className="eyebrow">Saved records</p><strong style={{fontSize:32}}>{summary.total}</strong><p className="subtle">Not an artificial profile score</p></div>
-   <div className="card"><p className="eyebrow">Needs confirmation</p><strong style={{fontSize:32}}>{summary.pending}</strong><p className="subtle">Unreviewed or conflicting records</p></div>
+   <div className="card"><p className="eyebrow">Needs confirmation</p><strong style={{fontSize:32}}>{summary.pending+pendingSuggestionCount}</strong><p className="subtle">Pending suggestions and unreviewed or conflicting records</p></div>
    <div className="card"><p className="eyebrow">Connections</p><strong style={{fontSize:32}}>{linkedCount}</strong><p className="subtle">Saved relationships and evidence links</p></div>
   </div>
 
