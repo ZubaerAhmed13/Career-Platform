@@ -53,7 +53,7 @@ function textDocx(text:string):Buffer{
 }
 
 test('PDF extraction happens in browser and user edits before text-only submission',async({page})=>{
- await page.goto('/__local-cv-test');
+ await page.goto('/local-cv-fixture');
  const sent:string[]=[];
  page.on('request',req=>{if(req.method()==='POST')sent.push(req.url());});
  await page.locator('#local-cv-file').setInputFiles({
@@ -68,7 +68,7 @@ test('PDF extraction happens in browser and user edits before text-only submissi
  await expect(page.getByRole('button',{name:'Save selected text to my review queue'})).toBeEnabled();
 });
 test('DOCX extraction works in browser without a document upload',async({page})=>{
- await page.goto('/__local-cv-test');
+ await page.goto('/local-cv-fixture');
  const sent:string[]=[];
  page.on('request',req=>{if(req.method()==='POST')sent.push(req.url());});
  await page.locator('#local-cv-file').setInputFiles({
@@ -81,7 +81,7 @@ test('DOCX extraction works in browser without a document upload',async({page})=
  expect(sent).toEqual([]);
 });
 test('bad and mismatched files are never parsed or sent',async({page})=>{
- await page.goto('/__local-cv-test');
+ await page.goto('/local-cv-fixture');
  await page.locator('#local-cv-file').setInputFiles({
   name:'faked.pdf',mimeType:'application/pdf',buffer:Buffer.from('This is not a PDF.'),
  });

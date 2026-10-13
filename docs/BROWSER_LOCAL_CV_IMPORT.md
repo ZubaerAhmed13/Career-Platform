@@ -22,7 +22,7 @@ No file, document filename or binary data is included in the new server action's
 - Browser OCR is not supported. The application intentionally does not invent employers, metrics, roles or dates.
 - No paid AI model or credential is needed to use this workflow. The separate CareerOS private Qwen AI interviewer remains unavailable until its model server exists.
 - There is an independent **server-scanned** import option for future high-assurance use; it stays disabled until an operator provides and tests the private ClamAV service.
-- A development-only fixture route at \`/__local-cv-test\` is accessible only in development builds; production returns 404. Browser CI feeds local sample PDF/DOCX documents to the real worker and verifies that extraction causes no POST uploads.
+- A development-only fixture route at \`/local-cv-fixture\` is accessible only in development builds; production returns 404. Browser CI feeds local sample PDF/DOCX documents to the real worker and verifies that extraction causes no POST uploads.
 - The authenticated text save path reuses existing per-account row-level security. User consent is required. A live signed-in end-to-end save still requires separately testing an actual account browser session.
 
 ## Backend ownership
