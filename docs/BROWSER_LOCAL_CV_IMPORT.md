@@ -9,7 +9,7 @@ The Career Vault review page now includes **Import PDF or DOCX on this device**.
 3. Click **Extract text locally**. CareerOS reads the file in a temporary browser Web Worker, using the bundled PDF.js-based unpdf library and Mammoth's browser build. No original file is sent to Vercel, Supabase Storage or any AI service.
 4. Inspect the extracted text on the same page. Edit/cut it down to no more than 4,000 characters. Inaccessible image-only PDF text cannot be imported yet; no OCR is performed.
 5. Choose a fallback career category and explicitly confirm you have permission to submit the selected text. Click **Save selected text to my review queue**.
-6. Only the selected text is submitted to an authenticated server action. The server checks the original text, account, categories and hourly limit, conservatively splits headings into up to six candidates, and saves them to the existing Supabase \`career_suggestions\` table with \`origin='cv_import'\` and \`review_status='pending'\`.
+6. Only the selected text is submitted to an authenticated server action. The server checks the original text, account, categories and hourly limit, conservatively splits headings into up to six candidates, and saves them to the existing Supabase `career_suggestions` table with `origin='cv_import'` and `review_status='pending'`.
 7. Refresh the review page if needed, inspect each suggestion and correct, approve, merge, or reject. **No candidate is confirmed automatically.**
 
 No file, document filename or binary data is included in the new server action's payload. The browser parses locally; it is not allowed to send files as form values. Server-side privacy review checks that every saved quote appears in the selected text.
@@ -22,7 +22,7 @@ No file, document filename or binary data is included in the new server action's
 - Browser OCR is not supported. The application intentionally does not invent employers, metrics, roles or dates.
 - No paid AI model or credential is needed to use this workflow. The separate CareerOS private Qwen AI interviewer remains unavailable until its model server exists.
 - There is an independent **server-scanned** import option for future high-assurance use; it stays disabled until an operator provides and tests the private ClamAV service.
-- A development-only fixture route at \`/local-cv-fixture\` is accessible only in development builds; production returns 404. Browser CI feeds local sample PDF/DOCX documents to the real worker and verifies that extraction causes no POST uploads.
+- A development-only fixture route at `/local-cv-fixture` is accessible only in development builds; production returns 404. Browser CI feeds local sample PDF/DOCX documents to the real worker and verifies that extraction causes no POST uploads.
 - The authenticated text save path reuses existing per-account row-level security. User consent is required. A live signed-in end-to-end save still requires separately testing an actual account browser session.
 
 ## Backend ownership
@@ -38,3 +38,9 @@ Supabase remains CareerOS's primary server-side backend: Auth, permanent verifie
 - Keep ClamAV-dependent server imports disabled until a private scanner is available.
 
 Document processing here is a **privacy-preserving convenience workflow**, not a guarantee that every arbitrary PDF or DOCX is malware-free.
+
+
+## Tested status (13 October 2026)
+- The latest branch has passed Playwright tests on desktop Chromium and mobile Chromium that load real, harmless sample text-PDF and DOCX documents in the local browser worker, check the editable extracted-text preview and assert there is **no HTTP POST while extracting**.
+- Unit tests validate extensions/magic bytes, DOCX directory bounds and safe selected-text lengths. Existing GitHub CI validates the signed-in server action's build, Supabase migrations and database RLS fixtures.
+- The **actual save with a signed-in Supabase account** has not been automated or independently observed. No real personal document was uploaded in tests. A user must still confirm their selected text before the server action saves pending proposals.

@@ -95,3 +95,7 @@ The protected Career Vault preview also offers a private JSON export and a delib
 
 ### New — import CV locally without a scanner server
 The Career Vault review page now offers **browser-only PDF/DOCX text extraction**. The original file remains on the user's device; they edit the extracted text and submit only that selection for pending Supabase review. No GPU, ClamAV, AI provider key, or added backend is required. The existing server-scanned option remains disabled until antivirus infrastructure is installed. Full details: [docs/BROWSER_LOCAL_CV_IMPORT.md](docs/BROWSER_LOCAL_CV_IMPORT.md).
+
+
+### Browser-local CV review — no scanner/GPU needed
+In Career Vault → Review before saving, users can open a **text-based PDF or DOCX locally on their own device**, edit the extracted text (up to 4,000 characters), and explicitly save only that selected text as unconfirmed, owner-private suggestions in Supabase. The original PDF/DOCX is never posted to CareerOS; this is **not** antivirus scanning and users should open documents they trust. The optional separate server-scanned upload route stays disabled while ClamAV is unavailable. See [browser-local import guide](docs/BROWSER_LOCAL_CV_IMPORT.md). Desktop and mobile Chromium extraction tests run in GitHub CI; authenticated real-account save acceptance is a separate gate.

@@ -3,7 +3,7 @@
 Last reviewed: October 13, 2026.
 
 ## Verified backend and preview
-- The connected Supabase project \`jtitfwzpfbyfsdpxxrbj\` has **17** successful additive migrations, including account-owned records, evidence, fact reviews, AI turn integrity and specialist interview tracks.
+- The connected Supabase project \`jtitfwzpfbyfsdpxxrbj\` has **18** successful additive migrations, including account-owned records, evidence, fact reviews, AI turn integrity and specialist interview tracks.
 - 11 public tables have RLS. Anonymous table grants are revoked; privileged AI fact persistence is server-only.
 - GitHub runs TypeScript/lint, unit tests, actual PostgreSQL 16 migration and RLS assertions, Next.js production build and public desktop/mobile browser smoke tests.
 - Vercel deploys the private \`feat/milestone-2-career-vault\` branch to a protected preview. Not merged to production.
@@ -50,5 +50,5 @@ Last reviewed: October 13, 2026.
 ## Browser-local CV import — October 13, 2026
 - **Added:** local PDF/DOCX extraction with Web Worker, format/ZIP checks, editable text preview, and authenticated *text-only* saving to existing Supabase pending suggestions.
 - **Operational distinction:** browser-local extraction needs no scanner/GPU/AI key; the server-scanned import and hosted Qwen interview still require the owner's server. Browser-local parsing is **not an antivirus scan**.
-- **Testing:** unit cases for type/ZIP/length gates, real Chromium PDF/DOCX worker extraction with no document POST upload, and existing database/security/build checks.
+- **Testing:** unit cases for type/ZIP/length gates; desktop and mobile real Chromium PDF/DOCX worker extraction, editable preview and zero document POST during extraction; database/security/build checks. A signed-in, real-account Supabase save has not yet been independently exercised.
 - Guide: \`docs/BROWSER_LOCAL_CV_IMPORT.md\`.
