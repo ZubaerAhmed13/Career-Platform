@@ -36,5 +36,22 @@
       }
     }
   }
+  @authorized_extract {
+    path /extract
+    method POST
+    header Authorization "Bearer {$CV_SCAN_BEARER_TOKEN}"
+  }
+  handle @authorized_extract {
+    request_body {
+      max_size 3MB
+    }
+    reverse_proxy scan-gateway:3088 {
+      header_up -Authorization
+      transport http {
+        dial_timeout 3s
+        response_header_timeout 40s
+      }
+    }
+  }
   respond "Forbidden" 403
 }

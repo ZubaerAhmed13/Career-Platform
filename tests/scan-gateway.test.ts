@@ -10,6 +10,7 @@ const settings=(extra:Record<string,string|undefined>={})=>({
 describe('scanner gateway config',()=>{
  it('requires a strong token and HTTPS DNS-only origin',()=>{
   expect(scanGatewayConfig(settings()).url).toBe('https://scan.example.com/scan');
+  expect(scanGatewayConfig(settings()).extractUrl).toBe('https://scan.example.com/extract');
   for(const config of [
    {CV_SCAN_GATEWAY_TOKEN:''},{CV_SCAN_GATEWAY_URL:'http://scan.example.com'},
    {CV_SCAN_GATEWAY_URL:'https://localhost'},

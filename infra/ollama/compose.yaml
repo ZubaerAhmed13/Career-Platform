@@ -38,10 +38,32 @@ services:
       - ./scan-server.mjs:/app/scan-server.mjs:ro
     depends_on:
       - clamav
+      - cv-parser
     networks:
       - model-internal
+      - parse-internal
     expose:
       - "3088"
+    security_opt:
+      - no-new-privileges:true
+  cv-parser:
+    build:
+      context: ../..
+      dockerfile: infra/ollama/Dockerfile.cv-parser
+    restart: unless-stopped
+    read_only: true
+    user: '1000:1000'
+    mem_limit: 512m
+    cpus: 1.5
+    pids_limit: 64
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp:noexec,nosuid,size=24m
+    networks:
+      - parse-internal
+    expose:
+      - "3089"
     security_opt:
       - no-new-privileges:true
   gateway:
@@ -66,6 +88,8 @@ services:
       - no-new-privileges:true
 networks:
   model-internal:
+  parse-internal:
+    internal: true
 volumes:
   model-weights:
   caddy-data:
