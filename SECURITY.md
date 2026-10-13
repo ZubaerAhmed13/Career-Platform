@@ -1,6 +1,6 @@
 # Security model and launch blockers
 
-Supabase Auth manages credentials and session tokens; @supabase/ssr manages cookies, and protected pages call auth.getUser() server-side. Server-side profile update uses verified user.id rather than user input; Postgres RLS independently enforces ownership. The database intentionally has no client document-upload policy. No privileged service-role key is required.
+Supabase Auth manages credentials and session tokens; @supabase/ssr manages cookies, and protected pages call auth.getUser() server-side. Server-side profile update uses verified user.id rather than user input; Postgres RLS independently enforces ownership. The database intentionally has no client document-upload policy. An optional server-only service-role key is required for trusted AI persistence and self-service full-account deletion; never expose it to the browser.
 
 **Limitations requiring verification before launch:** live registration/password recovery email delivery, rate-limit/abuse protections, staging cross-account RLS and upload tests, full CSRF/origin review, CSP configuration, third-party dependency auditing, logging/monitoring, data export/deletion, GDPR notices, retention and DPA/legal review, German localization, scanning and private-download flow. Do not claim GDPR compliance on current implementation. Public NEXT_PUBLIC_ variables are not secrets, but server service-role credentials must never use that prefix.
 
@@ -23,3 +23,7 @@ The protected server must set `SUPABASE_SERVICE_ROLE_KEY`. It is **highly privil
 Normal client users are limited to manually authored confirmed new records. Record updates may change career content but cannot change user ID, record ID, creation time, source or review status. Database revision triggers and owner policies enforce this independently of the UI. AI-origin proposals and status changes continue to use reviewed, owner-scoped database functions.
 
 The new PostgreSQL CI job **actually executes SQL**, rather than only checking file existence; it uncovered and allowed repair of a runtime ambiguity in verified AI persistence. Supabase-managed auth/storage objects are replaced with test fixtures in this job, so hosting, Supabase Auth JWT enforcement, privileged key handling and real RLS acceptance remain separate live checks.
+
+## Account export and permanent deletion (Step 2 continuation)
+
+The Settings page now provides an owner-scoped profile + Career Vault JSON archive, distinct from Vault-only export. Account deletion requires the verified signed-in identity, exact user confirmation, password reauthentication from an isolated unprivileged client, an available server-only admin key and a private Storage preflight. Only then can the Auth Admin hard-delete call occur; database rows cascade through existing foreign keys. OAuth-only identities, owner-held Storage objects, backup retention, regulatory controller notices and live staging acceptance remain operator-controlled release gates. See `docs/DATA_RETENTION_AND_ACCOUNT_ERASURE.md`. Do not claim that an archive contains every data category or a hard delete purges backups.
