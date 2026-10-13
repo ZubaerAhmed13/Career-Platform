@@ -27,3 +27,19 @@ describe('provider-free source-backed CV segmentation',()=>{
   expect(result.omitted).toBe(2);
  });
 });
+
+
+describe('source-quote integrity for CV punctuation and short skills',()=>{
+ it('keeps an explicit standalone short skill with its original heading as evidence',()=>{
+  const text='Skills: SQL\n\nEducation\nBusiness degree at University';
+  const result=extractCareerSections(text);
+  expect(result.suggestions.map(s=>s.title)).toContain('SQL');
+  expect(text).toContain(result.suggestions.find(s=>s.title==='SQL')?.evidence_quote??'not found');
+ });
+ it('avoids normalized multi-line quotes that are absent from the source',()=>{
+  const text='Work Experience\r\n  - Operations support at Example GmbH\r\n    Manual stock counts and audits';
+  const result=extractCareerSections(text);
+  expect(result.suggestions.length).toBeGreaterThan(0);
+  for(const item of result.suggestions)expect(text).toContain(item.evidence_quote);
+ });
+});

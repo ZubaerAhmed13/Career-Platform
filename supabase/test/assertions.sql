@@ -135,3 +135,39 @@ begin
  if not blocked then raise exception 'AI request was not quota-limited'; end if;
 end $$;
 reset role;
+
+-- Duplicate reviews must fail safely unless owner deliberately approves separately.
+set role authenticated;
+select set_config('request.jwt.claim.role','authenticated',false);
+select set_config('request.jwt.claim.sub','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',false);
+insert into public.career_suggestions(id,user_id,kind,title,origin,description)
+ values('55555555-5555-4555-8555-555555555555',
+ 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+ 'project','Approved SQL project','cv_import','A distinct project with the same title');
+do $$
+declare blocked boolean:=false;
+begin
+ begin
+  perform public.approve_career_suggestion('55555555-5555-4555-8555-555555555555');
+ exception when others then blocked:=true; end;
+ if not blocked then raise exception 'Accidental duplicate approval was accepted'; end if;
+end $$;
+select public.approve_career_suggestion_separately('55555555-5555-4555-8555-555555555555');
+do $$
+declare total integer;
+begin
+ select count(*) into total from public.career_records
+ where user_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+ and kind='project' and title='Approved SQL project';
+ if total<>2 then raise exception 'Explicit separate review failed'; end if;
+end $$;
+select set_config('request.jwt.claim.sub','bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',false);
+do $$
+declare blocked boolean:=false;
+begin
+ begin
+  perform public.approve_career_suggestion_separately('44444444-4444-4444-8444-444444444444');
+ exception when others then blocked:=true; end;
+ if not blocked then raise exception 'Other account was permitted to reapprove a suggestion'; end if;
+end $$;
+reset role;
