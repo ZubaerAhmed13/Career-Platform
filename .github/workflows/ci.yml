@@ -24,6 +24,7 @@ jobs:
         run: |
           bash -n infra/ollama/setup.sh
           node --test infra/ollama/scan-server.test.mjs
+          python3 -m py_compile infra/ollama/check-scanner.py
           python3 -m py_compile infra/ollama/check-gateway.py
           docker compose -f infra/ollama/compose.yaml config --quiet
           docker compose -f infra/ollama/compose.yaml -f infra/ollama/compose.gpu.yaml config --quiet
