@@ -143,6 +143,7 @@ export function ReviewWorkspace({suggestions,records,aiConfigured}:{suggestions:
         {careerKinds.map(k=><option key={k} value={k}>{kindLabels[k]}</option>)}</select></div>
       <div className="form-row"><label className="label" htmlFor="cv-text">Original text</label>
         <textarea className="field" id="cv-text" name="resume_text" minLength={20} maxLength={4000} rows={6} required/></div>
+      <label><input type="checkbox" name="detect_sections" value="yes" defaultChecked/> Split recognizable CV sections into separate pending facts. If none are recognized, keep the original text as one unreviewed item. Maximum six candidates per import.</label>
       <button className="button" disabled={pending}>Save for review — not confirmed</button>
       {state.error&&<p role="alert" className="error">{state.error}</p>}
       {state.message&&<p role="status" className="success">{state.message}</p>}

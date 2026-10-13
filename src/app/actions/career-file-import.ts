@@ -1,6 +1,7 @@
 'use server';
 import { requireAccount } from '@/lib/account';
 import { careerKind } from '@/lib/career/schema';
+import { extractCareerSections } from '@/lib/career/cv-sections';
 import { extractScannedCv } from '@/lib/career/cv-file';
 import { scanningConfigured } from '@/lib/career/clamav';
 import { suggestFactsFromPastedCV } from '@/lib/career/import-ai';
@@ -46,14 +47,16 @@ export async function importScannedCv(
   }
  }
  // Manual path: unreviewed original text, no provider receives the data.
- const {error}=await supabase.from('career_suggestions').insert({
-  user_id:user.id,kind:kind.data,
-  title:file.name.slice(0,180) || 'Uploaded CV section',
-  description:extracted.text,
-  evidence_quote:extracted.text.slice(0,2000),
-  origin:'cv_import',review_status:'pending',
- });
+ const detected=extractCareerSections(extracted.text);
+ const rows=detected.suggestions.length
+  ?detected.suggestions.map(s=>({...s,user_id:user.id,origin:'cv_import' as const,review_status:'pending' as const}))
+  :[{
+    user_id:user.id,kind:kind.data,title:file.name.slice(0,180) || 'Uploaded CV section',
+    description:extracted.text,evidence_quote:extracted.text.slice(0,2000),
+    origin:'cv_import' as const,review_status:'pending' as const,
+   }];
+ const {error}=await supabase.from('career_suggestions').insert(rows);
  if(error)return {error:'File passed scanning but its text could not be saved. Retry later.'};
  revalidatePath('/career-vault/review');
- return {message:'Scanned '+extracted.format.toUpperCase()+' text was saved for manual review. No confirmed facts were replaced.'};
+ return {message:'Scanned '+extracted.format.toUpperCase()+': '+rows.length+' source-backed candidate(s) saved for review.'+(detected.omitted?' '+detected.omitted+' further entries were omitted by the six-item limit.':'')+' No confirmed facts were replaced.'};
 }

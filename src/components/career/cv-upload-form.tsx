@@ -11,7 +11,7 @@ export function CvUploadForm({scannerReady}:{scannerReady:boolean}){
  </section>;
  return <form action={action} className="card stack">
   <h2>Import a scanned CV section (PDF or DOCX)</h2>
-  <p className="subtle">Maximum 2 MB, 12 PDF pages, 4,000 extracted characters. Files are scanned before text extraction. The file is not saved, and extracted text requires review.</p>
+  <p className="subtle">Maximum 2 MB, 12 PDF pages, 4,000 extracted characters. Files are scanned before text extraction. Recognizable CV sections are split into at most six separate suggestions for your review; no employer, dates or achievements are invented.</p>
   <label className="label" htmlFor="cv-binary">Select document</label>
   <input className="field" type="file" name="file" id="cv-binary" required
     accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"/>

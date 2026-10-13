@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { requireAccount } from '@/lib/account';
 import { careerKind, evidenceSchema, recordSchema } from '@/lib/career/schema';
+import { extractCareerSections } from '@/lib/career/cv-sections';
 import { z } from 'zod';
 
 export type VaultActionState = { message?: string; error?: string };
@@ -145,12 +146,18 @@ export async function addResumeTextForReview(_prev:VaultActionState,form:FormDat
  const kind=careerKind.safeParse(raw(form,'kind'));
  if(!kind.success)return invalid();
  const {user,supabase}=await requireAccount();
- const {error}=await supabase.from('career_suggestions').insert({
-   user_id:user.id,kind:kind.data,title:label,description:rawText,
-   evidence_quote:rawText.slice(0,2000),origin:'cv_import',review_status:'pending',
- });
+ const detection=raw(form,'detect_sections')==='yes'
+  ?extractCareerSections(rawText):null;
+ const sourceSuggestions=detection?.suggestions??[];
+ const records=sourceSuggestions.length
+  ?sourceSuggestions.map(s=>({...s,user_id:user.id,origin:'cv_import' as const,review_status:'pending' as const}))
+  :[{user_id:user.id,kind:kind.data,title:label,description:rawText,
+     evidence_quote:rawText.slice(0,2000),origin:'cv_import' as const,review_status:'pending' as const}];
+ const {error}=await supabase.from('career_suggestions').insert(records);
  if(error)return {error:'Unable to save your unreviewed text.'};
- refreshVault();return {message:'Text saved as an unreviewed suggestion. It has not changed confirmed records.'};
+ refreshVault();return {message:sourceSuggestions.length
+  ? sourceSuggestions.length+' separate CV candidates saved for review.'+(detection?.omitted?' '+detection.omitted+' further entries were omitted by the six-item import limit.':'')+' No confirmed facts were changed.'
+  : 'Text saved as one unreviewed suggestion. No confirmed facts were changed.'};
 }
 
 export async function removeCareerLink(_prev:VaultActionState,form:FormData):Promise<VaultActionState>{
