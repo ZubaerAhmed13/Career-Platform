@@ -9,7 +9,7 @@ type ExtractResult={format:LocalCvFormat;text:string};
 type LocalWorkerMessage={careerCvReply:true;ok:boolean;result?:ExtractResult;error?:string};
 
 /** This workflow NEVER submits file bytes to any endpoint or Supabase bucket. */
-function extractLocally(file:File,attach:(worker:Worker|null)=>void):Promise<ExtractResult>{
+function extractLocally(file:File,attach:(worker:Worker|null,completedWorker?:Worker)=>void):Promise<ExtractResult>{
  return new Promise((resolve,reject)=>{
   const worker=new Worker(new URL('../../workers/browser-cv.worker.ts',import.meta.url),{type:'module'});
   attach(worker);
@@ -19,7 +19,7 @@ function extractLocally(file:File,attach:(worker:Worker|null)=>void):Promise<Ext
    complete=true;
    clearTimeout(timer);
    worker.terminate();
-   attach(null);
+   attach(null,worker);
    if(error)reject(error);else if(result)resolve(result);
   };
   const timer=setTimeout(()=>settle(new Error('Local extraction took too long. Try a smaller file.')),30_000);
@@ -46,6 +46,7 @@ export function BrowserCvImport(){
  const [problem,setProblem]=useState('');
  const [kind,setKind]=useState<CareerKind>('experience');
  const workerRef=useRef<Worker|null>(null);
+ const readerGeneration=useRef(0);
  const router=useRouter();
  useEffect(()=>{if(state.message)router.refresh();},[state.message,router]);
  useEffect(()=>()=>{workerRef.current?.terminate();},[]);
@@ -55,11 +56,16 @@ export function BrowserCvImport(){
    setProblem('Choose a PDF or DOCX of at most 2 MB.');
    setStatus('error');return;
   }
+  const generation=++readerGeneration.current;
   setStatus('reading');setProblem('');setText('');setFormat(null);
   try{
-   const result=await extractLocally(file,worker=>{workerRef.current=worker;});
+   const result=await extractLocally(file,(worker,completedWorker)=>{
+    if(!completedWorker||workerRef.current===completedWorker)workerRef.current=worker;
+   });
+   if(generation!==readerGeneration.current)return;
    setText(result.text);setFormat(result.format);setStatus('ready');
   }catch(error){
+   if(generation!==readerGeneration.current)return;
    setStatus('error');setProblem(error instanceof Error?error.message:'Local extraction failed.');
   }
  }
@@ -74,7 +80,8 @@ export function BrowserCvImport(){
    <input className="field" id="local-cv-file" type="file"
     accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     onChange={event=>{
-     workerRef.current?.terminate();
+     ++readerGeneration.current;
+     workerRef.current?.terminate();workerRef.current=null;
      setFile(event.target.files?.[0]??null);
      setStatus('idle');setProblem('');setText('');setFormat(null);
     }}/>
