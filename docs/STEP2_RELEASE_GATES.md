@@ -56,6 +56,6 @@ CareerOS now offers a separate **no-scanner-required** PDF/DOCX text extraction 
 
 ## Final acceptance checklist refinement (2026-10-13)
 
-Follow `docs/STEP2_ACCEPTANCE_MATRIX.md` for the exact seven remaining tasks and evidence thresholds. CI now covers source-level keyboard skip-to-main, CSS mobile overflow safeguards, unit/database security and anonymous browser workflows; signed-in keyboard/mobile/real user assertions are staged but remain unexecuted.
+Follow `docs/STEP2_ACCEPTANCE_MATRIX.md` for the exact seven remaining tasks and evidence thresholds. CI now covers source-level keyboard skip-to-main, CSS mobile overflow safeguards, unit/database security and anonymous browser workflows; signed-in keyboard/mobile/real user assertions are staged but remain unexecuted. The precise manual keyboard, reflow, VoiceOver and NVDA checklist is `docs/STEP2_ACCESSIBILITY_SIGNOFF.md`. Normal CI now also collects (but never executes) protected staging tests, so syntax/registration errors are found early.
 
 Mandatory release gates still outstanding: independent paid/free hosting of the restricted Qwen3 server, real two-account staging sign-in/CRUD/privacy/import/export, separately authorized throwaway account-clear/deletion acceptance, privacy controller/backup retention signoff, Supabase leaked-password-protection setting, manual keyboard/screen reader pass, and Vercel READY deployment of the **exact latest source SHA**. Keep the PR draft/unmerged until evidence exists.
