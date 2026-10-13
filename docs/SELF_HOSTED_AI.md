@@ -1,3 +1,46 @@
+## Quick start: only the model server is still missing
+
+**What ChatGPT has done:** CareerOS website and database, the private Ollama adapter, a locked-down Caddy gateway, scripts for generating a local secret, and a protected GitHub/Vercel preview. The model is **not yet running** because there is no connected owner-controlled computer or GPU hosting account.
+
+**What the owner does:**
+
+1. Choose an **Ubuntu Linux machine you control**, either an existing computer (CPU-only possible, slower), a machine with 12–16+ GB GPU VRAM for one initial 8B model, or a rented GPU VM. Only provision a server after checking the hourly price, auto-shutdown settings and monthly budget. For a GPU VM, choose a nearby EU region if data location matters.
+2. Add an A/AAAA DNS record for a hostname you own pointing to its IP address, e.g. `llm.yourdomain.com`. Open **80 and 443** to Caddy for HTTPS, but **block 11434 from public internet**. Install Docker, Docker Compose v2, and NVIDIA Container Toolkit if using an NVIDIA GPU.
+3. Clone the **feature branch**, not the default `main` branch:
+
+   ```bash
+   git clone --branch feat/milestone-2-career-vault https://github.com/ZubaerAhmed13/Career-Platform.git
+   cd Career-Platform
+   bash infra/ollama/setup.sh
+   ```
+
+   This asks for your hostname and concrete reviewed Ollama/Caddy image versions, then saves a random private gateway credential to `infra/ollama/.env` with restrictive file permissions. The script never prints the credential in its output.
+4. On that machine start the services and load the model:
+
+   ```bash
+   cd infra/ollama
+   docker compose -f compose.yaml -f compose.gpu.yaml up -d
+   docker compose -f compose.yaml exec ollama ollama pull qwen3:8b
+   python3 check-gateway.py
+   ```
+
+   On a machine without NVIDIA GPU, omit `-f compose.gpu.yaml` from the first command. Only a successful gateway check proves that Ollama has returned an actual structured model response through HTTPS.
+5. Set the following **server-only** Vercel Preview environment variables under the existing `career-platform` project (not in ChatGPT or GitHub):
+
+   ```text
+   SELF_HOSTED_LLM_URL=https://llm.yourdomain.com
+   SELF_HOSTED_LLM_MODEL=qwen3:8b
+   SELF_HOSTED_LLM_TOKEN=<the private INFERENCE_BEARER_TOKEN stored in infra/ollama/.env>
+   SUPABASE_SERVICE_ROLE_KEY=<private Supabase database service-role secret>
+   ```
+
+   The last item is **not** a model-provider key; it is a privileged database key needed for verified AI fact persistence. In Vercel set both secrets to **Sensitive** when available and restrict to the feature-branch preview. Never prefix either with `NEXT_PUBLIC_`.
+6. Redeploy the feature-branch preview and sign in. Under Career Vault start an interview, consent to inference, submit an actual work example, verify one focused follow-up and inspect any **pending** fact suggestions. Check that nothing becomes confirmed without explicit review. Then exercise the same flow with a second test account to verify RLS.
+
+**Do not merge the pull request or expose the model server while the real-model, owner-data, failure, and access-control tests are outstanding.**
+
+---
+
 # CareerOS AI — independent open-weight model deployment
 
 ## What independence means
@@ -9,7 +52,7 @@ The CareerOS web app stays on Vercel and career profiles stay on Supabase. These
 
 ## Architecture
 
-\`\`\`
+```
 User / protected CareerOS preview
         |
      Next.js server action [requires signed-in user + explicit processing consent]
@@ -23,29 +66,29 @@ User / protected CareerOS preview
         | Docker private bridge network, no exposed Ollama port
         v
     Ollama running qwen3:8b weights on owner-controlled CPU/GPU
-\`\`\`
+```
 
 There is **no external model fallback**. If the owned model server is unavailable, interview generation fails closed, while manual Career Vault editing and previously saved interviews remain accessible.
 
 ## Private model-server setup (own GPU VM or private server)
 
 1. Provision your own Ubuntu/Debian server with Docker and Docker Compose. The Ollama 8B Q4_K_M package weighs about 5.2 GB; runtime memory and KV cache need more. A modern GPU with roughly 12–16 GB VRAM is a practical starting point, subject to actual context/concurrency tests. CPU-only is possible but often slow. The initial server is a starter, **not a tested scaling configuration**.
-2. Configure a DNS hostname you control such as \`career-model.example.com\` to point at the server. Restrict management access, enable OS updates and firewall rules. Permit inbound TCP 80/443 for automatic TLS issuance but **never publicly open TCP 11434**.
-3. Review and pin supported Ollama/Caddy container image versions or immutable digests. In \`infra/ollama\`, copy \`env.example\` to \`.env\`. Replace image versions, \`MODEL_DOMAIN\`, and \`INFERENCE_BEARER_TOKEN\`. Generate a long random token with \`openssl rand -hex 32\`; keep the value only in local secret storage and Vercel's protected environment settings. Never commit \`.env\`.
-4. Run \`docker compose -f compose.yaml -f compose.gpu.yaml up -d\` with the NVIDIA Container Toolkit installed. For CPU-only trials, use \`docker compose -f compose.yaml up -d\`.
-5. Load the independent open-weight model by running \`docker compose exec ollama ollama pull qwen3:8b\`. Verify using \`docker compose exec ollama ollama list\`. Check the license/terms for any different weights you choose.
-6. Test privately with an authenticated request and a **JSON-schema** \`format\` payload sent to \`https://<model-domain>/api/chat\`. First test should use a dedicated developer shell and never put tokens into shell history or logs. Expect JSON in \`message.content\`, \`done:true\`, and no redirect. The gateway returns 403 for missing/incorrect tokens and other routes.
-7. Configure protected **Vercel Preview environment variables** under the \`career-platform\` project:
-   - \`SELF_HOSTED_LLM_URL=https://<model-domain>\` (HTTPS origin only, no path).
-   - \`SELF_HOSTED_LLM_MODEL=qwen3:8b\`.
-   - \`SELF_HOSTED_LLM_TOKEN=<same private random gateway token>\`.
-   - \`SUPABASE_SERVICE_ROLE_KEY=<Supabase privileged server key>\` — *still needed for verified provider-origin fact persistence*. It is a database credential, **not an OpenAI or model-provider credential**.
-   - Continue using the existing \`NEXT_PUBLIC_SUPABASE_*\` settings. **Never prefix the private keys above with \`NEXT_PUBLIC_\`**.
+2. Configure a DNS hostname you control such as `career-model.example.com` to point at the server. Restrict management access, enable OS updates and firewall rules. Permit inbound TCP 80/443 for automatic TLS issuance but **never publicly open TCP 11434**.
+3. Review and pin supported Ollama/Caddy container image versions or immutable digests. In `infra/ollama`, copy `env.example` to `.env`. Replace image versions, `MODEL_DOMAIN`, and `INFERENCE_BEARER_TOKEN`. Generate a long random token with `openssl rand -hex 32`; keep the value only in local secret storage and Vercel's protected environment settings. Never commit `.env`.
+4. Run `docker compose -f compose.yaml -f compose.gpu.yaml up -d` with the NVIDIA Container Toolkit installed. For CPU-only trials, use `docker compose -f compose.yaml up -d`.
+5. Load the independent open-weight model by running `docker compose exec ollama ollama pull qwen3:8b`. Verify using `docker compose exec ollama ollama list`. Check the license/terms for any different weights you choose.
+6. Test privately with an authenticated request and a **JSON-schema** `format` payload sent to `https://<model-domain>/api/chat`. First test should use a dedicated developer shell and never put tokens into shell history or logs. Expect JSON in `message.content`, `done:true`, and no redirect. The gateway returns 403 for missing/incorrect tokens and other routes.
+7. Configure protected **Vercel Preview environment variables** under the `career-platform` project:
+   - `SELF_HOSTED_LLM_URL=https://<model-domain>` (HTTPS origin only, no path).
+   - `SELF_HOSTED_LLM_MODEL=qwen3:8b`.
+   - `SELF_HOSTED_LLM_TOKEN=<same private random gateway token>`.
+   - `SUPABASE_SERVICE_ROLE_KEY=<Supabase privileged server key>` — *still needed for verified provider-origin fact persistence*. It is a database credential, **not an OpenAI or model-provider credential**.
+   - Continue using the existing `NEXT_PUBLIC_SUPABASE_*` settings. **Never prefix the private keys above with `NEXT_PUBLIC_`**.
 8. Redeploy the protected feature-branch preview. Register/login, start a career interview, consent to processing, and answer one real career question. Confirm that the local model asks exactly one targeted follow-up, a source-backed proposal enters the pending review queue, and the user can reject/approve it. Verify two-user RLS and error/timeout handling before production release.
 
 ## Ollama request contract
 
-The Next.js server uses the Ollama native \`POST /api/chat\` API with \`stream:false\`, \`think:false\`, a JSON schema in \`format\`, and low temperature. The existing Zod validators and SQL service-RPC checks still independently reject malformed, unsupported, fabricated, or duplicate claims. All information sent for modeling is the signed-in user's consented interview/CV text and bounded approved context.
+The Next.js server uses the Ollama native `POST /api/chat` API with `stream:false`, `think:false`, a JSON schema in `format`, and low temperature. The existing Zod validators and SQL service-RPC checks still independently reject malformed, unsupported, fabricated, or duplicate claims. All information sent for modeling is the signed-in user's consented interview/CV text and bounded approved context.
 
 ## Security, operational limitations, and honest acceptance
 

@@ -30,6 +30,13 @@ if [[ ! "$ollama_version" =~ ^[A-Za-z0-9][A-Za-z0-9_.-]{1,70}$ ]] || [[ ! "$cadd
   echo "Provide concrete, reviewed image tags. Do not use latest."
   exit 1
 fi
+caddy_major="${caddy_version%%.*}"
+caddy_rest="${caddy_version#*.}"
+caddy_minor="${caddy_rest%%.*}"
+if (( 10#$caddy_major < 2 || (10#$caddy_major == 2 && 10#$caddy_minor < 10) )); then
+  echo "Caddy must be at least 2.10 for the request-size security limit."
+  exit 1
+fi
 token="$(openssl rand -hex 32)"
 printf 'OLLAMA_VERSION=%s\nCADDY_VERSION=%s\nMODEL_DOMAIN=%s\nINFERENCE_BEARER_TOKEN=%s\n' \
   "$ollama_version" "$caddy_version" "$domain" "$token" > .env

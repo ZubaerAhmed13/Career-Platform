@@ -12,6 +12,17 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-audit --no-fund
+      - name: Validate owned inference configuration
+        env:
+          OLLAMA_VERSION: "0.0.0-ci-configuration-only"
+          CADDY_VERSION: "2.10.0"
+          MODEL_DOMAIN: "example.com"
+          INFERENCE_BEARER_TOKEN: "ci-only-placeholder-no-production-access"
+        run: |
+          bash -n infra/ollama/setup.sh
+          python3 -m py_compile infra/ollama/check-gateway.py
+          docker compose -f infra/ollama/compose.yaml config --quiet
+          docker compose -f infra/ollama/compose.yaml -f infra/ollama/compose.gpu.yaml config --quiet
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test
