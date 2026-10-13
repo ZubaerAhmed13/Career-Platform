@@ -53,3 +53,9 @@ CareerOS now offers a separate **no-scanner-required** PDF/DOCX text extraction 
 - Protected staging browser acceptance code has been added, but it remains **unexecuted** until a separate authorized staging project with disposable users is configured.
 - Open gate: operator-approved retention/backup expiration, support contact, SSO/legacy Storage handling, live delete+export acceptance. See `docs/DATA_RETENTION_AND_ACCOUNT_ERASURE.md`.
 - Green public CI **does not** imply working model hosting, full deletion GDPR compliance or authenticated staging sign-off.
+
+## Final acceptance checklist refinement (2026-10-13)
+
+Follow `docs/STEP2_ACCEPTANCE_MATRIX.md` for the exact seven remaining tasks and evidence thresholds. CI now covers source-level keyboard skip-to-main, CSS mobile overflow safeguards, unit/database security and anonymous browser workflows; signed-in keyboard/mobile/real user assertions are staged but remain unexecuted.
+
+Mandatory release gates still outstanding: independent paid/free hosting of the restricted Qwen3 server, real two-account staging sign-in/CRUD/privacy/import/export, separately authorized throwaway account-clear/deletion acceptance, privacy controller/backup retention signoff, Supabase leaked-password-protection setting, manual keyboard/screen reader pass, and Vercel READY deployment of the **exact latest source SHA**. Keep the PR draft/unmerged until evidence exists.
