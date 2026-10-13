@@ -85,6 +85,12 @@ test.describe('CareerOS staging authenticated browser acceptance',()=>{
    await original.getByLabel('Job title',{exact:true}).fill(marker+' updated');
    await original.getByRole('button',{name:'Save confirmed record'}).click();
    await expect(page.getByRole('heading',{name:marker+' updated'})).toBeVisible();
+   // Verify persistence across complete sign-out and a fresh authenticated login.
+   await page.getByRole('button',{name:'Sign out'}).click();
+   await expect(page.getByRole('heading',{name:'Welcome back'})).toBeVisible();
+   await signIn(page,'a');
+   await page.getByLabel('Search your records').fill(marker);
+   await expect(page.getByRole('heading',{name:marker+' updated'})).toBeVisible();
   }finally{
    await cleanupRecord(page,marker);
   }
@@ -154,10 +160,32 @@ test.describe('CareerOS staging authenticated browser acceptance',()=>{
   }
  });
 
+ test('keyboard navigation and labeled interactive controls are available after sign-in',async({page},testInfo)=>{
+  test.skip(testInfo.project.name!=='desktop-chromium','Keyboard test uses desktop navigation.');
+  await signIn(page,'a');
+  await page.reload();
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('link',{name:'Skip to main content'})).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/\/career-vault/);
+  await expect(page.getByRole('heading',{name:'Career Intelligence Vault'})).toBeVisible();
+  await page.getByRole('button',{name:/Add career record/}).click();
+  await expect(page.getByLabel('Job title',{exact:true})).toBeVisible();
+  await expect(page.getByLabel('Organization / employer')).toBeVisible();
+  await expect(page.getByLabel('Responsibilities, outcomes, or description')).toBeVisible();
+  await page.getByRole('button',{name:'Cancel'}).click();
+  await page.goto('/career-vault/privacy');
+  await expect(page.getByRole('heading',{name:'Career Vault privacy & data export'})).toBeVisible();
+  await page.getByRole('button',{name:'Show irreversible Vault-clear controls'}).click();
+  await expect(page.getByLabel(/Type DELETE MY CAREER VAULT/)).toBeVisible();
+  // No irreversible actions are submitted by this accessibility test.
+  await page.getByRole('button',{name:'Cancel'}).click();
+ });
+
  test('authenticated mobile Vault and review remain within the viewport',async({page},testInfo)=>{
   test.skip(testInfo.project.name!=='mobile-chromium','Mobile-only acceptance.');
   await signIn(page,'a');
-  for(const url of ['/career-vault','/career-vault/review','/career-vault/privacy']){
+  for(const url of ['/career-vault','/career-vault/review','/career-vault/privacy','/career-vault/evidence','/settings']){
    await page.goto(url);
    await expect.poll(()=>page.evaluate(()=>
     document.documentElement.scrollWidth<=window.innerWidth+1
