@@ -15,6 +15,18 @@ if(staging){
   throw new Error('Refusing browser mutation tests without a dedicated Supabase staging project.');
  if(process.env.SUPABASE_TEST_USER_A_EMAIL===process.env.SUPABASE_TEST_USER_B_EMAIL)
   throw new Error('Two different staging users are required.');
+ if(process.env.CAREER_STAGING_ERASURE==='I_UNDERSTAND_DELETES_DISPOSABLE_USERS'){
+  const erasure=['SUPABASE_TEST_PURGE_USER_EMAIL','SUPABASE_TEST_PURGE_USER_PASSWORD',
+   'SUPABASE_TEST_DELETE_USER_EMAIL','SUPABASE_TEST_DELETE_USER_PASSWORD',
+   'SUPABASE_SERVICE_ROLE_KEY'];
+  if(erasure.some(key=>!process.env[key]))
+   throw new Error('Destructive staging acceptance requires extra throwaway users and a protected staging-only admin key.');
+  const accounts=[process.env.SUPABASE_TEST_USER_A_EMAIL,process.env.SUPABASE_TEST_USER_B_EMAIL,
+   process.env.SUPABASE_TEST_PURGE_USER_EMAIL,process.env.SUPABASE_TEST_DELETE_USER_EMAIL];
+  if(new Set(accounts.map(email=>email?.toLowerCase())).size!==4)
+   throw new Error('Destructive staging acceptance requires four distinct test identities.');
+ }
+
 }
 
 export default defineConfig({
