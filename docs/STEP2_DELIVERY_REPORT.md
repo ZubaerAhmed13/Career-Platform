@@ -88,3 +88,7 @@ Draft [PR #2](https://github.com/ZubaerAhmed13/Career-Platform/pull/2) remains o
 ## 12. Readiness for Step 3 (Resume Studio)
 
 **Not yet accepted.** Manual Career Vault and persistence infrastructure can support further development, but the Step 2 final acceptance criteria explicitly require live interview/CV import where enabled, real cross-account authorization checks, accessible UI, and no silent data corruption. Complete the operator and staging gates in \`docs/STEP2_RELEASE_GATES.md\` before using the Vault as an approved source for automatic resume/cover letter generation.
+
+
+## Supplemental delivery: browser-local PDF/DOCX extraction
+The review screen has a Web Worker-based alternative to scanner-dependent uploads. It processes text PDFs/DOCX locally (2 MiB, 12 PDF pages, checked DOCX ZIP limits), shows an editable text preview, then posts only explicitly approved text to an authenticated server action that persists up to six pending facts via Supabase. This avoids extra scanner infrastructure for personal document review but does not offer ClamAV antivirus guarantees. Signed-in data persistence and production browser acceptance are separate from mocked/local CI checks. See \`docs/BROWSER_LOCAL_CV_IMPORT.md\`.

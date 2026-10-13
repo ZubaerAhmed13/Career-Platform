@@ -41,3 +41,7 @@
 ## 4. Why operational completeness is not yet claimed
 
 A public repository test that mocks an AI response or antivirus verdict is not a live language model, a malware scanner, or a full account security test. The deployed Vercel preview can be \`READY\` even if its private inference/scanner secrets are deliberately missing. We will not create fictitious test results or disable safeguards to make the UI appear complete.
+
+
+## Browser-local CV alternative — added October 13
+CareerOS now offers a separate **no-scanner-required** PDF/DOCX text extraction workflow in the browser, with editable preview and pending Supabase review. It does NOT require the private scanner or model server. No original file bytes are submitted. This allows signed-in users to populate the manual Vault via real CV files while waiting for independent AI hardware. Security scope is different: it provides privacy-first parsing in a Web Worker, **not malware scanning**; the optional server-upload route must stay disabled until ClamAV is deployed. Signed-in browser acceptance for actual Supabase persistence and cross-account protection remains a release gate.

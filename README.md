@@ -91,3 +91,7 @@ PDF/DOCX uploads are intentionally fail-closed. The independent inference host c
 
 ### Step 2 acceptance and privacy
 The protected Career Vault preview also offers a private JSON export and a deliberately confirmation-gated way to clear one's own saved career records, evidence, interviews, proposals and activity without deleting the login account. Production binary CV parsing is now designed to run **outside Vercel** in a restricted container after ClamAV scanning; the live server remains a release prerequisite. For the exact operational gates, see [Step 2 release gates](docs/STEP2_RELEASE_GATES.md).
+
+
+### New — import CV locally without a scanner server
+The Career Vault review page now offers **browser-only PDF/DOCX text extraction**. The original file remains on the user's device; they edit the extracted text and submit only that selection for pending Supabase review. No GPU, ClamAV, AI provider key, or added backend is required. The existing server-scanned option remains disabled until antivirus infrastructure is installed. Full details: [docs/BROWSER_LOCAL_CV_IMPORT.md](docs/BROWSER_LOCAL_CV_IMPORT.md).

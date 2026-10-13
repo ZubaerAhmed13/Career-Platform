@@ -45,3 +45,10 @@ Last reviewed: October 13, 2026.
 
 
 **Hosted privacy RPC verified:** Eighteen Supabase migrations have now been applied. The confirmation-gated Vault data-clearing feature is installed; no existing user data was removed during migration. See `docs/STEP2_DELIVERY_REPORT.md`.
+
+
+## Browser-local CV import — October 13, 2026
+- **Added:** local PDF/DOCX extraction with Web Worker, format/ZIP checks, editable text preview, and authenticated *text-only* saving to existing Supabase pending suggestions.
+- **Operational distinction:** browser-local extraction needs no scanner/GPU/AI key; the server-scanned import and hosted Qwen interview still require the owner's server. Browser-local parsing is **not an antivirus scan**.
+- **Testing:** unit cases for type/ZIP/length gates, real Chromium PDF/DOCX worker extraction with no document POST upload, and existing database/security/build checks.
+- Guide: \`docs/BROWSER_LOCAL_CV_IMPORT.md\`.
