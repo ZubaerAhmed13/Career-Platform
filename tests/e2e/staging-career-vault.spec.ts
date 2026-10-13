@@ -121,6 +121,11 @@ test.describe('CareerOS staging authenticated browser acceptance',()=>{
    const ownExport=await page.request.get('/api/career-vault/export');
    expect(ownExport.ok()).toBe(true);
    expect(JSON.stringify(await ownExport.json())).toContain(marker);
+   const fullExport=await page.request.get('/api/account/export');
+   expect(fullExport.ok()).toBe(true);
+   const ownerArchive=await fullExport.json();
+   expect(ownerArchive.format).toBe('CareerOS-Account-v1');
+   expect(JSON.stringify(ownerArchive)).toContain(marker);
 
    other=await browser.newContext({baseURL:'http://127.0.0.1:3100'});
    const otherPage=await other.newPage();
@@ -130,6 +135,9 @@ test.describe('CareerOS staging authenticated browser acceptance',()=>{
    const foreignExport=await otherPage.request.get('/api/career-vault/export');
    expect(foreignExport.ok()).toBe(true);
    expect(JSON.stringify(await foreignExport.json())).not.toContain(marker);
+   const foreignAccountArchive=await otherPage.request.get('/api/account/export');
+   expect(foreignAccountArchive.ok()).toBe(true);
+   expect(JSON.stringify(await foreignAccountArchive.json())).not.toContain(marker);
    await page.goto('/career-vault/review');
    const ownDraft=page.locator('article.card').filter({hasText:marker}).first();
    await ownDraft.getByRole('button',{name:'Approve as new fact'}).click();
