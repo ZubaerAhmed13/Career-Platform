@@ -277,3 +277,38 @@ begin
  if selected_topic<>'languages' then raise exception 'Interview track not persisted'; end if;
 end $$;
 reset role;
+
+
+-- Owner-controlled erasure: A can remove only A's career data and cannot
+-- erase user B, the authentication user row, or the general profile.
+set role authenticated;
+select set_config('request.jwt.claim.role','authenticated',false);
+select set_config('request.jwt.claim.sub','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',false);
+select public.clear_my_career_vault();
+do $$
+declare other_count integer;
+declare own_count integer;
+declare auth_count integer;
+begin
+ select count(*) into own_count from public.career_records
+ where user_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+ if own_count<>0 then raise exception 'Career Vault erasure did not remove owned records'; end if;
+ select count(*) into other_count from public.career_records
+ where user_id='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+ if other_count<>1 then raise exception 'Career Vault erasure affected another user'; end if;
+ select count(*) into auth_count from auth.users
+ where id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+ if auth_count<>1 then raise exception 'Career Vault erasure deleted login account'; end if;
+ if exists(select 1 from public.career_evidence_links where user_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa') or
+    exists(select 1 from public.career_suggestions where user_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa') or
+    exists(select 1 from public.career_interview_messages where user_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa') or
+    exists(select 1 from public.career_events where user_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')
+ then raise exception 'Career Vault erasure left owned data'; end if;
+end $$;
+reset role;
+do $$
+begin
+ if has_function_privilege('anon','public.clear_my_career_vault()','EXECUTE') then
+  raise exception 'Anonymous users can clear Career Vault';
+ end if;
+end $$;

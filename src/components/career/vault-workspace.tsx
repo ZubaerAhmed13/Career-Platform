@@ -60,6 +60,7 @@ export function VaultWorkspace({records,linkedCount,targetRole}:{records:CareerR
       <Link className="button secondary" href="/career-vault/review">Review suggestions</Link>
       <Link className="button secondary" href="/career-vault/interview">Career interviewer</Link>
       <Link className="button secondary" href="/api/career-vault/export">Export my data</Link>
+      <Link className="button secondary" href="/career-vault/privacy">Privacy & data controls</Link>
     </div>
   </header>
   <div className="page-grid">
