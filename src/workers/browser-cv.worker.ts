@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 import {
- identifyLocalCv,validateLocalDocxArchive,validateLocalCvText,
+ identifyLocalCv,validateLocalDocxArchive,
  MAX_LOCAL_CV_PAGES,type LocalCvFormat,
 } from '../lib/career/browser-cv-security';
 
@@ -34,7 +34,10 @@ worker.onmessage=async({data}:MessageEvent<RequestPayload>)=>{
    const result=await mammoth.extractRawText({arrayBuffer:data.buffer});
    text=result.value;
   }
-  const answer:WorkerResult={format,text:validateLocalCvText(text)};
+  const normalized=text.replace(/\0/g,'').replace(/\r\n?/g,'\n').trim();
+  if(normalized.length<20)throw new Error('No readable text was found. Image-only PDFs require OCR.');
+  if(normalized.length>100_000)throw new Error('Extracted document is excessively long. Select a shorter source.');
+  const answer:WorkerResult={format,text:normalized};
   worker.postMessage({ok:true,result:answer});
  }catch(error){
   const message=error instanceof Error?error.message:'Document could not be read locally.';
