@@ -32,7 +32,7 @@ function FinishInterview({id}:{id:string}){
   {state.message&&<p role="status" className="success">{state.message}</p>}
  </form>;
 }
-function InterviewChat({session,messages,proposals}:{session:CareerSession;messages:CareerMessage[];proposals:CareerSuggestion[]}){
+function InterviewChat({session,messages,proposals,configured}:{session:CareerSession;messages:CareerMessage[];proposals:CareerSuggestion[];configured:boolean}){
  const [state,action,pending]=useActionState(sendCareerInterviewAnswer,{});
  const [topic,setTopic]=useState<InterviewTopic>(session.topic);
  const router=useRouter();
@@ -61,7 +61,8 @@ function InterviewChat({session,messages,proposals}:{session:CareerSession;messa
      <p style={{whiteSpace:'pre-wrap'}}>{m.content}</p>
    </article>)}</div>
   {session.status==='active'&&<FinishInterview id={session.id}/>}
-  {session.status==='active'&&<form action={action} className="card stack">
+  {session.status==='active'&&!configured&&<p className="muted-card" role="status">This saved interview remains available for review. New AI questions are temporarily unavailable until the private AI provider and database credentials are configured.</p>}
+  {session.status==='active'&&configured&&<form action={action} className="card stack">
    <input type="hidden" name="session_id" value={session.id}/>
    <label className="label" htmlFor="topic">Focus for the next question</label>
    <select className="field" id="topic" name="topic" value={topic} onChange={e=>setTopic(e.target.value as InterviewTopic)}>
@@ -90,15 +91,18 @@ export function InterviewWorkspace({sessions,selected,messages,proposals,configu
    <h1 className="heading">AI Career Interviewer</h1>
    <p className="subtle">Dedicated CareerOS AI for uncovering your real career facts in eight categories. It does not answer unrelated questions, invent accomplishments, send job applications or change confirmed records without approval.</p>
   </header>
-  {!configured?<div className="card stack" role="status">
-    <h2>AI service not configured</h2><p className="subtle">The manual Career Vault remains available. To activate interviews, configure both OPENAI_API_KEY and SUPABASE_SERVICE_ROLE_KEY privately on the server; no simulated messages will be shown.</p>
+  {!configured&&<div className="card stack" role="status">
+    <h2>AI service not configured</h2>
+    <p className="subtle">You can still read saved career interviews and review extracted facts. Starting or continuing an AI conversation requires privately configured OPENAI_API_KEY and SUPABASE_SERVICE_ROLE_KEY. No fictional AI replies will be shown.</p>
     <Link className="button secondary" href="/career-vault">Return to manual Career Vault</Link>
-  </div>:<div className="page-grid">
-   <aside className="card stack"><h2>Interview sessions</h2><StartInterview/>
+  </div>}
+  <div className="page-grid">
+   <aside className="card stack"><h2>Interview sessions</h2>
+    {configured&&<StartInterview/>}
     {sessions.length===0?<p className="subtle">No interviews yet.</p>:sessions.map(s=>
      <Link key={s.id} href={'/career-vault/interview?id='+s.id} style={{textDecoration:'underline'}}>{s.title} · {trackGuide[s.topic].title} · {s.status}</Link>)}
    </aside>
-   <div>{selected?<InterviewChat key={selected.id} session={selected} messages={messages} proposals={proposals}/>:<div className="muted-card">Start an interview or select an existing session to resume.</div>}</div>
-  </div>}
+   <div>{selected?<InterviewChat key={selected.id} session={selected} messages={messages} proposals={proposals} configured={configured}/>:<div className="muted-card">{configured?'Start an interview or select an existing session to resume.':'Select a saved interview to review your career evidence.'}</div>}</div>
+  </div>
  </div>;
 }
