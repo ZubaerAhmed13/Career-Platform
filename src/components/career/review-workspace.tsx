@@ -182,7 +182,11 @@ export function ReviewWorkspace({suggestions,records,aiConfigured}:{suggestions:
   </section>
   <section className="card stack"><h2>Review history</h2>
     {suggestions.filter(s=>s.review_status!=='pending').length===0?<p className="subtle">No previous decisions.</p>:
-    suggestions.filter(s=>s.review_status!=='pending').map(s=><p key={s.id}>{s.review_status} · {s.title} ({s.kind})</p>)}
+    suggestions.filter(s=>s.review_status!=='pending').map(s=><article className="card stack" key={s.id}>
+      <p>{s.review_status} · {s.title} ({s.kind})</p>
+      <p className="subtle">Removing this review history item does not delete a separately confirmed career record.</p>
+      <RemoveProposal id={s.id}/>
+    </article>)}
   </section>
  </div>;
 }
