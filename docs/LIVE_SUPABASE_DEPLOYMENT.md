@@ -30,3 +30,13 @@ Server AI requires secure `OPENAI_API_KEY` and `SUPABASE_SERVICE_ROLE_KEY` confi
 
 ## Operator follow-through
 Verify the deployment host uses this project's URL and publishable key (never a service-role key in a browser). Configure redirect allowlists and provider secrets privately. Onboard two disposable test users in a **separate staging project**, execute RLS/browser E2E, and then review and merge PR #2. Reconcile migration versions before automated deployment.
+
+
+## Professional interviewer activation (October 13, 2026)
+Two further additive migrations were applied successfully to the connected CareerOS Supabase project:
+- \`202610130004_interview_turn_integrity.sql\` → recorded as \`interview_turn_integrity\`; adds a reference to the exact user message, one reply per answer, verified current-turn transaction and stored next-question dimension. The obsolete privileged function was revoked.
+- \`202610130005_interview_tracks.sql\` → recorded as \`interview_tracks\`; stores one of eight career-specialist topics on each session.
+
+**Verification:** 17 migrations recorded. Column \`career_interview_sessions.topic\` exists and defaults to \`experience\`. The new \`persist_verified_ai_interview_turn\` function allows the \`service_role\` but denies direct \`anon\` and \`authenticated\` execution. The local PostgreSQL migration/security test suite also passed.
+
+**Status boundary:** A verified live database deployment is not a successful paid AI model interaction. The protected Vercel preview currently has Supabase public settings but lacks both required server-only AI credentials. Accordingly, provider-backed interview generation has **not** been exercised, and no billable AI request is claimed. Signed-in owner/account flows were reported working by the user but were not re-run in this integration.

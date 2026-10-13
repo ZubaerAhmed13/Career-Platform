@@ -44,3 +44,10 @@
 12. New percentage/metric absent from the cited answer — do not save as suggested fact.
 
 **Release criterion:** Tested account-scoped end-to-end data persistence and source-review behavior plus real provider responses under an explicit spending budget. Code-only tests are not production signoff.
+
+
+## Implementation verification update
+- Both new migrations were applied to the connected Supabase project, bringing its recorded migration total to 17.
+- Unit, lint, build, database smoke and public-browser tests passed for the professional-interview changes.
+- The UI now retains access to existing interview transcripts and fact review even if the external model credentials are absent or the provider is disabled. Sending new AI messages remains unavailable.
+- Purpose restriction and model-output evidence gates are coded, but **real-provider qualitative evaluation and key provisioning remain release gates**.
