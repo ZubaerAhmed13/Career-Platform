@@ -49,9 +49,12 @@ export function ProfileForm({ profile, mode }: {
         {input('full_name', 'Full name', '', 120)}
         {input('country', 'Country', '', 80)}
         {input('city', 'City or region', '', 100)}
-        {select('preferred_language', 'Preferred interface language', [
-          ['en', 'English'], ['de', 'Deutsch (interface translation upcoming)'],
-        ])}
+        <div className="form-row">
+          <label className="label" htmlFor="interface-language-display">Interface language</label>
+          <input id="interface-language-display" className="field" value="English" readOnly aria-describedby="interface-language-note" />
+          <input type="hidden" name="preferred_language" value="en" />
+          <small className="subtle" id="interface-language-note">CareerOS currently uses an English interface. German CV and cover-letter output can be supported separately.</small>
+        </div>
         {select('career_stage', 'Career stage', [
           ['', 'Prefer not to say'], ['student', 'Student'], ['graduate', 'Recent graduate'],
           ['early', 'Early career'], ['experienced', 'Experienced professional'],
