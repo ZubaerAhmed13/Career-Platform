@@ -115,6 +115,16 @@ function Suggestion({suggestion,records}:{suggestion:CareerSuggestion;records:Ca
     {state.error&&<p className="error" role="alert">{state.error}</p>}
     {state.message&&<p className="success" role="status">{state.message}</p>}
   </form>}
+  {suggestion.review_status==='pending'&&conflict.length>0&&
+   <form action={action} className="stack" style={{border:'1px solid var(--line)',borderRadius:12,padding:14}}>
+     <input type="hidden" name="id" value={suggestion.id}/>
+     <p><strong>Save separately after comparison</strong></p>
+     <p className="subtle">Use this only when the apparent duplicate represents a genuinely different role, project, qualification or achievement.</p>
+     <label><input type="checkbox" name="confirm_separate" value="yes" required/> I compared the existing records and confirm this is a distinct fact.</label>
+     <button className="button secondary" name="decision" value="separate" disabled={pending}>Save as a separate confirmed record</button>
+     {state.error&&<p className="error" role="alert">{state.error}</p>}
+     {state.message&&<p className="success" role="status">{state.message}</p>}
+   </form>}
   {suggestion.review_status==='pending'&&<div className="stack">
     <details><summary style={{cursor:'pointer',padding:10,fontWeight:600}}>Edit proposed information before approval</summary>
       <EditProposal suggestion={suggestion}/></details>

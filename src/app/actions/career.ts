@@ -117,16 +117,18 @@ export async function linkCareerRecords(_prev:VaultActionState,form:FormData):Pr
 
 export async function reviewCareerSuggestion(_prev:VaultActionState,form:FormData):Promise<VaultActionState>{
  const id=raw(form,'id'),decision=raw(form,'decision');
- if(!uuid.safeParse(id).success||!['approve','reject'].includes(decision))return invalid();
+ if(!uuid.safeParse(id).success||!['approve','reject','separate'].includes(decision))return invalid();
+ if(decision==='separate'&&form.get('confirm_separate')!=='yes')return {error:'Explicitly confirm that this is a separate real career record.'};
  const {supabase}=await requireAccount();
- if(decision==='approve'){
-   const {error}=await supabase.rpc('approve_career_suggestion',{suggestion_id:id});
+ if(decision==='approve'||decision==='separate'){
+   const fn=decision==='approve'?'approve_career_suggestion':'approve_career_suggestion_separately';
+   const {error}=await supabase.rpc(fn,{suggestion_id:id});
    if(error)return {error:'Approval could not be completed. The suggestion may have been reviewed already.'};
  }else{
    const {data,error}=await supabase.rpc('reject_career_suggestion',{suggestion_id:id});
    if(error||!data)return {error:'Rejection could not be completed.'};
  }
- refreshVault();return {message:decision==='approve'?'Approved fact added to your Career Vault.':'Suggestion rejected; confirmed facts unchanged.'};
+ refreshVault();return {message:decision==='separate'?'Separately confirmed career record created by your explicit choice.':decision==='approve'?'Approved fact added to your Career Vault.':'Suggestion rejected; confirmed facts unchanged.'};
 }
 
 export async function removeCareerEvidence(_prev:VaultActionState,form:FormData):Promise<VaultActionState>{
