@@ -1,61 +1,38 @@
-# Step 2: Career Intelligence Vault — release gate and honest completeness report
+# CareerOS Step 2 — practical personal-beta release
 
-**Date:** October 13, 2026. This is a working feature branch, **not an approved production release**. Do not begin Resume Studio or merge the PR until each operational blocker below is validated.
+**Scope:** One owner, private use. CareerOS is not launching as a public applicant-data service. Avoid unnecessary staging costs and professional SaaS compliance tasks. See `docs/STEP2_ACCEPTANCE_MATRIX.md` for the concise seven-task checklist.
 
-## 1. Verified and implemented
+## Available now
 
-- Eight source-of-truth career categories with authenticated server-side CRUD.
-- Permanent record provenance, revision checks and activity history.
-- Owner-scoped evidence, supporting sources, links and professional interview sessions.
-- Review/approval, comparison, selective merges and duplicate warnings for AI and CV facts.
-- Section-labelled CV import, with only pending fact suggestions and separate AI consent.
-- Browser-local PDF/DOCX extraction **works without a scanner**: editable text preview, text-only Supabase submissions and human approval. The separate server-side binary-import route still enforces ClamAV scan-before-parse and an isolated parser; that route fails closed when its scanner is absent.
-- Specialist career-only STAR-E interviewing and private Qwen3/Ollama model *adapter*, with no paid model API dependency.
-- Owner-only JSON data export and confirmation-gated Career Vault clearing (erasure RPC deployed and verified in Supabase).
-- Private Vercel feature-branch preview; existing 18 migrations already deployed to Supabase.
-- GitHub CI: application/static tests, real PostgreSQL migration/RLS smoke tests, public Chromium desktop/mobile checks, and parser Docker image build/smoke.
+- Eight categories of Career Vault facts, manual create/edit/delete and source-preserving records.
+- Browser-local text-based PDF/DOCX import that never uploads the original binary; selected text stays pending until the owner approves.
+- Saved suggestions, provenance, evidence, link/merge workflows, CV review and interview history.
+- Downloadable personal JSON archive and confirmation-gated Vault/account erasure controls.
+- Existing Supabase Auth, owner-scoped RLS, server-side session checks and private storage policy.
+- GitHub CI for TypeScript/lint/tests/build, SQL migrations, public desktop/mobile Chromium and safe staging-test discovery.
+- Independent career-only Qwen/Ollama **adapter**; actual AI conversation is unavailable until you host/configure the private model.
 
-## 2. Outstanding infrastructure and acceptance gates
+## Minimum before merging as a personal beta
 
-| Blocker | Required verification | Operator |
-|---|---|---|
-| Independent model runtime | Provision trusted owned host, run Qwen3, verify structured live interview against real submitted facts, failure modes and privacy | Owner provides compute; ChatGPT assists configuring |
-| Optional server-scanned documents | The browser-local CV workflow works without a scanner. For the separate high-assurance server-upload route, deploy Caddy + ClamAV + isolated parser and verify safe documents, EICAR and outages | Owner provides host/DNS for optional route |
-| Private secrets | Configure `SELF_HOSTED_LLM_URL/TOKEN`, `CV_SCAN_GATEWAY_URL/TOKEN`, and `SUPABASE_SERVICE_ROLE_KEY` securely in **branch-scoped Vercel Preview** | Owner/provider secret UI, never chat |
-| Actual two-account Supabase RLS | Create distinct disposable accounts in a **dedicated staging project**, then run protected integration tests and confirm cross-user data invisibility and immutable provenance | Authorized staging infrastructure |
-| Signed-in browser end-to-end | Signup, login, record CRUD, refresh/relogin, evidence, approval/reject/merge, export, data clearing, mobile a11y and screen reader audit | Staging accounts and browser access |
-| Model quality | At least 12 professional cases from `docs/CAREER_AI_PRO_ACCEPTANCE.md` pass without invented facts; quantify cost/latency and data-retention rules | Live model |
-| Binary-parsing robustness | Validate isolated parser with real-world PDFs, DOCX, corruption cases, hanging/decompression edge cases, antivirus update/outage | Live scanner/worker |
-| Deletion/privacy policy | Document personal-data retention, backup expiry, account deletion service process, support contact and GDPR disclosure | Owner/operator |
+1. CI completes successfully on the branch head.
+2. Confirm a Vercel preview for the exact commit when available. A READY build **does not** prove a working login.
+3. Owner signs in once, creates an obviously disposable career record, edits it, reloads, and deletes that test record.
+4. Owner imports a small non-sensitive text PDF or DOCX, reviews the extracted text, approves one dummy candidate, and can see the approved record.
+5. Owner downloads an account/Vault JSON export and stores a private copy.
+6. Keep Supabase RLS and server-only service-role secrets intact; check the preview is not accidentally publicized to others. Account wiping and deletion should **not** be tested with the real account.
+7. Merge with explicit owner approval as a **personal beta**, not a fully security-certified public SaaS application.
 
-## 3. Immediate acceptance sequence
+## Deferred rather than mandatory
 
-1. Run GitHub CI and check the exact source commit.
-2. Apply only additive, previously uninstalled Supabase migrations after checking migration history and data.
-3. Prepare owner-controlled server and HTTPS DNS. Use `docs/SELF_HOSTED_AI.md` and `docs/CV_SCAN_RUNBOOK.md`. Generate secrets on the server and enter them into Vercel's secure environment settings **without sending them to ChatGPT**.
-4. Run `python3 check-gateway.py` and `python3 check-scanner.py` on the server; both must pass.
-5. Verify real signed-in CV import and career interview. Both must create pending facts without ever silently confirming.
-6. Validate two-user isolation in staging, keyboard/mobile/browser behavior and retention/deletion.
-7. Only then merge and release.
+- A second Supabase project, 2–4 disposable test accounts, two-user live isolation acceptance and live account-deletion drills.
+- Dedicated screen-reader/WCAG audit, GDPR controller/DPA/business privacy policy, backup-retention certification and commercial operating procedures.
+- Hosted Qwen/Ollama compute and optional server-side ClamAV scanning; manual Career Vault and browser-local document reading remain usable without them.
+- Additional security hardening (e.g. Supabase leaked-password protection, detailed privileged-function review and abuse prevention) is **recommended**, but should not block personal-beta use when no evidence of exposure exists.
 
-## 4. Why operational completeness is not yet claimed
+## Safeguards that cannot be deferred
 
-A public repository test that mocks an AI response or antivirus verdict is not a live language model, a malware scanner, or a full account security test. The deployed Vercel preview can be `READY` even if its private inference/scanner secrets are deliberately missing. We will not create fictitious test results or disable safeguards to make the UI appear complete.
+Do not eliminate all sign-in protections on an internet-accessible personal-data app, disable RLS, expose the Supabase service role key/browser secret, use public Storage uploads for CVs, or erase your only account to prove deletion. Keep a current export so changes can be recovered. Do not imply GDPR compliance or claim unexecuted tests passed.
 
+## Optional future testing
 
-## Browser-local CV alternative — added October 13
-CareerOS now offers a separate **no-scanner-required** PDF/DOCX text extraction workflow in the browser, with editable preview and pending Supabase review. It does NOT require the private scanner or model server. No original file bytes are submitted. This allows signed-in users to populate the manual Vault via real CV files while waiting for independent AI hardware. Security scope is different: it provides privacy-first parsing in a Web Worker, **not malware scanning**; the optional server-upload route must stay disabled until ClamAV is deployed. Signed-in browser acceptance for actual Supabase persistence and cross-account protection remains a release gate.
-
-## Account privacy continuation — October 13
-
-- Added a signed-in profile + Vault JSON account export (`/api/account/export`) and two explicit levels of deletion (Vault-only clearing or full account deletion).
-- Full account deletion is a server-only, password-reauthenticated hard delete; it checks private Storage before acting, requires the service-role secret and never runs automatically. Hosted primary schema has eleven cascade-on-delete user tables; no live account deletion was attempted.
-- Protected staging browser acceptance code has been added, but it remains **unexecuted** until a separate authorized staging project with disposable users is configured.
-- Open gate: operator-approved retention/backup expiration, support contact, SSO/legacy Storage handling, live delete+export acceptance. See `docs/DATA_RETENTION_AND_ACCOUNT_ERASURE.md`.
-- Green public CI **does not** imply working model hosting, full deletion GDPR compliance or authenticated staging sign-off.
-
-## Final acceptance checklist refinement (2026-10-13)
-
-Follow `docs/STEP2_ACCEPTANCE_MATRIX.md` for the exact seven remaining tasks and evidence thresholds. CI now covers source-level keyboard skip-to-main, CSS mobile overflow safeguards, unit/database security and anonymous browser workflows; signed-in keyboard/mobile/real user assertions are staged but remain unexecuted. The precise manual keyboard, reflow, VoiceOver and NVDA checklist is `docs/STEP2_ACCESSIBILITY_SIGNOFF.md`. Normal CI now also collects (but never executes) protected staging tests, so syntax/registration errors are found early.
-
-Mandatory release gates still outstanding: independent paid/free hosting of the restricted Qwen3 server, real two-account staging sign-in/CRUD/privacy/import/export, separately authorized throwaway account-clear/deletion acceptance, privacy controller/backup retention signoff, Supabase leaked-password-protection setting, manual keyboard/screen reader pass, and Vercel READY deployment of the **exact latest source SHA**. Keep the PR draft/unmerged until evidence exists.
+The old enterprise-grade staging suites and manual workflows remain in the repository for a future expansion. Run them only with a **dedicated disposable Supabase project** and the documented explicit opt-in; never use the only live account as a test fixture. Full details: `docs/STAGING_SECURITY_RUNBOOK.md`, `docs/STEP2_ACCESSIBILITY_SIGNOFF.md`, `docs/DATA_RETENTION_AND_ACCOUNT_ERASURE.md`.
