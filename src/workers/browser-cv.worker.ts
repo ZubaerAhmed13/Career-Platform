@@ -19,14 +19,14 @@ worker.onmessage=async({data}:MessageEvent<RequestPayload>)=>{
   if(format==='pdf'){
    const {getDocumentProxy,extractText}=await import('unpdf');
    const document=await getDocumentProxy(binary,{
-    maxImageSize:4_194_304,isEvalSupported:false,stopAtErrors:true,
+    maxImageSize:4_194_304,stopAtErrors:true,
    });
    try{
     if(document.numPages<1||document.numPages>MAX_LOCAL_CV_PAGES)
      throw new Error('Only text-based PDFs of at most 12 pages are supported.');
     const result=await extractText(document,{mergePages:true});
     text=typeof result.text==='string'?result.text:'';
-   }finally{await document.destroy?.();}
+   }finally{await (document as unknown as {destroy?:()=>Promise<void>}).destroy?.();}
   }else{
    validateLocalDocxArchive(binary);
    const imported=await import('mammoth/mammoth.browser');
