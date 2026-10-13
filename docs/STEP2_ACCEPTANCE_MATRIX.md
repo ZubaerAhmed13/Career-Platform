@@ -1,39 +1,35 @@
-# CareerOS Step 2 — evidence-based acceptance matrix
+# CareerOS Step 2 — personal-use acceptance matrix
 
-**Audit date:** 2026-10-13. **Repository:** `ZubaerAhmed13/Career-Platform`, draft PR #2, branch `feat/milestone-2-career-vault`.
+**Scope:** CareerOS is a private, single-owner application. The earlier multi-user/SaaS release-gate plan is **optional hardening**, not a requirement to use or merge the personal beta. This change to acceptance criteria is not evidence that previously unrun tests passed.
 
-The words **implemented**, **CI passed**, **staging accepted** and **production released** mean different things. Do not mark any item complete without the specific evidence in the last two columns.
+| # | Personal beta requirement | Existing evidence | Minimum acceptance for personal use |
+|---|---|---|---|
+| 1 | Sign in to *your* account and save records | Supabase Auth, server identity checks, record CRUD and CI | One personal login; create a harmless dummy record, edit, reload, delete; no four-account staging |
+| 2 | Keep your career information private | RLS on all 11 public database tables; owner filters; PostgreSQL policy smoke tests | Do **not** disable Auth, row-level security, private storage or server secret controls. Dedicated second-user staging is optional |
+| 3 | PDF/DOCX → selected text → pending review → approval | Browser-local PDF/DOCX parsing passes CI; protected signed-in tests are written | Manually import one small *non-sensitive* test file into your account and approve a dummy fact; do not upload confidential files until satisfied |
+| 4 | Export and data safety | Owner-scoped JSON exports, confirmation-gated Vault clearing and account deletion code | Download/export once and confirm a JSON file is produced. **Do not** live-test Vault wipe or account deletion on your only account; destructive tests become optional |
+| 5 | Comfortable phone/Mac experience | Public mobile Chromium smoke and styling checks, opt-in keyboard tests | Open Vault on your phone/Mac and verify the core forms work. Formal VoiceOver/NVDA accessibility sign-off is optional |
+| 6 | Reasonable personal privacy and security | Server-only service keys, Supabase Auth/RLS and security audit; some Supabase advisories remain | Use a strong unique password, keep backups and secrets private, do not disable RLS or publicly expose private uploads. Formal GDPR controller/DPA audits are not personal-beta blockers |
+| 7 | Build/deploy and merge personal beta | GitHub CI passes; prior READY previews exist | Confirm latest commit CI and Vercel preview when available; merge after basic personal smoke and your approval, not after enterprise-wide staging tests |
 
-| Priority | Required acceptance | Implemented/test available | Actually verified | Remaining gate |
-|---|---|---|---|---|
-| 1 | Real-account login, CRUD, save, reload, edit/delete and re-login | Signed-in Playwright staging case; server actions and RLS | Unit, PostgreSQL CI, anonymous browser; **not a real signed-in test** | Execute with disposable staging Account A |
-| 2 | Cross-user isolation | Two-account Supabase integration tests and owner/foreign export browser checks | Disposable PostgreSQL owner/RLS tests; hosted schema RLS enabled | Run with distinct confirmed Accounts A/B and record evidence |
-| 3 | PDF/DOCX-to-text through review and approved saved record | Browser Web Worker tests + signed-in end-to-end **PDF and DOCX** approval cases | Real desktop/mobile PDF/DOCX parsing in anonymous fixture CI | Run real signed-in staging save, pending review, approval, reload, secondary-user check |
-| 4 | Exports, Vault clear and hard account deletion | Account/Vault JSON exports, owner-only Vault clear RPC, password-confirmed account deletion code, extra manual opt-in destructive test | Anonymous export denial, local SQL clearing assertions and 11 live schema user-FK cascades | Run against **separate throwaway** Accounts C/D, verify no cross-user changes; complete operator backup/deletion review |
-| 5 | Logged-in mobile, keyboard, accessibility | Skip-to-main link, responsive overflow safeguards, keyboard focus and labeled-form checks; broader signed-in mobile suite | Anonymous desktop/mobile CI only | Run signed-in desktop/mobile and complete `docs/STEP2_ACCESSIBILITY_SIGNOFF.md` with a real keyboard + VoiceOver/NVDA screen-reader walkthrough |
-| 6 | Privacy, retention, security | Server-side auth guards, RLS, explicit grants, provenance, scanner fail-closed; retention/erasure runbook | 18 hosted Supabase migrations; 11/11 public tables RLS; Supabase security advisories reviewed | Enable leaked-password protection; audit 9 definer RPC grants and execute permissions, obtain provider retention/backup contract, controller privacy notice and operator approval |
-| 7 | Current deployment, final docs, PR merge | Docs/runbook/CI automation in PR #2 | A Vercel READY preview and all three CI jobs were verified on a source commit in this release cycle; newest HEAD must be checked after changes | Reconfirm the final **exact PR head** has CI PASS + Vercel READY, finish live staging and privacy signoffs, then review/merge |
+## Personal-use boundary
 
-## Environments and test-data boundaries
+**Safe to skip for now:** creating a dedicated Supabase staging project, four test users, automated two-user live isolation tests, full account-erasure drills, professional accessibility audit, commercial-grade retention/legal approval, and independent AI/scanner infrastructure if you are only using manual records and browser-local CV text review.
 
-- **Production Supabase:** `jtitfwzpfbyfsdpxxrbj` (**NEVER** point authenticated mutation/erasure test suites at this project).
-- Dedicated disposable staging Supabase project: **not connected or provisioned at this audit**.
-- Production Vercel project: `career-platform`. Feature-branch Vercel previews can be READY on older commits; the final release checklist must match Vercel's `githubCommitSha` to **the latest PR head** before signoff.
-- The protected staging workflow `.github/workflows/staging-security.yml` is manual-only and requires the GitHub `staging` environment, six staging credentials and approval.
-- Destructive tests `tests/e2e/staging-privacy-erasure.spec.ts` require **two extra newly created empty accounts** in the same staging project, staging-only admin credentials and the exact environment acknowledgement `CAREER_STAGING_ERASURE=I_UNDERSTAND_DELETES_DISPOSABLE_USERS`.
-- Never run destructive testing against real applicants; never add credential values, user exports, traces or token contents to public logs.
-- The manual workflow must be present on the default branch to support `workflow_dispatch`. Until then, only a trusted local checkout with protected staging credentials can execute it.
+**Keep in place:** sign-in to your own account, ownership restrictions, RLS, server-side identity checks, no public file bucket, encrypted HTTPS, and safe account export. This is still an internet-connected application storing CV/personal data. Removing login entirely would require an alternate private access control and is **not part of this personal-beta simplification**.
 
-## Security findings requiring an operator decision
+**Optional features:** CareerOS independent AI interviews require a self-hosted Qwen/Ollama server; the separate server-side binary document upload requires private ClamAV scanning. Neither is needed for local PDF/DOCX-to-text review.
 
-The 2026-10-13 live Supabase advisors report:
+## Evidence labels
 
-1. `auth_leaked_password_protection` WARN: leaked-password protection disabled. Operator must enable [password protection](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
-2. `authenticated_security_definer_function_executable` WARN (9 functions): privileged RPC access needs scope-by-scope security review; **do not indiscriminately revoke** because reviewed owner-scoped approval/quota/clearing RPCs must be accessible to signed-in users. They use `auth.uid()`, pinned search paths and owner checks; nevertheless verify each exposed API before production sign-off. [Advisor details](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable).
-3. `rls_enabled_no_policy` INFO on `career_ai_usage`: intentionally denies all browser access; server-only quota RPC owns the writes. No new table policy should be granted merely to silence this advisory.
+- **Implemented:** source exists.
+- **CI passed:** simulated/unit/build/public-browser checks completed.
+- **Personal smoke passed:** a real owner successfully used it.
+- **Live deletion tested:** a disposable account was intentionally erased.
+- **Production-grade:** requires stronger operational/legal/accessibility work.
 
-The website must not claim GDPR compliance or a complete subject-access export until provider backups, operational logs, the data controller, legal grounds and contact/retention notices have been approved.
+Never label a missing or unexecuted live test as passed. Do not test destructive actions on the only account.
 
-## Merge decision
+## Merge policy
 
-**Current verdict: BLOCKED.** A passing build and PostgreSQL fixture smoke test are insufficient to establish real account isolation, effective erasure, AI host availability, or authenticated acceptance of a deployed preview. Merge only after protected staging results and the exact-head Vercel preview are recorded, all critical release gates pass, and a human authorizes production promotion.
+Step 2 can become a **personal beta** without a separate staging project. Require at minimum passing branch CI, no discovered high-impact data exposure, confirmation that the user can sign in and retain/edit one test record, and explicit approval to merge. Privacy-sensitive functionality must remain access-controlled. For optional future multi-user/security testing, see `docs/STAGING_SECURITY_RUNBOOK.md` and `docs/DATA_RETENTION_AND_ACCOUNT_ERASURE.md`.
