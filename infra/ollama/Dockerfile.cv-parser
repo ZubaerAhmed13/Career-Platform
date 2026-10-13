@@ -6,6 +6,7 @@ COPY infra/ollama/parser-package.json ./package.json
 RUN npm install --omit=dev --ignore-scripts --no-fund --no-audit \
  && npm cache clean --force
 COPY infra/ollama/cv-parser.mjs ./cv-parser.mjs
+COPY infra/ollama/cv-parser.test.mjs ./cv-parser.test.mjs
 USER node
 ENV NODE_ENV=production
 EXPOSE 3089

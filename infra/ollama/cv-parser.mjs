@@ -60,7 +60,8 @@ export async function extractText(bytes,format,{pdfLoad,docxLoad}={}){
   }finally{await document.destroy?.();}
  }else{
   validateDocxArchive(bytes);
-  const mammoth=docxLoad?await docxLoad():await import('mammoth');
+  const imported=docxLoad?await docxLoad():await import('mammoth');
+  const mammoth=imported.default??imported;
   text=(await mammoth.extractRawText({buffer:bytes})).value;
  }
  const normalized=text.replace(/\0/g,'').trim();

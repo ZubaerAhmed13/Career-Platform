@@ -29,6 +29,10 @@ jobs:
           python3 -m py_compile infra/ollama/check-gateway.py
           docker compose -f infra/ollama/compose.yaml config --quiet
           docker compose -f infra/ollama/compose.yaml -f infra/ollama/compose.gpu.yaml config --quiet
+      - name: Build and test isolated CV parser container
+        run: |
+          docker build --file infra/ollama/Dockerfile.cv-parser --tag careeros-cv-parser:ci .
+          docker run --rm --network none --entrypoint node careeros-cv-parser:ci --test /app/cv-parser.test.mjs
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test
