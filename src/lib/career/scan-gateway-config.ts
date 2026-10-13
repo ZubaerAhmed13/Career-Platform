@@ -1,6 +1,6 @@
 /** Protected HTTPS scan service used from stateless web hosting (e.g. Vercel). */
 export class ScanGatewayConfigurationError extends Error {}
-export type ScanGatewayConfig={url:string;authorization:string};
+export type ScanGatewayConfig={url:string;extractUrl:string;authorization:string};
 export function scanGatewayConfig(env:NodeJS.ProcessEnv=process.env):ScanGatewayConfig{
  const value=env.CV_SCAN_GATEWAY_URL?.trim();
  const token=env.CV_SCAN_GATEWAY_TOKEN?.trim();
@@ -14,7 +14,7 @@ export function scanGatewayConfig(env:NodeJS.ProcessEnv=process.env):ScanGateway
    throw new ScanGatewayConfigurationError('Scanner must use a valid HTTPS DNS origin with no credentials or path.');
  if(!token||token.length<32||token.length>1024||/[\r\n]/.test(token))
   throw new ScanGatewayConfigurationError('Private scanner gateway token is missing or invalid.');
- return {url:url.origin+'/scan',authorization:'Bearer '+token};
+ return {url:url.origin+'/scan',extractUrl:url.origin+'/extract',authorization:'Bearer '+token};
 }
 export function scanGatewayConfigured(env:NodeJS.ProcessEnv=process.env):boolean{
  try{scanGatewayConfig(env);return true;}catch{return false;}

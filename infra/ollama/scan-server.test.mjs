@@ -59,3 +59,54 @@ test('daemon unavailability fails closed',async()=>{
   await new Promise(done=>server.close(done));
  }
 });
+
+test('PDF/DOCX extraction goes to parser ONLY after a verified clean scan',async()=>{
+ let parseCalls=0;
+ const serve=async scan=>{
+  const server=http.createServer(scannerHandler({
+   scan,
+   extract:async(_bytes,format)=>{
+    parseCalls++;
+    return {format,text:'Work Experience\nI performed accurate stock cycle counts.'};
+   },
+  }));
+  await new Promise(done=>server.listen(0,'127.0.0.1',done));
+  return server;
+ };
+ for(const isClean of [false,true]){
+  const before=parseCalls;
+  const server=await serve(async()=>isClean);
+  try{
+   const res=await fetch('http://127.0.0.1:'+server.address().port+'/extract',{
+    method:'POST',body:'%PDF-1.4\nminimal',
+    headers:{'content-type':'application/octet-stream','x-cv-format':'pdf'},
+   });
+   assert.equal(res.status,isClean?200:422);
+   const result=await res.json();
+   if(isClean){
+    assert.equal(result.clean,true);
+    assert.equal(result.format,'pdf');
+    assert.match(result.text,/cycle counts/);
+    assert.equal(parseCalls,before+1);
+   }else{
+    assert.equal(result.clean,false);
+    assert.equal(parseCalls,before);
+   }
+  }finally{server.closeAllConnections();await new Promise(done=>server.close(done));}
+ }
+});
+test('isolated parser failure never reports success',async()=>{
+ const server=http.createServer(scannerHandler({
+  scan:async()=>true,
+  extract:async()=>{throw Error('worker timeout')},
+ }));
+ await new Promise(done=>server.listen(0,'127.0.0.1',done));
+ try{
+  const res=await fetch('http://127.0.0.1:'+server.address().port+'/extract',{
+   method:'POST',body:'%PDF-1.4',
+   headers:{'content-type':'application/octet-stream','x-cv-format':'pdf'},
+  });
+  assert.equal(res.status,503);
+  assert.equal((await res.json()).clean,false);
+ }finally{server.closeAllConnections();await new Promise(done=>server.close(done));}
+});

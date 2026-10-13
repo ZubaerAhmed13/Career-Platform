@@ -35,13 +35,34 @@ export async function scanWithClamd(bytes,{host='clamav',port=3310,timeout=15000
   socket.once('end',()=>finish(null,/^stream: OK(?:\r?\n|\0)?$/.test(verdict)));
  });
 }
-export function scannerHandler({scan=scanWithClamd}={}){
+export async function extractInIsolatedContainer(bytes,format){
+ if(format!=='pdf'&&format!=='docx')throw new Error('Invalid CV format');
+ let response;
+ try{
+  response=await fetch('http://cv-parser:3089/extract',{
+   method:'POST',redirect:'manual',cache:'no-store',
+   headers:{'content-type':'application/octet-stream','x-cv-format':format},
+   body:bytes,signal:AbortSignal.timeout(20000),
+  });
+ }catch{throw new Error('Isolated parser unavailable');}
+ if(response.status!==200||Number(response.headers.get('content-length')||'0')>20000)
+  throw new Error('Isolated parser rejected document');
+ const body=await response.text();
+ if(body.length>20000)throw new Error('Isolated parser response too large');
+ const data=JSON.parse(body);
+ if(!data||data.format!==format||typeof data.text!=='string'||
+  data.text.length<20||data.text.length>4000)
+  throw new Error('Isolated parser response invalid');
+ return {format,text:data.text};
+}
+export function scannerHandler({scan=scanWithClamd,extract=extractInIsolatedContainer}={}){
  return async(req,res)=>{
-  const reply=(status,clean=false)=>{
+  const reply=(status,clean=false,result=null)=>{
    res.writeHead(status,{'content-type':'application/json','cache-control':'no-store','x-content-type-options':'nosniff'});
-   res.end(JSON.stringify({clean}));
+   res.end(JSON.stringify(result===null?{clean}:{clean,...result}));
   };
-  if(req.method!=='POST'||req.url!=='/scan'||req.headers['content-type']!=='application/octet-stream'){
+  if(req.method!=='POST'||!['/scan','/extract'].includes(req.url)||
+   req.headers['content-type']!=='application/octet-stream'){
    reply(404);return;
   }
   const length=Number(req.headers['content-length']||0);
@@ -56,8 +77,16 @@ export function scannerHandler({scan=scanWithClamd}={}){
     chunks.push(chunk);
    }
    if(size!==length)throw new Error('Incomplete upload');
-   const clean=await scan(Buffer.concat(chunks,size));
-   reply(clean===true?200:422,clean===true);
+   const bytes=Buffer.concat(chunks,size);
+   const clean=await scan(bytes);
+   if(clean!==true){reply(422);return;}
+   if(req.url==='/scan'){reply(200,true);return;}
+   const format=req.headers['x-cv-format'];
+   if(format!=='pdf'&&format!=='docx'){reply(422);return;}
+   const parsed=await extract(bytes,format);
+   if(!parsed||parsed.format!==format||typeof parsed.text!=='string'||
+      parsed.text.length<20||parsed.text.length>4000)throw Error('Parser output invalid');
+   reply(200,true,parsed);
   }catch{
    if(!res.writableEnded)reply(503);
   }
