@@ -16,11 +16,16 @@ export async function GET(){
    const entries:unknown[]=[];
    for(let start=0;start<20000;start+=500){
      const {data,error}=await supabase.from(table).select('*').eq('user_id',user.id)
-       .order('created_at',{ascending:true}).range(start,start+499);
+       .order('created_at',{ascending:true}).order('id',{ascending:true}).range(start,start+499);
      if(error)return NextResponse.json({error:'Career export could not be completed.'},{status:500,headers:{'Cache-Control':'no-store'}});
      entries.push(...(data??[]));
      if((data??[]).length<500)break;
-     if(start===19500)return NextResponse.json({error:'Export exceeds the current maximum; contact support for a full export.'},{status:413,headers:{'Cache-Control':'no-store'}});
+     if(start===19500){
+       const tail=await supabase.from(table).select('id').eq('user_id',user.id)
+         .order('created_at',{ascending:true}).order('id',{ascending:true}).range(20000,20000);
+       if(tail.error)return NextResponse.json({error:'Career export could not be verified as complete.'},{status:500,headers:{'Cache-Control':'no-store'}});
+       if((tail.data??[]).length>0)return NextResponse.json({error:'Export exceeds the current maximum; contact support for a full export.'},{status:413,headers:{'Cache-Control':'no-store'}});
+     }
    }
    vault[table]=entries;
  }
