@@ -42,7 +42,7 @@ Document processing here is a **privacy-preserving convenience workflow**, not a
 
 ## Tested status (13 October 2026, existing workflow)
 
-**PR #4 extension (15 October 2026):** full-length multi-part browser review and no-truncation checks added in source; new tests and CI must pass before describing this extension as verified on `main`. Browser E2E for extraction is separate from authenticated Supabase saving.
+**PR #4 extension (merged 15 October 2026):** full-length multi-part browser review and lossless source partition tests are now in `main`. Branch CI passed for the exact pre-merge head. Browser E2E for extraction remains separate from authenticated Supabase saving, which has not been independently recorded.
 - The latest branch has passed Playwright tests on desktop Chromium and mobile Chromium that load real, harmless sample text-PDF and DOCX documents in the local browser worker, check the editable extracted-text preview and assert there is **no HTTP POST while extracting**.
 - Unit tests validate extensions/magic bytes, DOCX directory bounds and safe selected-text lengths. Existing GitHub CI validates the signed-in server action's build, Supabase migrations and database RLS fixtures.
 - The **actual save with a signed-in Supabase account** has not been automated or independently observed. No real personal document was uploaded in tests. A user must still confirm their selected text before the server action saves pending proposals.
