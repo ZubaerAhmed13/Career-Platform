@@ -48,12 +48,10 @@ const allKeys=new Set(Object.values(detailFields).flatMap(fields=>fields.map(fie
 /** Keep unrelated legacy metadata, not stale fields from another category. */
 export function collectRecordDetails(
  kind:CareerKind,entries:Pick<FormData,'get'>,existing:unknown={},previousKind:CareerKind=kind,
-):Record<string,string>|null{
+):Record<string,unknown>|null{
  const old=existing&&typeof existing==='object'&&!Array.isArray(existing)?existing as Record<string,unknown>:{};
- const details:Record<string,string>={};
- for(const [key,value] of Object.entries(old)){
-  if(!allKeys.has(key)&&typeof value==='string'&&value.length<=500)details[key]=value;
- }
+ const details:Record<string,unknown>={...old};
+ for(const key of allKeys)delete details[key];
  // All category-specific values come from the submitted form. Clearing a field
  // really clears it; switching category removes irrelevant old category fields.
  void previousKind;
