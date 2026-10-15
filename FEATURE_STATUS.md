@@ -1,6 +1,6 @@
 # CareerOS Step 2 — current GitHub status
 
-**Last reviewed:** 15 October 2026. **Operating mode:** GitHub-only development; hosting paused by owner decision. No model server, scanning gateway or Vercel preview is required for Step 2. The last merged `main` reviewed was `56e929f`; Vault features merged in PR #2 and reliability fixes in PR #3.
+**Last reviewed:** 15 October 2026. **Operating mode:** GitHub-only development; hosting paused by owner decision. No model server, scanning gateway or Vercel preview is required for Step 2. The last verified Step 2 merge on `main` was `163735a` (PR #4); the original Vault merged in PR #2 and export reliability improvements in PR #3.
 
 ## Merged in `main`
 - Eight career record categories with authenticated create, edit, delete, evidence and relationships.
