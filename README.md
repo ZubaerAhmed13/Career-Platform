@@ -4,7 +4,7 @@
 
 **Owner decision (2026-10-15): Do not host or deploy this website until the owner is fully satisfied and explicitly approves hosting.** Continue coding, reviews and automated tests exclusively in GitHub. Root `vercel.json` sets `git.deploymentEnabled: false` to pause all automatic Git-based Vercel deployments. This does not delete or switch off any previously deployed site; hosting-provider management is postponed. Do not invoke Vercel tools, trigger previews, or use deployment readiness as a development milestone. Preserve existing AI integration for future upgrades, but do not require a running AI model for current non-AI development. Security and privacy tests are still required before any eventual release.
 
-Secure account-based workspace. **Career Intelligence Vault Step 2 is merged in `main` as a personal code-level beta** (PR #2 and #3). A subsequent Step 2 quality upgrade is under review in [PR #4](https://github.com/ZubaerAhmed13/Career-Platform/pull/4). Resume Studio, job discovery and application tracking remain future stages. Logged-in real-account acceptance is not independently verified; no hosting action is authorized.
+Secure account-based workspace. **Career Intelligence Vault Step 2 is merged in `main` as a personal code-level beta** (PR #2 and #3). The Step 2 quality upgrade was also merged in [PR #4](https://github.com/ZubaerAhmed13/Career-Platform/pull/4) on 15 October 2026. Resume Studio, job discovery and application tracking remain future stages. Logged-in real-account acceptance is not independently verified; no hosting action is authorized.
 
 ## Stack
 Next.js 15 App Router, React 19, strict TypeScript, Tailwind CSS 4, Supabase Auth/PostgreSQL/Storage (private bucket), Zod, next-themes, Vitest and GitHub Actions.
@@ -34,7 +34,7 @@ Private pages require verified Supabase identity server-side; PostgreSQL RLS mig
 
 ## Milestone 2 — Career Intelligence Vault
 
-See [FEATURE_STATUS.md](FEATURE_STATUS.md) for current vs historical evidence. PR #4 adds category-specific record fields and multi-part full-CV manual review; each part remains a pending proposal until explicitly approved.
+See [FEATURE_STATUS.md](FEATURE_STATUS.md) for current vs historical evidence. PR #4 merged category-specific record fields and multi-part full-CV manual review; each part remains a pending proposal until explicitly approved.
 The authenticated `/career-vault` route supports manual career records, editing with optimistic revision checks, deletion with confirmation, record search/filter, evidence notes/URLs, same-owner relationship links, user-approved suggestions and a private downloadable JSON export. Categories include experience, education, skills, languages, projects, achievements, certifications, and volunteering. The `/career-vault/review` page accepts pasted text **and local text-based PDF/DOCX reading in the browser** with human approval; original file bytes stay on the device. It also supports corrections and selected-field merges. The separate optional server-upload pipeline remains fail-closed until ClamAV and the isolated parser are provisioned.
 
 AI interview code at `/career-vault/interview` **supports a future self-hosted Qwen3 / Ollama model**, not a commercial model API. The model is not active. Configure `SELF_HOSTED_LLM_URL`, `SELF_HOSTED_LLM_TOKEN`, and `SUPABASE_SERVICE_ROLE_KEY` only on the server. See `docs/SELF_HOSTED_AI.md`. Career data is processed only after consent. AI suggestions are separately approved; no confirmed record is silently replaced.
@@ -44,7 +44,7 @@ The previously supplied Supabase URL/publishable-key configuration is still used
 
 See `docs/CAREER_VAULT_SPEC.md`, `docs/CAREER_EVIDENCE_MODEL.md`, `docs/CV_IMPORT_PIPELINE.md` and `docs/AI_CAREER_INTERVIEW_SPEC.md`. Code compilation is not evidence that the Supabase migration or external AI service has been tested.
 
-**Status:** Career Vault source is merged on `main`; its post-merge refinements are in PR #4. Real signed-in acceptance remains open. Self-hosted AI and optional scanner hosting are deferred by owner choice.
+**Status:** Career Vault source is merged on `main`; its post-merge refinements were merged through PR #4. Real signed-in acceptance remains open. Self-hosted AI and optional scanner hosting are deferred by owner choice.
 
 ### Document scanning
 Only the **optional server-upload path** requires a trusted ClamAV service. Browser-local PDF/DOCX reading is available without a scanner and sends only explicitly selected text for review. For the separate server-upload path, ClamAV `clamd` must support INSTREAM. Set **server-only** `CLAMAV_HOST` and optional `CLAMAV_PORT` (default 3310). The app **does not scan by itself** or accept uploads without a configured reachable scanner. Import is bounded to 2 MB, 12 PDF pages, 4,000 readable text characters, and DOCX ZIP envelope limits; nothing is placed in public file storage. There is no OCR and no permanent binary file storage. See `docs/CV_SCAN_RUNBOOK.md` for staging setup, operational hardening and acceptance tests.
