@@ -106,8 +106,9 @@ test.describe('CareerOS staging authenticated browser acceptance',()=>{
   try {
    await page.getByRole('button',{name:/Add career record/}).click();
    await page.getByLabel('Job title',{exact:true}).fill(marker);
-   await page.getByLabel('Organization / employer').fill('Staging-only organization');
-   await page.getByLabel('Responsibilities, outcomes, or description').fill('Test-only inventory checking with direct evidence.');
+   await page.getByLabel('Employer',{exact:true}).fill('Staging-only organization');
+   await page.getByLabel('Description, responsibilities and evidence-backed outcomes').fill('Test-only inventory checking with direct evidence.');
+   await page.getByLabel('Tools and methods used').fill('Excel, inventory audit');
    await page.getByRole('button',{name:'Save confirmed record'}).click();
    await page.getByLabel('Search your records').fill(marker);
    await expect(page.getByRole('heading',{name:marker})).toBeVisible();
@@ -115,10 +116,12 @@ test.describe('CareerOS staging authenticated browser acceptance',()=>{
    await page.getByLabel('Search your records').fill(marker);
    const original=page.locator('article.card').filter({has:page.getByRole('heading',{name:marker})});
    await expect(original).toBeVisible();
+   await expect(original).toContainText('Excel, inventory audit');
    await original.getByRole('button',{name:'Edit',exact:true}).click();
    await original.getByLabel('Job title',{exact:true}).fill(marker+' updated');
    await original.getByRole('button',{name:'Save confirmed record'}).click();
    await expect(page.getByRole('heading',{name:marker+' updated'})).toBeVisible();
+   await expect(page.locator('article.card').filter({hasText:marker+' updated'})).toContainText('Excel, inventory audit');
    // Verify persistence across complete sign-out and a fresh authenticated login.
    await page.getByRole('button',{name:'Sign out'}).click();
    await expect(page.getByRole('heading',{name:'Welcome back'})).toBeVisible();
@@ -251,8 +254,8 @@ test.describe('CareerOS staging authenticated browser acceptance',()=>{
   await expect(page.getByRole('heading',{name:'Career Intelligence Vault'})).toBeVisible();
   await page.getByRole('button',{name:/Add career record/}).click();
   await expect(page.getByLabel('Job title',{exact:true})).toBeVisible();
-  await expect(page.getByLabel('Organization / employer')).toBeVisible();
-  await expect(page.getByLabel('Responsibilities, outcomes, or description')).toBeVisible();
+  await expect(page.getByLabel('Employer',{exact:true})).toBeVisible();
+  await expect(page.getByLabel('Description, responsibilities and evidence-backed outcomes')).toBeVisible();
   await page.getByRole('button',{name:'Cancel'}).click();
   await page.goto('/career-vault/privacy');
   await expect(page.getByRole('heading',{name:'Career Vault privacy & data export'})).toBeVisible();
