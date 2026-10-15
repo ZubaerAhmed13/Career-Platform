@@ -126,6 +126,6 @@ export function extractCareerSections(text:string,max=6):ParsedSections{
     .find(v=>v.length>=6&&text.includes(v));
    return line?[{...record,evidence_quote:line.slice(0,2000)}]:[];
  });
- const limited=verified.slice(0,Math.max(0,Math.min(max,6)));
+ const limited=verified.slice(0,Math.max(0,Math.min(max,20)));
  return {suggestions:limited,recognized,omitted:Math.max(0,verified.length-limited.length)};
 }
