@@ -124,9 +124,9 @@ export function VaultWorkspace({records,linkedCount,pendingSuggestionCount,targe
       <button className="button secondary" onClick={()=>{setEditing(editing===r.id?null:r.id);setAdding(false)}}>{editing===r.id?'Close editor':'Edit'}</button>
      </div>
      {(r.started_on||r.ended_on||r.is_current)&&<p className="subtle" style={{margin:0}}>{r.started_on??'Start not specified'} — {r.is_current?'Present':r.ended_on??'End not specified'}</p>}
-     {detailFields[r.kind as CareerKind].filter(field=>r.details?.[field.key]).length>0&&
+     {detailFields[r.kind as CareerKind].filter(field=>typeof r.details?.[field.key]==='string'&&r.details[field.key]).length>0&&
       <dl className="page-grid" style={{margin:0}}>
-       {detailFields[r.kind as CareerKind].filter(field=>r.details?.[field.key]).map(field=>
+       {detailFields[r.kind as CareerKind].filter(field=>typeof r.details?.[field.key]==='string'&&r.details[field.key]).map(field=>
         <div key={field.key}><dt className="subtle" style={{fontSize:13}}>{field.label}</dt>
          <dd style={{margin:0,whiteSpace:'pre-wrap'}}>{r.details[field.key]}</dd></div>)}
       </dl>}
