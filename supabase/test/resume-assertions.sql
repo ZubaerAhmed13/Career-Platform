@@ -57,7 +57,7 @@ begin
 end $$;
 
 -- A direct authenticated request cannot forge another account's source UUID.
-do $
+do $$
 declare denied boolean:=false;
 begin
  begin
@@ -66,7 +66,7 @@ begin
    where id='44444444-4444-4444-8444-444444444444';
  exception when others then denied:=true;end;
  if not denied then raise exception 'Direct Data API forged foreign source';end if;
-end $;
+end $$;
 -- Owner A may attach its exact source, preserve it after original deletion and
 -- create an immutable historical copy even after its canonical source vanishes.
 select set_config('request.jwt.claim.sub','cccccccc-cccc-4ccc-8ccc-cccccccccccc',false);
@@ -79,7 +79,7 @@ update public.resumes set name='Source deleted but version preserved'
  where id='33333333-3333-4333-8333-333333333333';
 
 reset role;
-do $
+do $$
 declare count_saved int;
 begin
  select count(*) into count_saved from public.resume_versions where resume_id='33333333-3333-4333-8333-333333333333';
