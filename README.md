@@ -1,5 +1,9 @@
 # CareerOS AI
 
+## Development mode — GitHub only
+
+**Owner decision (2026-10-15): Do not host or deploy this website until the owner is fully satisfied and explicitly approves hosting.** Continue coding, reviews and automated tests exclusively in GitHub. Root `vercel.json` sets `git.deploymentEnabled: false` to pause all automatic Git-based Vercel deployments. This does not delete or switch off any previously deployed site; hosting-provider management is postponed. Do not invoke Vercel tools, trigger previews, or use deployment readiness as a development milestone. Preserve existing AI integration for future upgrades, but do not require a running AI model for current non-AI development. Security and privacy tests are still required before any eventual release.
+
 Secure account-based workspace with a **Career Intelligence Vault under Milestone 2 review**. Resume Studio, job discovery and application tracking are future modules. The current feature branch has a Vercel READY preview and active Supabase schema, but live authenticated staging and privacy signoff are still required.
 
 ## Stack
