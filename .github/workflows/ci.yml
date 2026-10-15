@@ -12,6 +12,14 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-audit --no-fund
+      # Temporary, branch-only lockfile capture. Removed after committing generated lockfile.
+      - name: Capture npm lockfile for reproducible GitHub builds
+        if: github.head_ref == 'feat/step2-vault-polish-oct15'
+        run: |
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          echo CAREEROS_LOCKFILE_BEGIN
+          sed 's/^/CAREEROS_LOCK_LINE:/' package-lock.json
+          echo CAREEROS_LOCKFILE_END
       - name: Validate owned inference configuration
         env:
           OLLAMA_VERSION: "0.0.0-ci-configuration-only"
