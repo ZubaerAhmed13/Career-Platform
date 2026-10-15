@@ -1,4 +1,4 @@
-# CareerOS AI — Step 2 Career Intelligence Vault delivery audit
+> **Archived 13 October 2026 assessment.** PR #2 has since been merged into `main`, followed by PR #3. The earlier “draft PR”, “not merged” and Vercel preview references below describe the historical state only. On 15 October the owner suspended all hosting and AI activation; see the current [FEATURE_STATUS.md](../FEATURE_STATUS.md) and [PR #4](https://github.com/ZubaerAhmed13/Career-Platform/pull/4) for GitHub-only Step 2 polish. Do not treat this document as current release gating.\n\n# CareerOS AI — Step 2 Career Intelligence Vault delivery audit
 
 **Review date:** 13 October 2026. **State:** protected Vercel preview; draft PR #2; backend schema active; **not yet production-complete**.
 
