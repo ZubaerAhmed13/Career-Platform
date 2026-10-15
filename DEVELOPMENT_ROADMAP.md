@@ -19,11 +19,8 @@ The owner will decide when the website is satisfactory and explicitly authorize 
 
 Each stage requires reviewed migrations, tests, truthful feature status and preservation of previous stages.
 
-## Milestone 2 implementation note
-Career Vault code, evidence model, unreviewed text intake and a provider-backed interview path have been submitted in a feature branch. Full Milestone 2 acceptance remains conditional on applying and testing the database migrations in staging and completing secure PDF/DOCX import and conflict resolution. Do not start Resume Studio implementation until the verified data ownership and relationship model is stable.
+## Milestone 2 current status — 15 October 2026
 
-Milestone 2 conflict-review SQL uses migration 005. The next Resume Studio stage remains blocked until staging migrations, RLS verification and source-of-truth stability are checked.
+Step 2 code merged into `main` through PR #2 (Career Vault) and PR #3 (export reliability). A GitHub-only refinement PR #4 adds structured record inputs, full-CV multipart text review and source-backed, no-truncation import behavior. This is a **source-level personal beta**, not a real-account acceptance signoff; staging/erasure remain optional protected test suites.
 
-Milestone 2 continued: scanner-gated PDF/DOCX extraction and SQL-based per-user AI quota have source implementations. Public document importing is still blocked on a correctly isolated malware scanner, resource sandboxing and external staging acceptance tests; the third milestone must not start solely on source CI.
-
-Milestone 2 now has local PostgreSQL migration execution, source-level provider/provenance safeguards and optional public browser tests. Stage 3 remains gated on actual Supabase staging integration, browser persistence, security validation and user acceptance.
+Current operating rules: no Vercel or other deployment actions, no live Supabase mutations, and no AI/model hosting requirements without explicit owner instruction. Resume Studio is Stage 3 and should consume the existing immutable/confirmed source-of-truth contract. Historical deployment and scanner-dependent gates are not prerequisites for non-AI GitHub-only development.
