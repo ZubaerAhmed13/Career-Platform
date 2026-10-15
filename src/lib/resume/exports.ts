@@ -17,13 +17,8 @@ export function entryDates(entry:ResumeEntry,doc:ResumeDoc){
  return [start,end].filter(Boolean).join(' – ');
 }
 export function orderedSections(doc:ResumeDoc){
- const sections=doc.sections.filter(s=>s.visible&&s.entries.some(e=>e.visible));
- if(doc.settings.template!=='student-graduate')return sections;
- const first=['education','project','experience'];
- return [...sections].sort((a,b)=>{
-  const ai=first.indexOf(a.kind),bi=first.indexOf(b.kind);
-  return (ai<0?99:ai)-(bi<0?99:bi);
- });
+ // Template choice supplies initial order only. User-controlled ordering always wins.
+ return doc.sections.filter(s=>s.visible&&s.entries.some(e=>e.visible));
 }
 export function resumeLines(doc:ResumeDoc){
  const lines:{type:'name'|'headline'|'contact'|'section'|'summary'|'entry'|'meta'|'bullet';text:string}[]=[];

@@ -12,6 +12,12 @@ export const templateNames: Record<typeof templateIds[number],string> = {
  'executive-minimal':'Executive Minimal'
 };
 const short = (max: number) => z.string().max(max);
+const optionalDate=z.string().max(10).refine(value=>{
+ if(!value)return true;
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(value))return false;
+ const date=new Date(value+'T12:00:00Z');
+ return !Number.isNaN(date.getTime())&&date.toISOString().slice(0,10)===value;
+},'Use a valid date in YYYY-MM-DD format');
 const link = z.union([z.literal(''),z.url().max(500).refine(url=>/^https:\/\/|^http:\/\//i.test(url),'Only HTTP(S) links are allowed')]);
 export const contactSchema = z.object({
  name:short(160).default(''), headline:short(200).default(''),
@@ -28,7 +34,7 @@ export const sourceSchema=z.object({
 });
 export const entrySchema=z.object({
  id:z.uuid(),title:short(220),subtitle:short(220).default(''),location:short(180).default(''),
- startedOn:short(10).default(''),endedOn:short(10).default(''),
+ startedOn:optionalDate.default(''),endedOn:optionalDate.default(''),
  current:z.boolean().default(false),visible:z.boolean().default(true),
  bullets:z.array(bulletSchema).max(40).default([]),
  extras:z.record(z.string().max(50),z.string().max(900)).refine(v=>Object.keys(v).length<=20).default({}),
@@ -86,7 +92,11 @@ const headings:Record<Exclude<ResumeKind,'custom'>,string>={
 export function emptyResume(template:ResumeSettings['template']='ats-classic',paper:ResumeSettings['paper']='A4'):ResumeDoc {
  return {schemaVersion:1,contact:{name:'',headline:'',email:'',phone:'',location:'',linkedin:'',portfolio:'',github:'',website:'',hidden:[]},
  summary:'',summaryVisible:true,
- sections:(Object.keys(headings) as Exclude<ResumeKind,'custom'>[]).map(kind=>({
+ sections:(Object.keys(headings) as Exclude<ResumeKind,'custom'>[])
+  .sort((a,b)=>template==='student-graduate'?
+   (['education','project','experience'].indexOf(a)<0?99:['education','project','experience'].indexOf(a))-
+   (['education','project','experience'].indexOf(b)<0?99:['education','project','experience'].indexOf(b)):0)
+  .map(kind=>({
   id:crypto.randomUUID(),kind,title:headings[kind],visible:true,entries:[]
  })),
  settings:{template,paper,language:'en',font:'Arial',bodySize:10.5,headingSize:12,

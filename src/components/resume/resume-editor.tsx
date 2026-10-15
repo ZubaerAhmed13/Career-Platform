@@ -261,7 +261,7 @@ export function ResumeEditor({row,versions:initialVersions,vault,openVault}:{
          ['title','Title / degree / skill'],['subtitle','Employer / institution / context'],
          ['location','Location'],['startedOn','Start date (YYYY-MM-DD)'],['endedOn','End date (YYYY-MM-DD)']
         ] as const).map(([key,label])=><label className="form-row" key={key}>
-         <span className="label">{label}</span><input className="field" maxLength={key==='startedOn'||key==='endedOn'?10:220}
+         <span className="label">{label}</span><input className="field" type={key==='startedOn'||key==='endedOn'?'date':'text'} maxLength={key==='startedOn'||key==='endedOn'?10:220}
           value={entry[key]} onChange={e=>patchEntry(section.id,entry.id,key,e.target.value)}/></label>)}
        </div>
        <label className="resume-visibility"><input type="checkbox" checked={entry.current}

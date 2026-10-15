@@ -38,6 +38,12 @@ describe('Resume Studio structured model',()=>{
   copy.sections[0].entries[0].extras={department:'Finance'};
   expect(d.sections[0].entries[0].extras).toEqual({});
  });
+ it('rejects invalid date strings and nonexistent dates',()=>{
+  const doc=emptyResume();const entry=entryFromRecord(record);
+  entry.startedOn='2026-02-30';doc.sections[0].entries.push(entry);
+  expect(resumeDocSchema.safeParse(doc).success).toBe(false);
+  entry.startedOn='2026-02-28';expect(resumeDocSchema.safeParse(doc).success).toBe(true);
+ });
  it('validates unsafe links, oversized text and duplicate section identifiers',()=>{
   const d=emptyResume();d.contact.website='javascript:alert(1)';
   expect(resumeDocSchema.safeParse(d).success).toBe(false);
@@ -65,7 +71,9 @@ describe('Resume Studio structured model',()=>{
   d.sections[1].entries.push(education);
   expect(orderedSections(d)[0].kind).toBe('experience');
   d.settings.template='student-graduate';
-  expect(orderedSections(d)[0].kind).toBe('education');
+  expect(orderedSections(d)[0].kind).toBe('experience'); // preserve deliberate user order
+  const fresh=emptyResume('student-graduate');
+  expect(fresh.sections[0].kind).toBe('education'); // education-first default
   expect(resumeLines(d).map(l=>l.text).join(' ')).toContain('Education');
  });
  it('exports plain text with bullets and no editor controls',()=>{
