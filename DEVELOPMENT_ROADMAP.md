@@ -21,6 +21,6 @@ Each stage requires reviewed migrations, tests, truthful feature status and pres
 
 ## Milestone 2 current status — 15 October 2026
 
-Step 2 code merged into `main` through PR #2 (Career Vault) and PR #3 (export reliability). A GitHub-only refinement PR #4 adds structured record inputs, full-CV multipart text review and source-backed, no-truncation import behavior. This is a **source-level personal beta**, not a real-account acceptance signoff; staging/erasure remain optional protected test suites.
+Step 2 code merged into `main` through PR #2 (Career Vault) and PR #3 (export reliability). GitHub-only refinement PR #4 was merged on 15 October 2026, adding structured record inputs, full-CV multipart text review and source-backed, no-silent-truncation import behavior. This is a **source-level personal beta**, not a real-account acceptance signoff; staging/erasure remain optional protected test suites.
 
 Current operating rules: no Vercel or other deployment actions, no live Supabase mutations, and no AI/model hosting requirements without explicit owner instruction. Resume Studio is Stage 3 and should consume the existing immutable/confirmed source-of-truth contract. Historical deployment and scanner-dependent gates are not prerequisites for non-AI GitHub-only development.
