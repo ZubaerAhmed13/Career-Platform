@@ -32,7 +32,7 @@ describe('category-specific Career Vault details',()=>{
   data.set('detail_department',new File(['x'],'x.txt'));
   expect(collectRecordDetails('experience',data)).toBeNull();
   data.delete('detail_department');
-  expect(collectRecordDetails('project',data,{proficiency:'C1',legacy_note:'source'}))
-   .toEqual({legacy_note:'source'});
+  expect(collectRecordDetails('project',data,{proficiency:'C1',legacy_note:'source',import_trace:{source:'legacy'}}))
+   .toEqual({legacy_note:'source',import_trace:{source:'legacy'}});
  });
 });
