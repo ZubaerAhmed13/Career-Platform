@@ -1,6 +1,6 @@
 'use client';
 import type {ResumeDoc} from '@/lib/resume/schema';
-import {entryDates,sectionHeading} from '@/lib/resume/exports';
+import {entryDates,sectionHeading,orderedSections} from '@/lib/resume/exports';
 
 export function ResumePreview({doc,fit=false}:{doc:ResumeDoc;fit?:boolean}){
  const s=doc.settings,c=doc.contact;
@@ -16,7 +16,7 @@ export function ResumePreview({doc,fit=false}:{doc:ResumeDoc;fit?:boolean}){
   (s.density==='compact'?'resume-tight ':'')+(fit?'resume-fit':'')}
   style={{...props,'--resume-page-width':s.paper==='A4'?'210mm':'215.9mm',
    '--resume-page-min-height':s.paper==='A4'?'297mm':'279.4mm'} as React.CSSProperties}
-  aria-label="Live resume document preview" id="resume-print">
+  aria-label="Live resume document preview" data-paper={s.paper} id="resume-print">
   <header className="resume-document-head">
    {c.name&&<h1>{c.name}</h1>}
    {c.headline&&!c.hidden.includes('headline')&&<p className="resume-headline">{c.headline}</p>}
@@ -28,7 +28,7 @@ export function ResumePreview({doc,fit=false}:{doc:ResumeDoc;fit?:boolean}){
    <h2>{s.language==='de'?'Profil':'Professional Summary'}</h2>
    <p className="resume-summary">{doc.summary}</p>
   </section>}
-  {doc.sections.filter(section=>section.visible&&section.entries.some(e=>e.visible)).map(section=>
+  {orderedSections(doc).map(section=>
    <section className="resume-section" key={section.id}>
     <h2>{sectionHeading(section.title,s.language)}</h2>
     {section.entries.filter(e=>e.visible).map(entry=><article className="resume-entry" key={entry.id}>

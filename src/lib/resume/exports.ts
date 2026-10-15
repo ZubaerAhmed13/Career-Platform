@@ -16,6 +16,15 @@ export function entryDates(entry:ResumeEntry,doc:ResumeDoc){
   formatDate(entry.endedOn,doc.settings.dateStyle,doc.settings.language);
  return [start,end].filter(Boolean).join(' – ');
 }
+export function orderedSections(doc:ResumeDoc){
+ const sections=doc.sections.filter(s=>s.visible&&s.entries.some(e=>e.visible));
+ if(doc.settings.template!=='student-graduate')return sections;
+ const first=['education','project','experience'];
+ return [...sections].sort((a,b)=>{
+  const ai=first.indexOf(a.kind),bi=first.indexOf(b.kind);
+  return (ai<0?99:ai)-(bi<0?99:bi);
+ });
+}
 export function resumeLines(doc:ResumeDoc){
  const lines:{type:'name'|'headline'|'contact'|'section'|'summary'|'entry'|'meta'|'bullet';text:string}[]=[];
  const c=doc.contact;
@@ -28,7 +37,7 @@ export function resumeLines(doc:ResumeDoc){
   lines.push({type:'section',text:doc.settings.language==='de'?'Profil':'Professional Summary'});
   lines.push({type:'summary',text:doc.summary});
  }
- for(const section of doc.sections.filter(s=>s.visible&&s.entries.some(e=>e.visible))){
+ for(const section of orderedSections(doc)){
   lines.push({type:'section',text:sectionHeading(section.title,doc.settings.language)});
   for(const entry of section.entries.filter(e=>e.visible)){
    if(entry.title)lines.push({type:'entry',text:entry.title});

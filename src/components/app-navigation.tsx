@@ -11,7 +11,7 @@ import {
 const items = [
   { href: '/dashboard', label: 'Dashboard', Icon: House, available: true },
   { href: '/career-vault', label: 'Career Vault', Icon: UserRound, available: true },
-  { href: '/resume-studio', label: 'Resume Studio', Icon: FilePenLine, available: false },
+  { href: '/resume-studio', label: 'Resume Studio', Icon: FilePenLine, available: true },
   { href: '/cover-letters', label: 'Cover Letter Studio', Icon: Files, available: false },
   { href: '/jobs', label: 'Job Discovery', Icon: BriefcaseBusiness, available: false },
   { href: '/applications', label: 'Applications', Icon: ClipboardList, available: false },

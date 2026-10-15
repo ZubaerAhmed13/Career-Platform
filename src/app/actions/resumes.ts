@@ -7,7 +7,7 @@ import {z} from 'zod';
 const uid=z.uuid();
 const metadata=z.object({name:z.string().trim().min(1).max(160),
  focus:z.string().trim().max(160).default('')});
-export type ResumeResult={ok:true;id?:string;revision?:number;version?:number}|{ok:false;error:string;conflict?:boolean};
+export type ResumeResult={ok:true;id?:string;revision?:number;version?:number;versionId?:string}|{ok:false;error:string;conflict?:boolean};
 const fail=(error:string,conflict=false):ResumeResult=>({ok:false,error,conflict});
 const refresh=()=>{revalidatePath('/resume-studio');revalidatePath('/dashboard');};
 export async function createResume(input:{name:string;focus?:string;template?:ResumeDoc['settings']['template'];paper?:ResumeDoc['settings']['paper']}):Promise<ResumeResult>{
@@ -104,7 +104,10 @@ export async function createResumeVersion(id:string,revision:number,label:string
   p_resume:id,p_label:label.trim(),p_revision:revision
  });
  if(error)return fail('Could not save this version. Ensure draft changes are saved first and retry.');
- revalidatePath('/resume-studio/'+id);return {ok:true,version:data as number};
+ const {data:created,error:readError}=await supabase.from('resume_versions').select('id')
+  .eq('resume_id',id).eq('version_number',data).maybeSingle();
+ if(readError||!created)return fail('Version saved, but its reference could not be loaded. Reload the editor.');
+ revalidatePath('/resume-studio/'+id);return {ok:true,version:data as number,versionId:created.id};
 }
 export async function restoreResumeVersion(id:string,versionId:string,revision:number):Promise<ResumeResult>{
  if(!uid.safeParse(id).success||!uid.safeParse(versionId).success)return fail('Invalid version.');

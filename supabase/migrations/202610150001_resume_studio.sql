@@ -74,3 +74,7 @@ end; $$;
 revoke all on function public.create_my_resume_version(uuid,text,integer) from public,anon;
 grant execute on function public.create_my_resume_version(uuid,text,integer) to authenticated;
 -- No browser-owned write policy for versions. Admin account-delete cascades them.
+
+-- Earlier migrations revoke public API rights. Grant only the newly required operations.
+grant select,insert,update,delete on public.resumes to authenticated;
+grant select on public.resume_versions to authenticated;
