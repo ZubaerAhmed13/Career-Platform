@@ -9,8 +9,8 @@ const headingPattern=/^\s*(?:#{1,3}\s*)?(?:work experience|employment history|pr
  */
 export function planCvReviewParts(raw:string,max=MAX_LOCAL_CV_TEXT):CvReviewPart[]{
  if(!Number.isInteger(max)||max<80)throw new Error('Unsupported review-section size.');
- const source=raw.replace(/\0/g,'').replace(/\r\n?/g,'\n').trim();
- if(source.length<20||source.length>100_000)
+ const source=raw.replace(/\0/g,'').replace(/\r\n?/g,'\n');
+ if(source.trim().length<20||source.length>100_000)
   throw new Error('The document must contain between 20 and 100,000 readable characters.');
  const parts:CvReviewPart[]=[];
  let text='',original='',activeHeading='';
