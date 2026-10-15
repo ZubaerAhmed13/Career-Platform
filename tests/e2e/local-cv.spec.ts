@@ -93,3 +93,26 @@ test('bad and mismatched files are never parsed or sent',async({page})=>{
  await expect(page.locator('#local-cv-import p.error[role="alert"]')).toContainText(/signature|Could not read/);
  await expect(page.locator('#local-cv-preview')).toHaveCount(0);
 });
+
+test('long DOCX review stays in-browser and offers every part without uploading',async({page})=>{
+ await page.goto('/local-cv-fixture');
+ const posts:string[]=[];
+ page.on('request',req=>{if(req.method()==='POST')posts.push(req.url());});
+ const longText='Work Experience I monitored cycle counts and replenishment. '.repeat(145);
+ await page.locator('#local-cv-file').setInputFiles({
+  name:'long.docx',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  buffer:textDocx(longText),
+ });
+ await page.getByRole('button',{name:'Extract text locally'}).click();
+ await expect(page.locator('#local-cv-preview')).toBeVisible({timeout:30000});
+ const picker=page.locator('#local-cv-section');
+ await expect(picker.locator('option')).toHaveCount(3);
+ await expect(page.getByRole('progressbar',{name:'CV review parts saved'})).toHaveAttribute('aria-valuenow','0');
+ await expect(page.locator('#local-cv-preview')).toHaveValue(/cycle counts/);
+ await page.getByRole('button',{name:'Next part'}).click();
+ await expect(picker).toHaveValue('1');
+ await expect(page.locator('#local-cv-preview')).toHaveValue(/replenishment/);
+ await page.getByRole('button',{name:'Next part'}).click();
+ await expect(picker).toHaveValue('2');
+ expect(posts).toEqual([]);
+});
