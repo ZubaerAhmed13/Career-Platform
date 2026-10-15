@@ -50,7 +50,8 @@ export function resumeLines(doc:ResumeDoc){
  return lines;
 }
 export function resumePlainText(doc:ResumeDoc){
- return resumeLines(doc).map(l=>l.type==='bullet'?'• '+l.text:l.text).join('\n\n');
+ return resumeLines(doc).map(l=>l.type==='bullet'?'• '+l.text:l.text)
+  .reduce((text,line,index,all)=>text+(index===0?'':line.startsWith('• ')&&all[index-1]?.startsWith('• ')?'\n':'\n\n')+line,'');
 }
 function xml(input:string){
  return input.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')

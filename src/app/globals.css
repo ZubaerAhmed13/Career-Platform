@@ -132,3 +132,7 @@
  .resume-print-page:has(.resume-paper[data-paper="Letter"]){page:resumeLetter}
  .resume-print-page:has(.resume-paper[data-paper="A4"]){page:resumeA4}
 }
+
+/* Mobile preview fits the available width; manual zoom can still pan inside its viewport. */
+.resume-preview-scroll{max-width:100%;min-width:0}
+@media(max-width:960px){.resume-preview-panel{max-width:100%;min-width:0}}

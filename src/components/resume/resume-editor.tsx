@@ -31,7 +31,14 @@ export function ResumeEditor({row,versions:initialVersions,vault,openVault}:{
  const [message,setMessage]=useState(''),[status,setStatus]=useState('All changes saved');
  const [previewVersion,setPreviewVersion]=useState<ResumeVersion|null>(null);
  const [versionLabel,setVersionLabel]=useState(''),[busy,startTransition]=useTransition();
- const [mobileZoom,setMobileZoom]=useState(100),[tick,setTick]=useState(0);
+ const [mobileZoom,setMobileZoom]=useState(0),[fitScale,setFitScale]=useState(1),[tick,setTick]=useState(0);
+ const previewScrollRef=useRef<HTMLDivElement>(null);
+ useEffect(()=>{
+  const el=previewScrollRef.current;if(!el)return;
+  const measure=()=>setFitScale(Math.min(1,Math.max(.1,(el.clientWidth-30)/(doc.settings.paper==='A4'?794:816))));
+  measure();const observer=new ResizeObserver(measure);observer.observe(el);
+  return ()=>observer.disconnect();
+ },[doc.settings.paper,panel]);
  const revisionRef=useRef(row.revision),savingRef=useRef(false),blockedRef=useRef(false);
  const savedRef=useRef(JSON.stringify(row.draft_content)),docRef=useRef(doc);
  const undoRef=useRef<ResumeDoc[]>([]),redoRef=useRef<ResumeDoc[]>([]);
@@ -216,7 +223,20 @@ export function ResumeEditor({row,versions:initialVersions,vault,openVault}:{
          <button aria-label="Remove entry" onClick={()=>edit(d=>{d.sections.find(s=>s.id===section.id)!.entries.splice(j,1);})}>×</button>
         </div>
        </div>
-       {entry.source&&<p className="subtle" style={{fontSize:12}}>Source record: {entry.source.recordId.slice(0,8)} · revision {entry.source.revision}. Document-specific edits do not modify the Vault.</p>}
+       {entry.source&&<div className="stack" style={{gap:5}}>
+ <p className="subtle" style={{fontSize:12,margin:0}}>Source record: {entry.source.recordId.slice(0,8)} · revision {entry.source.revision}. Document-specific edits do not modify the Vault.</p>
+ {(()=>{
+  const latest=vault.find(r=>r.id===entry.source?.recordId);
+  if(!latest)return <p className="subtle" style={{fontSize:12,margin:0}}>Source was removed from Career Vault; saved snapshot is preserved.</p>;
+  if(latest.revision<=entry.source!.revision)return null;
+  return <div className="muted-card"><p>Newer Career Vault information is available (revision {latest.revision}).</p>
+   <button className="button secondary" type="button" onClick={()=>{
+    if(!window.confirm('Update this entry from the latest Career Vault record? Your resume-only wording in this entry will be replaced.'))return;
+    edit(d=>{const target=d.sections.find(s=>s.id===section.id)?.entries.find(e=>e.id===entry.id);
+     if(target)Object.assign(target,entryFromRecord(latest),{id:entry.id});});
+   }}>Review and adopt latest source</button></div>;
+ })()}
+ </div>}
        <label className="resume-visibility"><input type="checkbox" checked={entry.visible} onChange={e=>patchEntry(section.id,entry.id,'visible',e.target.checked)}/> Show entry</label>
        <div className="resume-form-grid">
         {([
@@ -314,10 +334,10 @@ export function ResumeEditor({row,versions:initialVersions,vault,openVault}:{
      <strong>{previewVersion?'Historical version #'+previewVersion.version_number:'Live preview'}</strong>
      {previewVersion&&<button className="button secondary" onClick={()=>setPreviewVersion(null)}>Back to live draft</button>}
      <label className="resume-preview-zoom">Zoom <select className="field" value={mobileZoom} onChange={e=>setMobileZoom(Number(e.target.value))}>
-      <option value={75}>75%</option><option value={100}>100%</option><option value={125}>125%</option></select></label>
+      <option value={0}>Fit width</option><option value={75}>75%</option><option value={100}>100%</option><option value={125}>125%</option></select></label>
     </div>
-    <div className="resume-preview-scroll"><div style={{zoom:mobileZoom/100}}><ResumePreview doc={display} fit/></div></div>
-    <p className="subtle" style={{fontSize:12}}>Preview flows across pages. Use Print / Save PDF for final pagination and margins.</p>
+    <div className="resume-preview-scroll" ref={previewScrollRef}><div style={{zoom:mobileZoom===0?fitScale:mobileZoom/100}}><ResumePreview doc={display} fit/></div></div>
+    <p className="subtle" style={{fontSize:12}}>Print / Save PDF uses the last saved draft. Finish saving before printing. Final pagination depends on the browser.</p>
    </div>
   </div>
  </div>;
