@@ -13,7 +13,7 @@
 ## Step 2 polish in [PR #4](https://github.com/ZubaerAhmed13/Career-Platform/pull/4)
 - Category-specific optional structured form inputs, stored in existing record `details` without migrations or rewriting provenance.
 - Browser-local full-CV multi-part text review, deliberate per-part save, progress and refusal to silently omit detected proposals.
-- Additional deterministic test coverage and updated documentation.
+- Additional deterministic test coverage, reproducible npm lockfile, CI switched to `npm ci`, and updated documentation.
 - This PR requires passing CI and review before its changes may be described as merged into `main`.
 
 ## Verification boundaries
