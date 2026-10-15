@@ -78,7 +78,7 @@ export function BrowserCvImport(){
   if(!selectedPart||saved.includes(selected)||pending||selectedPart.text.length<60)return;
   const content=selectedPart.text;
   const middle=Math.floor(content.length/2);
-  const candidates=[...content.matchAll(/[\\n,;]\\s*/g)]
+  const candidates=[...content.matchAll(/[\n,;]\s*/g)]
    .map(match=>match.index!+match[0].length)
    .filter(point=>point>=20&&point<=content.length-20);
   const cut=candidates.sort((a,b)=>Math.abs(a-middle)-Math.abs(b-middle))[0]??middle;
