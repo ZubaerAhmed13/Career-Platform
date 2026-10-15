@@ -53,10 +53,10 @@ export function RecordEditor({record,onSaved}:{record?:CareerRecord;onSaved?:()=
      {field.multiline?
       <textarea className="field" id={'career-detail-'+field.key} name={'detail_'+field.key}
        rows={3} maxLength={field.maxLength} placeholder={field.placeholder}
-       defaultValue={record?.kind===kind?record.details?.[field.key]??'':''}/>:
+       defaultValue={record?.kind===kind&&typeof record.details?.[field.key]==='string'?record.details[field.key]:''}/>:
       <input className="field" id={'career-detail-'+field.key} name={'detail_'+field.key}
        maxLength={field.maxLength} placeholder={field.placeholder}
-       defaultValue={record?.kind===kind?record.details?.[field.key]??'':''}/>}
+       defaultValue={record?.kind===kind&&typeof record.details?.[field.key]==='string'?record.details[field.key]:''}/>}
     </div>)}
    </div>
   </fieldset>
