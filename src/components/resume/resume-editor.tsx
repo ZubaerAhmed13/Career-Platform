@@ -28,6 +28,7 @@ export function ResumeEditor({row,versions:initialVersions,vault,openVault}:{
  const [panel,setPanel]=useState<Panel>('content');
  const [sourceOpen,setSourceOpen]=useState(openVault),[sourceKind,setSourceKind]=useState<CareerKind|'all'>('all');
  const [search,setSearch]=useState(''),[selected,setSelected]=useState<string>(doc.sections[0]?.id??'');
+ const [selectedVaultIds,setSelectedVaultIds]=useState<string[]>([]);
  const [message,setMessage]=useState(''),[status,setStatus]=useState('All changes saved');
  const [previewVersion,setPreviewVersion]=useState<ResumeVersion|null>(null);
  const [versionLabel,setVersionLabel]=useState(''),[busy,startTransition]=useTransition();
@@ -104,6 +105,18 @@ export function ResumeEditor({row,versions:initialVersions,vault,openVault}:{
   });
   setMessage('Added a snapshot from Career Vault. Editing this resume will not change the source.');
  }
+ function addSelectedVault(){
+  const records=vault.filter(record=>selectedVaultIds.includes(record.id));
+  let added=0;
+  edit(d=>{for(const record of records){
+   if(d.sections.some(section=>section.entries.some(entry=>entry.source?.recordId===record.id)))continue;
+   const section=d.sections.find(section=>section.kind===record.kind);
+   if(!section||section.entries.length>=70)continue;
+   section.entries.push(entryFromRecord(record));section.visible=true;added++;
+  }});
+  setSelectedVaultIds([]);
+  setMessage(added+' confirmed Career Vault record'+(added===1?'':'s')+' added as independent resume snapshots.');
+ }
  function exportDoc(format:'docx'|'txt',item:ResumeDoc=previewVersion?.snapshot_content??doc){
   const base=item.contact.name||row.name;
   if(format==='txt')download(resumePlainText(item),'text/plain;charset=utf-8',safeExportName(base,'txt'));
@@ -116,13 +129,18 @@ export function ResumeEditor({row,versions:initialVersions,vault,openVault}:{
  async function version(){
   if(savingRef.current){setMessage('A save is in progress. Try again once it completes.');return;}
   if(dirty&&!await save(docRef.current))return;
+  if(JSON.stringify(docRef.current)!==savedRef.current){
+   setMessage('More edits were made while saving. Finish saving all changes before creating a version.');
+   return;
+  }
+  const exactSavedSnapshot=JSON.parse(savedRef.current) as ResumeDoc;
   startTransition(async()=>{
    const result=await createResumeVersion(row.id,revisionRef.current,versionLabel);
    if(!result.ok){setMessage(result.error);return;}
    setVersions(v=>[{
     id:result.versionId!,resume_id:row.id,user_id:row.user_id,version_number:result.version!,
-    label:versionLabel,snapshot_content:structuredClone(docRef.current),created_at:new Date().toISOString()
-   },...v]); // optimistic listing; refresh replaces synthetic ID with stored ID
+    label:versionLabel,snapshot_content:exactSavedSnapshot,created_at:new Date().toISOString()
+   },...v]); // the RPC returned the real saved version ID
    setVersionLabel('');setMessage('Saved immutable version #'+result.version+'.');
    router.refresh();
   });
@@ -279,7 +297,13 @@ export function ResumeEditor({row,versions:initialVersions,vault,openVault}:{
       <input className="field" aria-label="Search confirmed Vault facts" placeholder="Search by job, project or skill" value={search} onChange={e=>setSearch(e.target.value)}/>
       <select aria-label="Filter Vault category" className="field" value={sourceKind} onChange={e=>setSourceKind(e.target.value as typeof sourceKind)}>
        <option value="all">All categories</option>{careerKinds.map(kind=><option value={kind} key={kind}>{kindLabels[kind]}</option>)}</select>
+      <div className="resume-inline-header">
+       <span className="subtle">{selectedVaultIds.length} facts selected</span>
+       <button type="button" className="button" disabled={!selectedVaultIds.length} onClick={addSelectedVault}>Add selected facts</button>
+      </div>
       <div className="resume-vault-list">{filteredVault.map(record=><div className="resume-vault-row" key={record.id}>
+       <input type="checkbox" aria-label={'Select '+record.title} checked={selectedVaultIds.includes(record.id)}
+        onChange={e=>setSelectedVaultIds(ids=>e.target.checked?[...ids.filter(id=>id!==record.id),record.id]:ids.filter(id=>id!==record.id))}/>
        <div><strong>{record.title}</strong><p className="subtle" style={{margin:0,fontSize:12}}>{kindLabels[record.kind]} · {record.organization||'No organisation'}</p></div>
        <button className="button secondary" onClick={()=>addFromVault(record)}>Add</button>
       </div>)}
@@ -333,6 +357,12 @@ export function ResumeEditor({row,versions:initialVersions,vault,openVault}:{
        <button onClick={()=>{setPreviewVersion(v);setPanel('preview');}}>Preview</button>
        <button disabled={busy||v.id.length!==36||v.snapshot_content===undefined} onClick={()=>restore(v)}>Restore</button>
       </div>
+      <p className="subtle" style={{fontSize:12,margin:0}}>
+       {v.snapshot_content.sections.length===doc.sections.length?'Same number of sections':'Different number of sections'}
+       {' · '}{v.snapshot_content.sections.reduce((n,section)=>n+section.entries.length,0)}
+       {' entries in version; '}{doc.sections.reduce((n,section)=>n+section.entries.length,0)}{' in current draft'}
+       {JSON.stringify(v.snapshot_content)===JSON.stringify(doc)?' · Matches current draft':' · Content or formatting differs'}
+      </p>
      </div>)}
      {!versions.length&&<p className="subtle">No saved versions yet.</p>}</div>
     </section>

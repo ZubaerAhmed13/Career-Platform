@@ -4,6 +4,7 @@ import {loadMyResume} from '@/lib/resume/server';
 import {getResumeVersion} from '@/app/actions/resumes';
 import {ResumePreview} from '@/components/resume/resume-preview';
 import Link from 'next/link';
+import {ResumePrintButton} from '@/components/resume/print-button';
 export const dynamic='force-dynamic';
 export default async function ResumePrintPage({params,searchParams}:{
  params:Promise<{id:string}>,searchParams:Promise<{version?:string}>}){
@@ -17,7 +18,7 @@ export default async function ResumePrintPage({params,searchParams}:{
    <p className="subtle">Select Print, then choose Save as PDF. Use 100% scale, default margins off, and background graphics enabled if needed.</p>
    <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
     <Link className="button secondary" href={'/resume-studio/'+id}>Back to editor</Link>
-    <span className="button secondary">Print: ⌘P / Ctrl+P</span>
+    <ResumePrintButton/>
    </div>
   </div>
   <ResumePreview doc={historical?.snapshot_content??row.draft_content}/>
