@@ -11,15 +11,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: npm install --no-audit --no-fund
-      # Temporary, branch-only lockfile capture. Removed after committing generated lockfile.
-      - name: Capture npm lockfile for reproducible GitHub builds
-        if: github.head_ref == 'feat/step2-vault-polish-oct15'
-        run: |
-          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-          echo CAREEROS_LOCKFILE_BEGIN
-          sed 's/^/CAREEROS_LOCK_LINE:/' package-lock.json
-          echo CAREEROS_LOCKFILE_END
+      - run: npm ci --no-audit --no-fund
       - name: Validate owned inference configuration
         env:
           OLLAMA_VERSION: "0.0.0-ci-configuration-only"
@@ -96,7 +88,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: npm install --no-audit --no-fund
+      - run: npm ci --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
       # Parse opt-in suites in ordinary CI without executing any staging tests,
       # starting a credentialed web server, or touching a real Supabase account.
