@@ -47,3 +47,21 @@ test('anonymous career export is denied with no-store caching',async({request})=
  expect(response.status()).toBe(401);
  expect(response.headers()['cache-control']).toContain('no-store');
 });
+
+
+test('private Resume Studio and guessed resume UUID redirect anonymous browsers',async({page})=>{
+ for(const url of ['/resume-studio','/resume-studio/11111111-1111-4111-8111-111111111111',
+  '/resume-studio/11111111-1111-4111-8111-111111111111/print']){
+  await page.goto(url);
+  await expect(page).toHaveURL(/\/login(?:\?|$)/);
+ }
+});
+test('synthetic resume document is legible on mobile, without real account data',async({page})=>{
+ await page.goto('/resume-fixture');
+ await expect(page.getByRole('heading',{name:'Example Student'})).toBeVisible();
+ await expect(page.getByText('Checked inventory accuracy against stock records.')).toBeVisible();
+ await expect(page.locator('.resume-paper')).toHaveAttribute('data-paper','A4');
+ const hasOverflow=await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth+2);
+ // The paper is larger than a phone. On mobile a preview container, not the page, should scroll.
+ expect(hasOverflow).toBe(false);
+});
