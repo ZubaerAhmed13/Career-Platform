@@ -26,7 +26,8 @@ export async function importBrowserCvText(
   .eq('user_id',user.id).eq('origin','cv_import')
   .gte('created_at',new Date(Date.now()-60*60*1000).toISOString()).limit(30);
  if(recent.error)return {error:'Could not check the import rate limit.'};
- const detected=extractCareerSections(text);
+ const detected=extractCareerSections(text,20);
+ if(detected.omitted>0)return {error:'This part contains more than 20 candidate facts. Split the text into smaller review parts; nothing was discarded or saved.'};
  const selected=detected.suggestions.length
   ?detected.suggestions
   :[{kind:kind.data,title:text.split('\n').find(line=>line.trim().length>5)?.trim().slice(0,180)||'CV excerpt',
@@ -52,5 +53,5 @@ export async function importBrowserCvText(
  revalidatePath('/career-vault/review');
  return {message:'Saved '+verified.length+' draft career '+(verified.length===1?'fact':'facts')+
   ' in your private Supabase review queue. No original file bytes were uploaded. Nothing was confirmed.'+
-  (detected.omitted?' '+detected.omitted+' additional entries were omitted by the six-item limit.':'')};
+  ''};
 }
