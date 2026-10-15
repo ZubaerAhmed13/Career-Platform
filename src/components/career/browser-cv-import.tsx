@@ -74,6 +74,21 @@ export function BrowserCvImport(){
  const tooLong=text.length>MAX_LOCAL_CV_TEXT;
  const valid=status==='ready'&&text.trim().length>=20&&!tooLong&&!saved.includes(selected);
  const allSaved=parts.length>0&&saved.length===parts.length;
+ function splitSelected(){
+  if(!selectedPart||saved.includes(selected)||pending||selectedPart.text.length<60)return;
+  const content=selectedPart.text;
+  const middle=Math.floor(content.length/2);
+  const candidates=[...content.matchAll(/[\\n,;]\\s*/g)]
+   .map(match=>match.index!+match[0].length)
+   .filter(point=>point>=20&&point<=content.length-20);
+  const cut=candidates.sort((a,b)=>Math.abs(a-middle)-Math.abs(b-middle))[0]??middle;
+  const left={original:content.slice(0,cut),text:content.slice(0,cut),label:''};
+  const right={original:content.slice(cut),text:content.slice(cut),label:''};
+  const next=[...parts.slice(0,selected),left,right,...parts.slice(selected+1)];
+  setParts(next.map((part,i)=>({...part,label:'Part '+(i+1)+' of '+next.length})));
+  setSaved(previous=>previous.map(i=>i>selected?i+1:i));
+  setProblem('');setNotice('Part split without discarding your edited text. Review and submit both parts separately.');
+ }
  function submitReview(event:FormEvent<HTMLFormElement>){
   event.preventDefault();
   if(!valid||pending)return;
@@ -134,6 +149,11 @@ export function BrowserCvImport(){
      onChange={e=>{setSelected(Number(e.target.value));setProblem('');setNotice('');}}>
      {parts.map((part,i)=><option key={i} value={i}>{part.label}{saved.includes(i)?' — saved':''}</option>)}
     </select>
+   </div>
+   <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
+    <button className="button secondary" type="button" onClick={splitSelected}
+     disabled={pending||saved.includes(selected)||text.length<60}>Split this part without losing text</button>
+    <span className="subtle">Useful when a part contains too many separate skills or facts.</span>
    </div>
    <form onSubmit={submitReview} className="stack">
     <div className="form-row">
