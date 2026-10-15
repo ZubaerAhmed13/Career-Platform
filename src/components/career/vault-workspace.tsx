@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { deleteCareerRecord } from '@/app/actions/career';
 import { careerKinds, kindLabels, vaultCounts, type CareerRecord, type CareerKind } from '@/lib/career/schema';
 import { RecordEditor } from './record-editor';
+import {detailFields} from '@/lib/career/record-fields';
 
 function DeleteButton({record}:{record:CareerRecord}){
  const [state,action,pending]=useActionState(deleteCareerRecord,{});
@@ -51,7 +52,7 @@ export function VaultWorkspace({records,linkedCount,pendingSuggestionCount,targe
     (kind==='all'||r.kind===kind)&&(status==='all'||r.status===status)&&
     (organization==='all'||r.organization===organization)&&
     (!fromDate||!r.ended_on||r.ended_on>=fromDate)&&(!toDate||!r.started_on||r.started_on<=toDate)&&
-    [r.title,r.organization,r.location,r.description].join(' ').toLocaleLowerCase().includes(search.toLocaleLowerCase())
+    [r.title,r.organization,r.location,r.description,...Object.values(r.details??{})].join(' ').toLocaleLowerCase().includes(search.toLocaleLowerCase())
  ),[records,kind,status,organization,search,fromDate,toDate]);
  return <div className="stack" style={{gap:24}}>
   <header><p className="eyebrow">Verified information, in your control</p>
@@ -123,7 +124,12 @@ export function VaultWorkspace({records,linkedCount,pendingSuggestionCount,targe
       <button className="button secondary" onClick={()=>{setEditing(editing===r.id?null:r.id);setAdding(false)}}>{editing===r.id?'Close editor':'Edit'}</button>
      </div>
      {(r.started_on||r.ended_on||r.is_current)&&<p className="subtle" style={{margin:0}}>{r.started_on??'Start not specified'} — {r.is_current?'Present':r.ended_on??'End not specified'}</p>}
-     {r.details?.proficiency&&<p style={{margin:0}}>Proficiency: {r.details.proficiency}</p>}
+     {detailFields[r.kind as CareerKind].filter(field=>typeof r.details?.[field.key]==='string'&&r.details[field.key]).length>0&&
+      <dl className="page-grid" style={{margin:0}}>
+       {detailFields[r.kind as CareerKind].filter(field=>typeof r.details?.[field.key]==='string'&&r.details[field.key]).map(field=>
+        <div key={field.key}><dt className="subtle" style={{fontSize:13}}>{field.label}</dt>
+         <dd style={{margin:0,whiteSpace:'pre-wrap'}}>{r.details[field.key]}</dd></div>)}
+      </dl>}
      {r.description&&<p style={{whiteSpace:'pre-wrap',margin:0}}>{r.description}</p>}
      {editing===r.id?<RecordEditor key={r.id+'-'+r.revision} record={r} onSaved={()=>setEditing(null)}/>:<DeleteButton record={r}/>}
     </article>)}</div>}

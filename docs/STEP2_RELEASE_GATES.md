@@ -2,7 +2,7 @@
 
 **Scope:** One owner, private use. CareerOS is not launching as a public applicant-data service. Avoid unnecessary staging costs and professional SaaS compliance tasks. See `docs/STEP2_ACCEPTANCE_MATRIX.md` for the concise seven-task checklist.
 
-## Available now
+## Available in merged Step 2 code
 
 - Eight categories of Career Vault facts, manual create/edit/delete and source-preserving records.
 - Browser-local text-based PDF/DOCX import that never uploads the original binary; selected text stays pending until the owner approves.
@@ -12,15 +12,15 @@
 - GitHub CI for TypeScript/lint/tests/build, SQL migrations, public desktop/mobile Chromium and safe staging-test discovery.
 - Independent career-only Qwen/Ollama **adapter**; actual AI conversation is unavailable until you host/configure the private model.
 
-## Minimum before merging as a personal beta
+## Minimum before considering the code-level beta polished
 
 1. CI completes successfully on the branch head.
-2. Confirm a Vercel preview for the exact commit when available. A READY build **does not** prove a working login.
+2. Inspect the GitHub-only branch diff, unit tests and local-browser fixture results. Hosting and Vercel previews are deliberately paused; neither is a Step 2 gate.
 3. Owner signs in once, creates an obviously disposable career record, edits it, reloads, and deletes that test record.
 4. Owner imports a small non-sensitive text PDF or DOCX, reviews the extracted text, approves one dummy candidate, and can see the approved record.
 5. Owner downloads an account/Vault JSON export and stores a private copy.
-6. Keep Supabase RLS and server-only service-role secrets intact; check the preview is not accidentally publicized to others. Account wiping and deletion should **not** be tested with the real account.
-7. Merge with explicit owner approval as a **personal beta**, not a fully security-certified public SaaS application.
+6. Keep Supabase RLS and server-only service-role secrets intact; do not run or enable a hosting preview while development is GitHub-only. Account wiping and deletion should **not** be tested with the real account.
+7. Merge the reviewed GitHub PR after green branch checks. For the new PR #4, preserve the previous personal beta on `main` until validation is complete; do not claim live browser acceptance based on CI alone.
 
 ## Deferred rather than mandatory
 

@@ -10,7 +10,7 @@
 | 4 | Export and data safety | Owner-scoped JSON exports, confirmation-gated Vault clearing and account deletion code | Download/export once and confirm a JSON file is produced. **Do not** live-test Vault wipe or account deletion on your only account; destructive tests become optional |
 | 5 | Comfortable phone/Mac experience | Public mobile Chromium smoke and styling checks, opt-in keyboard tests | Open Vault on your phone/Mac and verify the core forms work. Formal VoiceOver/NVDA accessibility sign-off is optional |
 | 6 | Reasonable personal privacy and security | Server-only service keys, Supabase Auth/RLS and security audit; some Supabase advisories remain | Use a strong unique password, keep backups and secrets private, do not disable RLS or publicly expose private uploads. Formal GDPR controller/DPA audits are not personal-beta blockers |
-| 7 | Build/deploy and merge personal beta | GitHub CI passes; prior READY previews exist | Confirm latest commit CI and Vercel preview when available; merge after basic personal smoke and your approval, not after enterprise-wide staging tests |
+| 7 | GitHub-only build and merge personal beta | GitHub CI passes; prior READY previews exist | Confirm branch GitHub CI, source review and test coverage. Hosting and preview checks are postponed by owner request. |
 
 ## Personal-use boundary
 
@@ -32,4 +32,4 @@ Never label a missing or unexecuted live test as passed. Do not test destructive
 
 ## Merge policy
 
-Step 2 can become a **personal beta** without a separate staging project. Require at minimum passing branch CI, no discovered high-impact data exposure, confirmation that the user can sign in and retain/edit one test record, and explicit approval to merge. Privacy-sensitive functionality must remain access-controlled. For optional future multi-user/security testing, see `docs/STAGING_SECURITY_RUNBOOK.md` and `docs/DATA_RETENTION_AND_ACCOUNT_ERASURE.md`.
+Step 2 can become a **personal beta** without a separate staging project. Require at minimum passing branch CI and no discovered high-impact data exposure before source-level merge. Sign-in and test-record behavior must still be verified separately before calling it real-account-accepted. Privacy-sensitive functionality must remain access-controlled. For optional future multi-user/security testing, see `docs/STAGING_SECURITY_RUNBOOK.md` and `docs/DATA_RETENTION_AND_ACCOUNT_ERASURE.md`.

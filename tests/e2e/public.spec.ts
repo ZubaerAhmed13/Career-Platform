@@ -41,3 +41,9 @@ test('anonymous account export never returns another user\'s data',async({reques
  expect(response.status()).toBe(401);
  expect(response.headers()['cache-control']).toContain('no-store');
 });
+
+test('anonymous career export is denied with no-store caching',async({request})=>{
+ const response=await request.get('/api/career-vault/export');
+ expect(response.status()).toBe(401);
+ expect(response.headers()['cache-control']).toContain('no-store');
+});

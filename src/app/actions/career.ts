@@ -5,6 +5,7 @@ import { requireAccount } from '@/lib/account';
 import { careerKind, evidenceSchema, recordSchema } from '@/lib/career/schema';
 import { extractCareerSections } from '@/lib/career/cv-sections';
 import { z } from 'zod';
+import {collectRecordDetails} from '@/lib/career/record-fields';
 
 export type VaultActionState = { message?: string; error?: string };
 const uuid = z.uuid();
@@ -23,7 +24,7 @@ function readRecord(form:FormData){
    location:raw(form,'location'), description:raw(form,'description'),
    started_on:raw(form,'started_on')||null, ended_on:raw(form,'is_current')==='true'?null:(raw(form,'ended_on')||null),
    is_current:raw(form,'is_current')==='true',
-   details:raw(form,'proficiency')?{proficiency:raw(form,'proficiency')}: {},
+   details: {},
    status:'confirmed',source:'manual',
  });
 }
@@ -40,17 +41,8 @@ export async function saveCareerRecord(_prev: VaultActionState,form:FormData):Pr
    const {data:current,error:readError}=await supabase.from('career_records')
      .select('kind,details').eq('user_id',user.id).eq('id',id).maybeSingle();
    if(readError||!current)return {error:'This career record is no longer available.'};
-   const savedDetails:Record<string,unknown>=
-     current.details && typeof current.details==='object' && !Array.isArray(current.details)
-       ? {...current.details} : {};
-   if(parsed.data.kind==='skill'||parsed.data.kind==='language'){
-     const proficiency=raw(form,'proficiency');
-     if(proficiency)savedDetails.proficiency=proficiency.slice(0,100);
-     else delete savedDetails.proficiency;
-   }else if(current.kind==='skill'||current.kind==='language'){
-     // A category change intentionally removes irrelevant proficiency.
-     delete savedDetails.proficiency;
-   }
+   const savedDetails=collectRecordDetails(parsed.data.kind,form,current.details,current.kind);
+   if(!savedDetails)return {error:'Check the length and format of the category details.'};
    const safeChanges={
      kind:parsed.data.kind,title:parsed.data.title,
      organization:parsed.data.organization,location:parsed.data.location,
@@ -65,7 +57,9 @@ export async function saveCareerRecord(_prev: VaultActionState,form:FormData):Pr
    if(error)return {error:'Unable to save the record. Please retry.'};
    if(!data)return {error:'This record was changed in another session or is no longer available. Refresh to review the latest version.'};
  }else{
-   const {error}=await supabase.from('career_records').insert({user_id:user.id,...parsed.data});
+   const details=collectRecordDetails(parsed.data.kind,form);
+   if(!details)return {error:'Check the length and format of the category details.'};
+   const {error}=await supabase.from('career_records').insert({user_id:user.id,...parsed.data,details});
    if(error)return {error:'Unable to add this record. Check for duplicate or invalid information.'};
  }
  refreshVault();

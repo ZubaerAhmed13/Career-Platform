@@ -1,4 +1,4 @@
-# CareerOS AI — Milestone 2 delivery report
+> **Historical delivery proposal (12 October 2026).** PR #2 subsequently merged; GitHub-only development and AI/hosting deferral supersede earlier deployment prerequisites. See [current status](../FEATURE_STATUS.md).\n\n# CareerOS AI — Milestone 2 delivery report
 
 Prepared 2026-10-12 for [Pull Request #2](https://github.com/ZubaerAhmed13/Career-Platform/pull/2). **Development changes only; not a production-ready deployment.**
 
