@@ -38,7 +38,7 @@ jobs:
               exit 1
               ;;
           esac
-      - run: npm install --no-audit --no-fund
+      - run: npm ci --no-audit --no-fund
       - run: npm run test:integration
       - name: Install Chromium for authenticated browser acceptance
         run: npx playwright install --with-deps chromium
