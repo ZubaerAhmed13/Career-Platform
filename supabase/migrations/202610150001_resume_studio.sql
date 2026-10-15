@@ -87,7 +87,7 @@ grant select on public.resume_versions to authenticated;
 create function public.resume_source_guard() returns trigger
 language plpgsql security definer set search_path='' as $$
 declare sec jsonb; item jsonb; src jsonb; found_record public.career_records%rowtype;
-declare trusted boolean;
+trusted boolean;
 begin
  for sec in select value from jsonb_array_elements(coalesce(new.draft_content->'sections','[]'::jsonb)) loop
   for item in select value from jsonb_array_elements(coalesce(sec->'entries','[]'::jsonb)) loop
