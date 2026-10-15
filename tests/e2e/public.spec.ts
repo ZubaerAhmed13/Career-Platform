@@ -65,3 +65,22 @@ test('synthetic resume document is legible on mobile, without real account data'
  // The paper is larger than a phone. On mobile a preview container, not the page, should scroll.
  expect(hasOverflow).toBe(false);
 });
+
+
+test('browser PDF has selectable text and multiple intact pages for a long resume',async({page,isMobile})=>{
+ test.skip(isMobile,'PDF output validated in desktop Chromium; mobile layout tested separately');
+ const {extractText,getDocumentProxy}=await import('unpdf');
+ for(const paper of ['A4','Letter']){
+  await page.goto('/resume-fixture?long=1&paper='+paper);
+  const bytes=await page.pdf({format:paper==='A4'?'A4':'Letter',preferCSSPageSize:true,printBackground:true});
+  expect(bytes.subarray(0,5).toString('utf8')).toBe('%PDF-');
+  const proxy=await getDocumentProxy(new Uint8Array(bytes));
+  try{
+   expect(proxy.numPages).toBeGreaterThan(1);
+   const result=await extractText(proxy,{mergePages:true});
+   expect(result.text).toContain('Example Student');
+   expect(result.text).toContain('Synthetic employer 9');
+   expect(result.text).toContain('Synthetic achievement 9/7');
+  }finally{await (proxy as unknown as {destroy?:()=>Promise<void>}).destroy?.();}
+ }
+});
