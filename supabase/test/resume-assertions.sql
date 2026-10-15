@@ -34,6 +34,10 @@ begin
  exception when others then rejected:=true;end;
  if not rejected then raise exception 'Stale version submission accepted';end if;
 end $$;
+-- Create a valid A-owned fact to test cross-owner direct API forgery.
+insert into public.career_records(id,user_id,kind,title)
+values('55555555-5555-4555-8555-555555555555',
+ 'cccccccc-cccc-4ccc-8ccc-cccccccccccc','experience','Only A');
 select set_config('request.jwt.claim.sub','dddddddd-dddd-4ddd-8ddd-dddddddddddd',false);
 insert into public.resumes(id,user_id,name,draft_content,template_id,paper_size,document_language)
 values('44444444-4444-4444-8444-444444444444','dddddddd-dddd-4ddd-8ddd-dddddddddddd',
@@ -51,12 +55,35 @@ begin
  exception when others then denied:=true;end;
  if not denied then raise exception 'Foreign version created';end if;
 end $$;
+
+-- A direct authenticated request cannot forge another account's source UUID.
+do $
+declare denied boolean:=false;
+begin
+ begin
+  update public.resumes set draft_content=
+  '{"schemaVersion":1,"sections":[{"entries":[{"source":{"recordId":"55555555-5555-4555-8555-555555555555","revision":1,"kind":"experience","title":"Only A","organization":"","description":""}}]}]}'::jsonb
+   where id='44444444-4444-4444-8444-444444444444';
+ exception when others then denied:=true;end;
+ if not denied then raise exception 'Direct Data API forged foreign source';end if;
+end $;
+-- Owner A may attach its exact source, preserve it after original deletion and
+-- create an immutable historical copy even after its canonical source vanishes.
+select set_config('request.jwt.claim.sub','cccccccc-cccc-4ccc-8ccc-cccccccccccc',false);
+update public.resumes set draft_content=
+ '{"schemaVersion":1,"sections":[{"entries":[{"source":{"recordId":"55555555-5555-4555-8555-555555555555","revision":1,"kind":"experience","title":"Only A","organization":"","description":""}}]}]}'::jsonb
+ where id='33333333-3333-4333-8333-333333333333';
+select public.create_my_resume_version('33333333-3333-4333-8333-333333333333','Vault snapshot',3);
+delete from public.career_records where id='55555555-5555-4555-8555-555555555555';
+update public.resumes set name='Source deleted but version preserved'
+ where id='33333333-3333-4333-8333-333333333333';
+
 reset role;
-do $$
+do $
 declare count_saved int;
 begin
  select count(*) into count_saved from public.resume_versions where resume_id='33333333-3333-4333-8333-333333333333';
- if count_saved<>1 then raise exception 'Immutable A snapshot missing';end if;
+ if count_saved<>2 then raise exception 'Immutable A snapshots missing';end if;
  if exists(select 1 from pg_policies where schemaname='public' and tablename='resume_versions' and cmd in ('UPDATE','DELETE','INSERT','ALL')) then
   raise exception 'Resume versions have client mutation policy';end if;
  if not (select relrowsecurity from pg_class where oid='public.resumes'::regclass) or
