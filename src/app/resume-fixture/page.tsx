@@ -10,14 +10,14 @@ export default async function ResumeFixture({searchParams}:{searchParams:Promise
  doc.summary='An entirely synthetic graduate profile used only for design validation.';
  doc.sections[1].entries.push({id:crypto.randomUUID(),title:'Master of Sample Studies',
   subtitle:'Example University',location:'Test City',startedOn:'2024-10-01',endedOn:'',
-  current:true,visible:true,source:null,bullets:[]});
+  current:true,visible:true,source:null,extras:{},bullets:[]});
  doc.sections[0].entries.push({id:crypto.randomUUID(),title:'Working Student — Operations',
   subtitle:'Sample Warehouse',location:'Example City',startedOn:'2025-01-01',endedOn:'',
-  current:true,visible:true,source:null,bullets:[
+  current:true,visible:true,source:null,extras:{},bullets:[
    {id:crypto.randomUUID(),text:'Checked inventory accuracy against stock records.',visible:true}]});
  if(long==='1')for(let i=0;i<9;i++)doc.sections[0].entries.push({id:crypto.randomUUID(),
   title:'Synthetic employer '+(i+1),subtitle:'Very Long Fictional Department For Layout Testing',
-  location:'Test city',startedOn:'2010-01-01',endedOn:'2018-12-31',current:false,visible:true,source:null,
+  location:'Test city',startedOn:'2010-01-01',endedOn:'2018-12-31',current:false,visible:true,source:null,extras:{},
   bullets:Array.from({length:7},(_,j)=>({id:crypto.randomUUID(),visible:true,
    text:'Synthetic achievement '+(i+1)+'/'+(j+1)+': documented work and its exact contribution with readable line length, with no invented real-world statistics.'}))});
  return <main className="container stack"><h1 className="heading">Synthetic resume layout fixture</h1>
