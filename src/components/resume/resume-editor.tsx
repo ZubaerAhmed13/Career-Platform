@@ -3,7 +3,7 @@ import {useEffect,useRef,useState,useTransition} from 'react';
 import {useRouter} from 'next/navigation';
 import Link from 'next/link';
 import {createResumeVersion,restoreResumeVersion,saveResumeDraft} from '@/app/actions/resumes';
-import {entryFromRecord,qualityWarnings,templateIds,templateNames,
+import {entryFromRecord,qualityWarnings,resumeExtraFields,templateIds,templateNames,
  type ResumeDoc,type ResumeRow,type ResumeEntry,type ResumeVersion} from '@/lib/resume/schema';
 import {careerKinds,kindLabels,type CareerKind,type CareerRecord} from '@/lib/career/schema';
 import {makeResumeDocx,resumePlainText} from '@/lib/resume/exports';
@@ -88,7 +88,7 @@ export function ResumeEditor({row,versions:initialVersions,vault,openVault}:{
   edit(d=>{
    const target=d.sections.find(s=>s.id===sid);if(!target||target.entries.length>=70)return;
    target.entries.push({id:crypto.randomUUID(),title:'',subtitle:'',location:'',startedOn:'',endedOn:'',
-    current:false,visible:true,bullets:[],source:null});
+    current:false,visible:true,bullets:[],extras:{},source:null});
   });
  }
  function patchEntry(sid:string,eid:string,key:keyof Omit<ResumeEntry,'id'|'source'|'bullets'>,value:string|boolean){
@@ -248,6 +248,14 @@ export function ResumeEditor({row,versions:initialVersions,vault,openVault}:{
        </div>
        <label className="resume-visibility"><input type="checkbox" checked={entry.current}
         onChange={e=>patchEntry(section.id,entry.id,'current',e.target.checked)}/> Present / ongoing</label>
+       {resumeExtraFields[section.kind].length>0&&<div className="resume-form-grid">
+        {resumeExtraFields[section.kind].map(field=><label className="form-row" key={field.key}>
+         <span className="label">{field.label} (optional)</span>
+         <input className="field" maxLength={field.maxLength} value={entry.extras?.[field.key]??''}
+          onChange={e=>edit(d=>{const target=d.sections.find(s=>s.id===section.id)?.entries.find(x=>x.id===entry.id);
+           if(target){target.extras??={};target.extras[field.key]=e.target.value;}})}/>
+        </label>)}
+       </div>}
        <div className="resume-inline-header"><strong>Bullet points</strong>
         <button className="button secondary" onClick={()=>addBullet(section.id,entry.id)}>+ Bullet</button></div>
        <p className="subtle" style={{margin:0,fontSize:12}}>Use Action + Contribution + Result where accurate. Never invent metrics.</p>

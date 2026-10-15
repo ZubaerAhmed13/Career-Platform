@@ -136,3 +136,6 @@
 /* Mobile preview fits the available width; manual zoom can still pan inside its viewport. */
 .resume-preview-scroll{max-width:100%;min-width:0}
 @media(max-width:960px){.resume-preview-panel{max-width:100%;min-width:0}}
+
+.resume-paper .resume-extra{font-size:9pt;color:#475569;white-space:pre-line;margin:3px 0}
+.resume-paper .resume-extra strong{color:#334155}

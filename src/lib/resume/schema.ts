@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { careerKind, kindLabels, type CareerRecord } from '../career/schema';
+import {detailFields} from '../career/record-fields';
 
 export const templateIds = ['ats-classic','modern-professional','student-graduate','european-clean','executive-minimal'] as const;
 export const paperSizes = ['A4','Letter'] as const;
@@ -30,6 +31,7 @@ export const entrySchema=z.object({
  startedOn:short(10).default(''),endedOn:short(10).default(''),
  current:z.boolean().default(false),visible:z.boolean().default(true),
  bullets:z.array(bulletSchema).max(40).default([]),
+ extras:z.record(z.string().max(50),z.string().max(900)).refine(v=>Object.keys(v).length<=20).default({}),
  source:sourceSchema.nullable().default(null)
 });
 export const sectionSchema=z.object({
@@ -91,13 +93,26 @@ export function emptyResume(template:ResumeSettings['template']='ats-classic',pa
   lineSpacing:1.2,margin:'standard',density:'standard',accent:'#1d3557',dateStyle:'month-year'}
  };
 }
+export const resumeExtraFields:Record<ResumeKind,readonly {key:string;label:string;maxLength:number}[]> = {
+ experience:detailFields.experience,education:[
+  ...detailFields.education,{key:'expected_graduation',label:'Expected graduation',maxLength:100}
+ ],skill:detailFields.skill,language:detailFields.language,project:detailFields.project,
+ achievement:detailFields.achievement,certification:detailFields.certification,
+ volunteering:detailFields.volunteering,custom:[]
+};
+export function displayExtraLabel(kind:ResumeKind,key:string){
+ return resumeExtraFields[kind].find(field=>field.key===key)?.label??
+  key.replace(/_/g,' ').replace(/^./,c=>c.toUpperCase());
+}
 export function entryFromRecord(record:CareerRecord):ResumeEntry {
  if(record.status!=='confirmed')throw new Error('Only confirmed Career Vault records can be selected.');
- const details=Object.values(record.details??{}).filter(value=>typeof value==='string'&&value.trim()).join('\n');
- const description=[record.description,details].filter(Boolean).join('\n');
+ const known=new Set(resumeExtraFields[record.kind].map(f=>f.key));
+ const extras=Object.fromEntries(Object.entries(record.details??{}).filter(([key,value])=>known.has(key)&&typeof value==='string'&&value.trim()).map(([key,value])=>[key,value.slice(0,900)]));
+ const other=Object.entries(record.details??{}).filter(([key,value])=>!known.has(key)&&typeof value==='string'&&value.trim()).map(([key,value])=>key+': '+value).join('\n');
+ const description=[record.description,other].filter(Boolean).join('\n');
  return {id:crypto.randomUUID(),title:record.title,subtitle:record.organization,
   location:record.location,startedOn:record.started_on??'',endedOn:record.ended_on??'',
-  current:record.is_current,visible:true,
+  current:record.is_current,visible:true,extras,
   bullets:description.split(/\r?\n/).map(s=>s.trim().replace(/^[-•]\s*/,'')).filter(Boolean).slice(0,40)
    .map(text=>({id:crypto.randomUUID(),text:text.slice(0,1200),visible:true})),
   source:{recordId:record.id,revision:record.revision,kind:record.kind,

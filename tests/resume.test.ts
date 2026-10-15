@@ -22,6 +22,7 @@ describe('Resume Studio structured model',()=>{
   const before=structuredClone(record);
   const entry=entryFromRecord(record);
   expect(entry.source).toMatchObject({recordId:record.id,revision:4,kind:'experience'});
+  expect(entry.extras).toEqual({});
   entry.title='Changed on resume only';
   expect(record).toEqual(before);
  });
@@ -34,6 +35,8 @@ describe('Resume Studio structured model',()=>{
   copy.settings.template='executive-minimal';copy.sections[0].entries[0].title='New wording';
   expect(d.settings.template).toBe('ats-classic');
   expect(d.sections[0].entries[0].title).toBe('Inventory operations');
+  copy.sections[0].entries[0].extras={department:'Finance'};
+  expect(d.sections[0].entries[0].extras).toEqual({});
  });
  it('validates unsafe links, oversized text and duplicate section identifiers',()=>{
   const d=emptyResume();d.contact.website='javascript:alert(1)';

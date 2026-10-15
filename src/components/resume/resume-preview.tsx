@@ -1,5 +1,5 @@
 'use client';
-import type {ResumeDoc} from '@/lib/resume/schema';
+import {displayExtraLabel,type ResumeDoc} from '@/lib/resume/schema';
 import {entryDates,sectionHeading,orderedSections} from '@/lib/resume/exports';
 
 export function ResumePreview({doc,fit=false}:{doc:ResumeDoc;fit?:boolean}){
@@ -36,6 +36,7 @@ export function ResumePreview({doc,fit=false}:{doc:ResumeDoc;fit?:boolean}){
       <h3>{entry.title}</h3><span>{entryDates(entry,doc)}</span>
      </div>
      {(entry.subtitle||entry.location)&&<p className="resume-entry-meta">{[entry.subtitle,entry.location].filter(Boolean).join(' · ')}</p>}
+     {Object.entries(entry.extras??{}).filter(([,value])=>value.trim()).map(([key,value])=><p className="resume-extra" key={key}><strong>{displayExtraLabel(section.kind,key)}:</strong> {value}</p>)}
      {entry.bullets.some(b=>b.visible&&b.text.trim())&&<ul>
       {entry.bullets.filter(b=>b.visible&&b.text.trim()).map(b=><li key={b.id}>{b.text}</li>)}
      </ul>}

@@ -1,5 +1,5 @@
 import type {ResumeDoc,ResumeEntry} from './schema';
-import {formatDate} from './schema';
+import {formatDate,displayExtraLabel} from './schema';
 
 const translated:Record<string,Record<string,string>>={
  en:{Experience:'Experience',Education:'Education',Skills:'Skills',Languages:'Languages',Projects:'Projects',
@@ -43,6 +43,7 @@ export function resumeLines(doc:ResumeDoc){
    if(entry.title)lines.push({type:'entry',text:entry.title});
    const meta=[entry.subtitle,entry.location,entryDates(entry,doc)].filter(Boolean).join(' · ');
    if(meta)lines.push({type:'meta',text:meta});
+   for(const [key,value] of Object.entries(entry.extras??{}))if(value.trim())lines.push({type:'meta',text:displayExtraLabel(section.kind,key)+': '+value});
    for(const bullet of entry.bullets.filter(b=>b.visible&&b.text.trim()))
     lines.push({type:'bullet',text:bullet.text});
   }
