@@ -20,7 +20,7 @@
 4. Owner imports a small non-sensitive text PDF or DOCX, reviews the extracted text, approves one dummy candidate, and can see the approved record.
 5. Owner downloads an account/Vault JSON export and stores a private copy.
 6. Keep Supabase RLS and server-only service-role secrets intact; do not run or enable a hosting preview while development is GitHub-only. Account wiping and deletion should **not** be tested with the real account.
-7. Merge the reviewed GitHub PR after green branch checks. For the new PR #4, preserve the previous personal beta on `main` until validation is complete; do not claim live browser acceptance based on CI alone.
+7. Merge the reviewed GitHub PR after green branch checks. PR #4 passed branch CI and merged on 15 October 2026; do not claim live signed-in acceptance based on CI alone.
 
 ## Deferred rather than mandatory
 
