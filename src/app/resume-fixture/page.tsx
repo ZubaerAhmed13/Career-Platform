@@ -16,5 +16,5 @@ export default function ResumeFixture(){
    {id:crypto.randomUUID(),text:'Checked inventory accuracy against stock records.',visible:true}]});
  return <main className="container stack"><h1 className="heading">Synthetic resume layout fixture</h1>
   <p className="subtle">Development-only visual sample. Not a saved career document.</p>
-  <ResumePreview doc={doc}/></main>;
+  <div className="resume-preview-scroll"><ResumePreview doc={doc}/></div></main>;
 }

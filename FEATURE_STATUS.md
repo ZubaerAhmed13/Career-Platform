@@ -31,3 +31,6 @@
 4. Begin Step 3 Resume Studio only when the Step 2 source-of-truth and revision-preservation behavior is satisfactory.
 
 See `docs/STEP2_ACCEPTANCE_MATRIX.md`, `docs/STEP2_RELEASE_GATES.md`, and `docs/BROWSER_LOCAL_CV_IMPORT.md`. Historical reports under `docs/` document earlier snapshots; their old branching, preview and AI requirements do **not** supersede these current operating instructions.
+
+## Step 3 feature branch — not merged or deployed
+GitHub feature branch feat/step3-resume-studio introduces the professional Resume Studio and migration for resumes and immutable versions. CI and manual acceptance are tracked in PR #6. Existing real Supabase is unchanged. Keep the application English-only and all AI/hosting postponed.

@@ -105,3 +105,6 @@ The Career Vault review page now offers **browser-only PDF/DOCX text extraction*
 
 ### Browser-local CV review — no scanner/GPU needed
 In Career Vault → Review before saving, users can open a **text-based PDF or DOCX locally on their own device**, review the extracted text in successive editable parts (at most 4,000 characters per part), and explicitly save each selected text part as unconfirmed, owner-private suggestions in Supabase. The original PDF/DOCX is never posted to CareerOS; this is **not** antivirus scanning and users should open documents they trust. The optional separate server-scanned upload route stays disabled while ClamAV is unavailable. See [browser-local import guide](docs/BROWSER_LOCAL_CV_IMPORT.md). Desktop and mobile Chromium extraction tests run in GitHub CI; authenticated real-account save acceptance is a separate gate.
+
+## Step 3 Resume Studio development branch
+Feature branch: feat/step3-resume-studio. PR #6 is unmerged and GitHub-only. The typed editor, five templates, resume snapshots, immutable versions, Word and text export and print layout are feature-branch work. The additive resume SQL migration is not applied to the owner's live Supabase, so real-account usability is not yet verified. No AI or hosting was activated. See docs/STEP3_TECHNICAL_DESIGN.md for limitations.

@@ -114,7 +114,7 @@ export function ResumeEditor({row,versions:initialVersions,vault,openVault}:{
    const result=await createResumeVersion(row.id,revisionRef.current,versionLabel);
    if(!result.ok){setMessage(result.error);return;}
    setVersions(v=>[{
-    id:crypto.randomUUID(),resume_id:row.id,user_id:row.user_id,version_number:result.version!,
+    id:result.versionId!,resume_id:row.id,user_id:row.user_id,version_number:result.version!,
     label:versionLabel,snapshot_content:structuredClone(docRef.current),created_at:new Date().toISOString()
    },...v]); // optimistic listing; refresh replaces synthetic ID with stored ID
    setVersionLabel('');setMessage('Saved immutable version #'+result.version+'.');
