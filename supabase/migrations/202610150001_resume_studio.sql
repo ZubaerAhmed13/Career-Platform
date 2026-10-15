@@ -78,3 +78,65 @@ grant execute on function public.create_my_resume_version(uuid,text,integer) to 
 -- Earlier migrations revoke public API rights. Grant only the newly required operations.
 grant select,insert,update,delete on public.resumes to authenticated;
 grant select on public.resume_versions to authenticated;
+
+
+-- Defense in depth: direct authenticated Data API calls must not forge an
+-- external owner's Career Vault source (even when bypassing Next server actions).
+-- Snapshots already present in the same owner's saved draft, other saved resume
+-- or immutable version may remain after the original Vault record is deleted.
+create function public.resume_source_guard() returns trigger
+language plpgsql security definer set search_path='' as $$
+declare sec jsonb; item jsonb; src jsonb; found_record public.career_records%rowtype;
+declare trusted boolean;
+begin
+ for sec in select value from jsonb_array_elements(coalesce(new.draft_content->'sections','[]'::jsonb)) loop
+  for item in select value from jsonb_array_elements(coalesce(sec->'entries','[]'::jsonb)) loop
+   src:=item->'source';
+   if src is null or src='null'::jsonb then continue; end if;
+   if jsonb_typeof(src)<>'object' then raise exception 'Invalid resume source'; end if;
+   trusted:=false;
+   -- Identical metadata previously present in an owned draft is historical.
+   if tg_op='UPDATE' then
+    select exists (
+     select 1 from jsonb_array_elements(coalesce(old.draft_content->'sections','[]'::jsonb)) s,
+      jsonb_array_elements(coalesce(s->'entries','[]'::jsonb)) e
+     where e->'source'=src
+    ) into trusted;
+   end if;
+   -- Duplicates/restores also retain legitimate metadata after Vault removal.
+   if not trusted then
+    select exists (
+     select 1 from public.resumes r,
+      jsonb_array_elements(coalesce(r.draft_content->'sections','[]'::jsonb)) s,
+      jsonb_array_elements(coalesce(s->'entries','[]'::jsonb)) e
+     where r.user_id=new.user_id and r.id<>new.id and e->'source'=src
+    ) into trusted;
+   end if;
+   if not trusted then
+    select exists (
+     select 1 from public.resume_versions v,
+      jsonb_array_elements(coalesce(v.snapshot_content->'sections','[]'::jsonb)) s,
+      jsonb_array_elements(coalesce(s->'entries','[]'::jsonb)) e
+     where v.user_id=new.user_id and e->'source'=src
+    ) into trusted;
+   end if;
+   if trusted then continue; end if;
+   -- New linkage must exactly match an existing *confirmed* same-owner record.
+   if (src->>'recordId') is null or (src->>'revision') is null then
+    raise exception 'Incomplete Career Vault source';
+   end if;
+   select * into found_record from public.career_records
+    where id=(src->>'recordId')::uuid and user_id=new.user_id and status='confirmed';
+   if not found or found_record.revision<>(src->>'revision')::integer
+    or found_record.kind is distinct from src->>'kind'
+    or found_record.title is distinct from src->>'title'
+    or found_record.organization is distinct from src->>'organization'
+    or found_record.description is distinct from src->>'description' then
+    raise exception 'Only exact same-owner confirmed Vault sources can be linked';
+   end if;
+  end loop;
+ end loop;
+ return new;
+end; $$;
+create trigger protect_resume_sources before insert or update on public.resumes
+ for each row execute function public.resume_source_guard();
