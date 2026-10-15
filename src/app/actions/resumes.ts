@@ -1,7 +1,7 @@
 'use server';
 import {revalidatePath} from 'next/cache';
 import {requireAccount} from '@/lib/account';
-import {resumeDocSchema,emptyResume, type ResumeDoc, type ResumeRow, type ResumeVersion, type ResumeEntry} from '@/lib/resume/schema';
+import {resumeDocSchema,emptyResume, type ResumeDoc, type ResumeVersion, type ResumeEntry} from '@/lib/resume/schema';
 import {z} from 'zod';
 
 const uid=z.uuid();

@@ -1,8 +1,8 @@
 import {describe,it,expect} from 'vitest';
 import {emptyResume,entryFromRecord,duplicateDraft,formatDate,qualityWarnings,
- resumeDocSchema,safeExportName,templateIds,templateNames} from '@/lib/resume/schema';
-import {makeResumeDocx,resumeLines,resumePlainText,orderedSections} from '@/lib/resume/exports';
-import type {CareerRecord} from '@/lib/career/schema';
+ resumeDocSchema,safeExportName,templateIds,templateNames} from '../src/lib/resume/schema';
+import {makeResumeDocx,resumeLines,resumePlainText,orderedSections} from '../src/lib/resume/exports';
+import type {CareerRecord} from '../src/lib/career/schema';
 
 const record:CareerRecord={
  id:'f1111111-1111-4111-8111-111111111111',user_id:'f2222222-2222-4222-8222-222222222222',

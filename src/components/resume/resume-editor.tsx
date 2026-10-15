@@ -4,7 +4,7 @@ import {useRouter} from 'next/navigation';
 import Link from 'next/link';
 import {createResumeVersion,restoreResumeVersion,saveResumeDraft} from '@/app/actions/resumes';
 import {entryFromRecord,qualityWarnings,templateIds,templateNames,
- type ResumeDoc,type ResumeRow,type ResumeSection,type ResumeEntry,type ResumeVersion} from '@/lib/resume/schema';
+ type ResumeDoc,type ResumeRow,type ResumeEntry,type ResumeVersion} from '@/lib/resume/schema';
 import {careerKinds,kindLabels,type CareerKind,type CareerRecord} from '@/lib/career/schema';
 import {makeResumeDocx,resumePlainText} from '@/lib/resume/exports';
 import {safeExportName} from '@/lib/resume/schema';
@@ -77,7 +77,6 @@ export function ResumeEditor({row,versions:initialVersions,vault,openVault}:{
  // tick re-runs after a save finished while more edits were made.
  // eslint-disable-next-line react-hooks/exhaustive-deps
  },[doc,tick]);
- const canWork=!previewVersion;
  function addEntry(sid:string){
   edit(d=>{
    const target=d.sections.find(s=>s.id===sid);if(!target||target.entries.length>=70)return;

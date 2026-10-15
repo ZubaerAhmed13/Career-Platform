@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { careerKind, kindLabels, type CareerRecord } from '@/lib/career/schema';
+import { careerKind, kindLabels, type CareerRecord } from '../career/schema';
 
 export const templateIds = ['ats-classic','modern-professional','student-graduate','european-clean','executive-minimal'] as const;
 export const paperSizes = ['A4','Letter'] as const;
