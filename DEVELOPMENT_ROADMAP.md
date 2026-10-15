@@ -1,5 +1,9 @@
 # Twelve-stage roadmap
 
+## Current operating mode — GitHub development only (2026-10-15)
+
+The owner will decide when the website is satisfactory and explicitly authorize hosting. Until then, work only in GitHub (code, PRs, GitHub Actions and non-deployed test fixtures). No Vercel deployments, preview readiness checks or production-promotion requirements apply to development milestones. Automatic Git deployments are paused by root `vercel.json`; do not re-enable them during feature work. Self-hosted AI and the optional scanner-based server upload remain preserved for future updates, but their external infrastructure is not a blocker for non-AI milestones. This does not waive security, data integrity, privacy and functional testing. Live connected-service operations require separate owner direction.
+
 1. Core SaaS foundation (this change; provider verification pending)
 2. Permanent Career Intelligence Vault and evidence-backed fact model
 3. Resume Studio template/preview and printable documents
