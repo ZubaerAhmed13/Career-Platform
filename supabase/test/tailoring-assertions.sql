@@ -74,10 +74,10 @@ delete from public.resume_tailoring_sessions where id='aaaaaaaa-1111-4111-8111-1
 reset role;
 -- Synthetic owner erasure cascades the private data.
 delete from auth.users where id in
- ('abababab-abab-4aba-8aba-abababababab','cdcdcdcd-cdcd-4cdc-8cdc-cdcdcdcdcd');
+ ('abababab-abab-4aba-8aba-abababababab','cdcdcdcd-cdcd-4cdc-8cdc-cdcdcdcdcdcd');
 do $$
 begin
  if exists(select 1 from public.resume_tailoring_sessions
-  where user_id in ('abababab-abab-4aba-8aba-abababababab','cdcdcdcd-cdcd-4cdc-8cdc-cdcdcdcdcd')) then
+  where user_id in ('abababab-abab-4aba-8aba-abababababab','cdcdcdcd-cdcd-4cdc-8cdc-cdcdcdcdcdcd')) then
   raise exception 'Account erasure left a job brief';end if;
 end $$;
