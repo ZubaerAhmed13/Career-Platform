@@ -78,6 +78,8 @@ jobs:
           done
       - name: Assert Resume Studio ownership, revisions, versions and cascading deletion
         run: psql -X -v ON_ERROR_STOP=1 -f supabase/test/resume-assertions.sql
+      - name: Assert Step 4 private job briefs, source preservation and RLS
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/test/tailoring-assertions.sql
       - name: Assert RLS, AI provenance, and approval
         run: psql -X -v ON_ERROR_STOP=1 -f supabase/test/assertions.sql
       - name: Prepare disposable JWT and PostgREST role
