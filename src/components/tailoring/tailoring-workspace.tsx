@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import {useEffect,useMemo,useRef,useState,useTransition} from 'react';
 import {useRouter} from 'next/navigation';
-import {createTargetedResume,saveTailoringSession,includeVerifiedCareerRecord} from '@/app/actions/resume-tailoring';
+import {createTargetedResume,saveTailoringSession,includeVerifiedCareerRecord,getAvailableResumeVersions} from '@/app/actions/resume-tailoring';
 import {briefFromRow,requirementCategories,requirementPriorities,type JobBrief,type JobRequirement,type TailoringRow} from '@/lib/tailoring/schema';
 import {newManualRequirement,extractRequirements} from '@/lib/tailoring/requirements';
 import {compareResume,coverage,findEvidence} from '@/lib/tailoring/matching';
@@ -18,12 +18,20 @@ export function TailoringWorkspace({session,resumes,vault}:{
  const [brief,setBrief]=useState<JobBrief>(()=>briefFromRow(session));
  const [message,setMessage]=useState(''),[status,setStatus]=useState('Saved');
  const [sourceId,setSourceId]=useState<string>(session.source_resume_id??'');
+ const [sourceVersion,setSourceVersion]=useState('');
+ const [versions,setVersions]=useState<{id:string;version_number:number;label:string}[]>([]);
  const [pending,start]=useTransition();
  const [newRequirement,setNewRequirement]=useState('');
  const [filter,setFilter]=useState<'all'|'approved'|'needs'>('all');
  const revision=useRef(session.revision),saving=useRef(false),blocked=useRef(false);
  const saved=useRef(JSON.stringify(brief)),current=useRef(brief);
  const [tick,setTick]=useState(0);
+ useEffect(()=>{
+  let active=true;
+  if(!sourceId){setVersions([]);return;}
+  void getAvailableResumeVersions(sourceId).then(items=>{if(active)setVersions(items);});
+  return ()=>{active=false;};
+ },[sourceId]);
  current.current=brief;
  const dirty=JSON.stringify(brief)!==saved.current;
  const matches=useMemo(()=>brief.requirements.map(r=>findEvidence(r,vault)),[brief.requirements,vault]);
@@ -96,7 +104,7 @@ export function TailoringWorkspace({session,resumes,vault}:{
    if(saving.current){setMessage('Finish saving the current edits before copying a resume.');return;}
    if(dirty&&!await save(current.current))return;
    if(JSON.stringify(current.current)!==saved.current){setMessage('More edits are still unsaved. Try again.');return;}
-   const result=await createTargetedResume(session.id,revision.current,sourceId||null);
+   const result=await createTargetedResume(session.id,revision.current,sourceId||null,sourceVersion||null);
    if(!result.ok){setMessage(result.error);return;}
    setMessage('Independent targeted copy created. The source resume was not changed.');
    router.refresh();
@@ -238,10 +246,15 @@ export function TailoringWorkspace({session,resumes,vault}:{
       <Link className="button secondary" href={'/resume-studio/'+session.tailored_resume_id+'/print'} target="_blank">Print saved targeted CV / PDF</Link>
      </>:<>
       <label className="form-row"><span className="label">Choose the original resume</span>
-       <select className="field" value={sourceId} onChange={e=>setSourceId(e.target.value)}>
+       <select className="field" value={sourceId} onChange={e=>{setSourceId(e.target.value);setSourceVersion('');}}>
         <option value="">Start blank (same Step 3 editor)</option>
         {sourceOptions.map(r=><option value={r.id} key={r.id}>{r.name}</option>)}
        </select></label>
+      {sourceId&&<label className="form-row"><span className="label">Saved version (optional)</span>
+       <select className="field" value={sourceVersion} onChange={e=>setSourceVersion(e.target.value)}>
+        <option value="">Latest saved draft</option>
+        {versions.map(v=><option value={v.id} key={v.id}>Version #{v.version_number}{v.label?' — '+v.label:''}</option>)}
+       </select></label>}
       <p className="subtle">The source&apos;s exact saved draft, design, portrait choice and confirmed source snapshots are copied. After copying, select or reorder Career Vault facts inside the usual editor.</p>
       <button className="button" type="button" disabled={pending||blocked.current||saving.current} onClick={createCopy}>{pending?'Creating copy…':'Create independent targeted CV'}</button>
      </>}
