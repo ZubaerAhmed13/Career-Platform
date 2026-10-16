@@ -1,5 +1,5 @@
 import {describe,it,expect} from 'vitest';
-import {extractRequirements,newManualRequirement} from '../src/lib/tailoring/requirements';
+import {extractRequirements,newManualRequirement,splitRequirement,mergeRequirements} from '../src/lib/tailoring/requirements';
 import {jobBriefSchema} from '../src/lib/tailoring/schema';
 import {findEvidence,coverage,detectLanguageGap,compareResume} from '../src/lib/tailoring/matching';
 import {emptyResume} from '../src/lib/resume/schema';
@@ -25,6 +25,19 @@ describe('Job-targeted resume intelligence without models',()=>{
   expect(content.slice(items[0].position)).toContain('Microsoft Excel');
   expect(items[1]).toMatchObject({priority:'preferred',relation:'alternative'});
   expect(items[2].relation).toBe('alternative');
+ });
+ it('requires human review again after splitting or merging requirements',()=>{
+  const source={...newManualRequirement('Excel and PowerPoint'),review:'approved' as const,priority:'essential' as const};
+  const split=splitRequirement(source,'Excel','PowerPoint');
+  expect(split).toHaveLength(2);
+  expect(split[0].review).toBe('candidate');
+  expect(split[1].priority).toBe('unclassified');
+  expect(new Set(split.map(v=>v.id)).size).toBe(2);
+  const merged=mergeRequirements(split[0],split[1]);
+  expect(merged.review).toBe('candidate');
+  expect(merged.relation).toBe('compound');
+  expect(merged.origin).toBe('user');
+  expect(()=>splitRequirement(source,'','PowerPoint')).toThrow();
  });
  it('does not silently classify optional as mandatory',()=>{
   const r=extractRequirements('Preferred: Proficiency using Power BI and Excel.');
