@@ -179,3 +179,7 @@
 
 .tailoring-original-text{white-space:pre-wrap;overflow-wrap:anywhere;max-height:350px;overflow:auto;
  background:var(--background);border:1px solid var(--line);border-radius:10px;padding:12px;font:inherit}
+
+.tailoring-keyword-list{list-style:none;padding:0;display:grid;gap:8px}
+.tailoring-keyword-list li{display:grid;gap:4px;padding:9px 0;border-bottom:1px solid var(--line)}
+.tailoring-keyword-list span{font-size:.9rem;color:var(--muted)}
