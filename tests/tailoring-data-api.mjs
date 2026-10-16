@@ -33,7 +33,7 @@ const source=(await ok('/resumes?select=id,revision',{
   template_id:'ats-classic',paper_size:'A4',document_language:'en'}}))[0];
 const brief=(await ok('/resume_tailoring_sessions?select=id,revision',{
  method:'POST',identity:A,body:{user_id:A,job_title:'Operations Analyst',
-  original_job_description:job,requirements:[]}}))[0];
+  original_job_description:job,initial_job_description:job,requirements:[]}}))[0];
 assert.equal(brief.revision,1);
 assert.deepEqual(await ok('/resume_tailoring_sessions?select=id&id=eq.'+brief.id,{identity:B}),[]);
 const anonymous=await query('/resume_tailoring_sessions?select=id');
