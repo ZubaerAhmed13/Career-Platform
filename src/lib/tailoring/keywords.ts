@@ -1,7 +1,7 @@
 import type {ResumeDoc} from '@/lib/resume/schema';
 import type {JobRequirement} from './schema';
 import type {CareerRecord} from '@/lib/career/schema';
-import {resumePlainText} from '@/lib/resume/exports';
+import {resumePlainText} from '../resume/exports';
 import {controlledAliases,findEvidence} from './matching';
 
 export type KeywordFinding={
