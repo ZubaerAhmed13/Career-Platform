@@ -11,13 +11,16 @@ export function TailoringLibrary({sessions}:{sessions:TailoringRow[]}){
  const [location,setLocation]=useState(''),[url,setUrl]=useState('');
  const [description,setDescription]=useState(''),[notes,setNotes]=useState('');
  const [type,setType]=useState(''),[message,setMessage]=useState('');
+ const [weeklyHours,setWeeklyHours]=useState(''),[workArrangement,setWorkArrangement]=useState('');
+ const [postingDate,setPostingDate]=useState(''),[applicationDeadline,setApplicationDeadline]=useState('');
  const [pending,start]=useTransition();
  function create(event:React.FormEvent<HTMLFormElement>){
   event.preventDefault();
   start(async()=>{
    const result=await createTailoringSession({
     jobTitle:title,employerName:employer,location,employmentType:type,
-    jobUrl:url,originalDescription:description,notes
+    jobUrl:url,originalDescription:description,notes,
+    weeklyHours,workArrangement,postingDate,applicationDeadline
    });
    if(!result.ok){setMessage(result.error);return;}
    router.push('/resume-studio/tailor/'+result.id);
@@ -49,6 +52,15 @@ export function TailoringLibrary({sessions}:{sessions:TailoringRow[]}){
      <input className="field" maxLength={180} value={location} onChange={e=>setLocation(e.target.value)}/></label>
     <label className="form-row"><span className="label">Employment type / hours if supplied</span>
      <input className="field" maxLength={100} value={type} onChange={e=>setType(e.target.value)}/></label>
+
+    <label className="form-row"><span className="label">Weekly hours (only if stated)</span>
+     <input className="field" maxLength={80} value={weeklyHours} onChange={e=>setWeeklyHours(e.target.value)} placeholder="e.g. 20 hours/week"/></label>
+    <label className="form-row"><span className="label">Work arrangement (if stated)</span>
+     <input className="field" maxLength={80} value={workArrangement} onChange={e=>setWorkArrangement(e.target.value)} placeholder="Onsite, hybrid or remote"/></label>
+    <label className="form-row"><span className="label">Posting date (optional)</span>
+     <input className="field" type="date" value={postingDate} onChange={e=>setPostingDate(e.target.value)}/></label>
+    <label className="form-row"><span className="label">Application deadline (optional)</span>
+     <input className="field" type="date" value={applicationDeadline} onChange={e=>setApplicationDeadline(e.target.value)}/></label>
     <label className="form-row"><span className="label">Original posting URL (reference only)</span>
      <input type="url" className="field" maxLength={1500} value={url} onChange={e=>setUrl(e.target.value)} placeholder="https://..."/></label>
    </div>
