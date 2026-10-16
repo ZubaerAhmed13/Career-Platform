@@ -39,7 +39,7 @@ assert.deepEqual(await ok('/resume_tailoring_sessions?select=id&id=eq.'+brief.id
 const anonymous=await query('/resume_tailoring_sessions?select=id');
 assert([401,403].includes(anonymous.status)||(anonymous.status===200&&anonymous.data.length===0));
 const forged=await query('/resume_tailoring_sessions?select=id',{method:'POST',identity:B,
- body:{user_id:B,job_title:'Forged',original_job_description:job,source_resume_id:source.id}});
+ body:{user_id:B,job_title:'Forged',original_job_description:job,initial_job_description:job,source_resume_id:source.id}});
 assert(forged.status>=400,'Cross-owner source link must fail');
 const proposed=[{id:'31313131-3131-4131-8131-313131313131',text:'Excel experience',
  excerpt:'Required: Excel experience',position:0,category:'tool',priority:'essential',
