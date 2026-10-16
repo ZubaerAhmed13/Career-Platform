@@ -1,7 +1,7 @@
 # Step 3 — Resume Studio acceptance matrix
 
 **Code milestone:** Merged into `main` via [PR #6](https://github.com/ZubaerAhmed13/Career-Platform/pull/6) on 16 October 2026.
-**Operating mode:** GitHub only. Automatic Vercel deployment is disabled. No live Supabase schema mutations.
+**Operating mode:** GitHub-only code and no Vercel deployment. The owner explicitly approved the two additive CareerOS AI Supabase migrations on 16 October 2026; signed-in manual testing remains separate.
 
 ## Completed automated code-level checks
 
@@ -21,7 +21,7 @@ The GitHub-only acceptance job now exercises a genuine PostgREST HTTP API backed
 
 ## Outstanding real-account acceptance
 
-- [ ] Approve a non-production backend or deliberately approve applying `supabase/migrations/202610150001_resume_studio.sql` to the chosen Supabase project
+- [x] Owner explicitly approved and applied the additive Resume Studio and least-privilege migrations to the connected CareerOS AI project; schema and permissions verified read-only on 16 October 2026
 - [ ] Authenticate, create/edit a resume, refresh and sign back in; verify persistence
 - [ ] Add confirmed Career Vault facts; verify copied source revision and original Vault immutability
 - [ ] Create, preview, restore and export historical versions; simulate simultaneous edits
@@ -29,4 +29,4 @@ The GitHub-only acceptance job now exercises a genuine PostgREST HTTP API backed
 - [ ] Review long A4 and Letter browser-saved PDFs, logged-in mobile interaction and keyboard navigation
 - [ ] Verify signed-in JSON account export includes the user's owned resumes and version history
 
-**No irreversible deletion tests on the sole real account.** The CI suite uses disposable synthetic identities. No Vercel deployment or live data mutation is authorised by this merge. Until the approved database migration and practical acceptance are completed, Resume Studio is a source-level beta, **not a live feature**.
+**No irreversible deletion tests on the sole real account.** The CI suite uses disposable synthetic identities. The separate owner-approved live database migration is complete, but no Vercel deployment is authorised. Until signed-in practical acceptance is completed, Resume Studio is a tested source-level beta with prepared database storage, **not a manually verified live web feature**.

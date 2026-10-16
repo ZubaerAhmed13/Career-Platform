@@ -22,11 +22,11 @@
 - True two-account Supabase staging tests and destructive account erasure are available as opt-in workflows for disposable accounts only; standard PR CI does not execute them.
 - Confirming that an application builds is not confirming working sign-in, database persistence or mobile ergonomics with a real account.
 - The hosted Qwen/Ollama model and ClamAV gateway remain deferred; do not report the model as active.
-- No GitHub-only task may trigger Vercel or alter the live Supabase project.
+- Automatic deployment stays disabled. Supabase schema changes require explicit owner approval; the Step 3 migration was explicitly approved and applied on 16 October 2026.
 
 ## Safe next steps
 1. Step 2 and Step 3 source code are merged; verify CI from the exact main merge commit, not from earlier feature-branch runs.
-2. Before attempting real signed-in Resume Studio usage, intentionally apply the Step 3 SQL migration to a separately approved database. This was **not** part of GitHub-only implementation.
+2. Step 3 SQL and the least-privilege hardening migration have been applied to the owner-approved CareerOS AI Supabase project. Verify the schema read-only before attempting signed-in use; never rerun these migrations blindly.
 3. Use non-sensitive disposable resumes for create/edit/reload/relogin and owned record tests, then check Word/PDF exports and account JSON backup; avoid irreversible actions on the only real account.
 4. Keep automatic Vercel deployment off, preserve English-language navigation, and leave AI/model hosting deferred.
 
@@ -36,4 +36,4 @@ See `docs/STEP2_ACCEPTANCE_MATRIX.md`, `docs/STEP2_RELEASE_GATES.md`, and `docs/
 
 [PR #6](https://github.com/ZubaerAhmed13/Career-Platform/pull/6) merged the non-AI Resume Studio source on 16 October 2026: eight career categories, five responsive templates, optional local portrait processing, owner-scoped document snapshots, versioned drafts, print/PDF, editable DOCX, text output and automated browser/database checks.
 
-**Scope boundary:** Database migration committed in GitHub only — **not applied to live Supabase**. Real-account end-to-end acceptance is **not completed**. Hosting and AI are still disabled. See `docs/STEP3_ACCEPTANCE.md`.
+**Scope boundary:** The owner approved the CareerOS AI database migration on 16 October 2026; both additive migrations succeeded and the private table policies and role grants were independently inspected. Real-account end-to-end acceptance is **not completed**. Hosting and AI are still disabled. See `docs/STEP3_ACCEPTANCE.md`.

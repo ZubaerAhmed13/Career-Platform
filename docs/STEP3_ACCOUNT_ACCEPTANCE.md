@@ -1,12 +1,12 @@
 # Step 3 Resume Studio — safe account acceptance
 
-**Current status:** The Step 3 code is on GitHub main. The additive migration is in the repository, not on the connected CareerOS Supabase project. Hosting and model serving remain paused.
+**Current status (16 October 2026):** The Step 3 code is merged on GitHub main. By explicit owner approval, the original Resume Studio migration and the least-privilege hardening migration were applied successfully to the connected CareerOS AI Supabase project. Tables, RLS, role grants and migration history passed read-only inspection. **Real sign-in and CV persistence have not been manually tested.** Hosting and model serving remain paused.
 
 ## Prerequisites
-1. Explicitly approve the target **CareerOS AI** Supabase project. Do not use Weekwise or DocFlow.
-2. Review the additive SQL migration at supabase/migrations/202610150001_resume_studio.sql. Confirm disposable PostgreSQL and synthetic REST security tests are green.
-3. Check a current backup and migration history. Only after separate owner approval, apply the migration. Never rerun it blindly on a database with existing resume tables.
-4. Verify the newly created private resume and version tables, RLS policies and authenticated owner grants.
+1. Target confirmed and owner-approved: **CareerOS AI** Supabase project, not Weekwise or DocFlow.
+2. The additive SQL migration in supabase/migrations/202610150001_resume_studio.sql and follow-up supabase/migrations/202610160001_resume_studio_least_privilege.sql were applied on 16 October 2026. Disposable PostgreSQL and synthetic REST security tests are green.
+3. The live migration history confirms resume_studio and resume_studio_least_privilege. Do not apply either again blindly. Backup availability was not independently established here; take a verified backup before any future destructive operation.
+4. Verified: both private resume tables exist, RLS is enabled, owner policies are present, anonymous table grants are revoked, authenticated clients can write only drafts and read history, and the version-creation RPC is available only to authenticated users.
 5. Configure local development with a publishable key in an untracked .env.local file. Run npm ci and npm run dev, then open http://localhost:3000. Do not expose a service-role key or deploy the site.
 
 ## Disposable resume acceptance procedure
