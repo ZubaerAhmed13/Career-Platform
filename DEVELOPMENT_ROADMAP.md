@@ -25,5 +25,8 @@ Step 2 code merged into `main` through PR #2 (Career Vault) and PR #3 (export re
 
 Current operating rules: no Vercel or other deployment actions, no live Supabase mutations, and no AI/model hosting requirements without explicit owner instruction. Resume Studio is Stage 3 and should consume the existing immutable/confirmed source-of-truth contract. Historical deployment and scanner-dependent gates are not prerequisites for non-AI GitHub-only development.
 
-## Step 3 progress
-GitHub-only feature branch feat/step3-resume-studio implements source-backed resume drafts, five templates, editing/preview, versioning and private document exports. The migration is written but has not been applied to live Supabase. Pending CI and real-account acceptance must be distinguished from code availability. Step 4 job-tailoring remains deferred.
+## Step 3 — Resume Studio source release (16 October 2026)
+
+Step 3 was squash-merged into `main` via [PR #6](https://github.com/ZubaerAhmed13/Career-Platform/pull/6). It provides source-backed resume drafts, eight category-aware sections, five professional templates, optional portrait, content/design/preview workspace, separate revisions, private version history, genuine Word and text output and print/PDF capability.
+
+Code-level checks include TypeScript, lint, unit tests, Next build, disposable PostgreSQL migration and owner-RLS assertions, Word parser integrity, and synthetic desktop/mobile browser scenarios. The migration is **present in GitHub but not applied to the live Supabase project**; real-account data persistence and manual signed-in usability are still outstanding acceptance gates. No hosting, AI or external scanner has been activated. Step 4 job tailoring remains future work.
