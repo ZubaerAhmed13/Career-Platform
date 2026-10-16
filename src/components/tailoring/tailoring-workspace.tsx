@@ -187,6 +187,14 @@ export function TailoringWorkspace({session,resumes,vault}:{
        <input className="field" maxLength={180} value={brief.location} onChange={e=>change(b=>{b.location=e.target.value;})}/></label>
       <label className="form-row"><span className="label">Employment type</span>
        <input className="field" maxLength={100} value={brief.employmentType} onChange={e=>change(b=>{b.employmentType=e.target.value;})}/></label>
+      <label className="form-row"><span className="label">Weekly hours if stated</span>
+       <input className="field" maxLength={80} value={brief.weeklyHours} onChange={e=>change(b=>{b.weeklyHours=e.target.value;})}/></label>
+      <label className="form-row"><span className="label">Work arrangement</span>
+       <input className="field" maxLength={80} value={brief.workArrangement} onChange={e=>change(b=>{b.workArrangement=e.target.value;})}/></label>
+      <label className="form-row"><span className="label">Posting date (optional)</span>
+       <input className="field" type="date" value={brief.postingDate} onChange={e=>change(b=>{b.postingDate=e.target.value;})}/></label>
+      <label className="form-row"><span className="label">Application deadline (optional)</span>
+       <input className="field" type="date" value={brief.applicationDeadline} onChange={e=>change(b=>{b.applicationDeadline=e.target.value;})}/></label>
      </div>
      <label className="form-row"><span className="label">Posting URL (reference only)</span>
       <input className="field" type="url" maxLength={1500} value={brief.jobUrl}
