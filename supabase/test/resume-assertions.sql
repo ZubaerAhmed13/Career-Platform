@@ -1,5 +1,13 @@
 \set ON_ERROR_STOP on
 -- Step 3 assertions ONLY against ephemeral PostgreSQL CI fixture.
+do $
+begin
+ if has_function_privilege('anon','public.resume_source_guard()','EXECUTE') or
+    has_function_privilege('authenticated','public.resume_source_guard()','EXECUTE') or
+    has_function_privilege('anon','public.resume_revision_guard()','EXECUTE') then
+  raise exception 'Internal resume trigger API was exposed';
+ end if;
+end $;
 insert into auth.users(id,email) values
 ('cccccccc-cccc-4ccc-8ccc-cccccccccccc','resume_a@example.invalid'),
 ('dddddddd-dddd-4ddd-8ddd-dddddddddddd','resume_b@example.invalid');

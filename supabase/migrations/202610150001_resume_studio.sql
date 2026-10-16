@@ -140,3 +140,6 @@ begin
 end; $$;
 create trigger protect_resume_sources before insert or update on public.resumes
  for each row execute function public.resume_source_guard();
+-- Trigger functions are internal database machinery, not callable public APIs.
+revoke all on function public.resume_source_guard() from public,anon,authenticated;
+revoke all on function public.resume_revision_guard() from public,anon,authenticated;
