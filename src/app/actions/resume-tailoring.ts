@@ -20,6 +20,8 @@ function values(brief:JobBrief){
  return {
   job_title:brief.jobTitle,employer_name:brief.employerName,job_location:brief.location,
   employment_type:brief.employmentType,job_url:brief.jobUrl,
+  weekly_hours:brief.weeklyHours,work_arrangement:brief.workArrangement,
+  posting_date:brief.postingDate,application_deadline:brief.applicationDeadline,
   original_job_description:brief.originalDescription,private_notes:brief.notes,
   requirements:brief.requirements
  };
@@ -27,6 +29,7 @@ function values(brief:JobBrief){
 export async function createTailoringSession(input:{
  jobTitle:string;employerName?:string;location?:string;employmentType?:string;
  jobUrl?:string;originalDescription:string;notes?:string;
+ weeklyHours?:string;workArrangement?:string;postingDate?:string;applicationDeadline?:string;
 }):Promise<TailorResult>{
  const parsed=jobBriefSchema.safeParse({...input,requirements:extractRequirements(input.originalDescription??'')});
  if(!parsed.success)return fail('Enter a genuine job title and at least 40 characters of job text. Check the URL and field limits.');
