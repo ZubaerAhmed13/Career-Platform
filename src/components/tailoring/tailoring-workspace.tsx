@@ -9,6 +9,7 @@ import {compareResume,coverage,findEvidence} from '@/lib/tailoring/matching';
 import {qualityWarnings,type ResumeRow} from '@/lib/resume/schema';
 import {resumePlainText} from '@/lib/resume/exports';
 import {contentSuggestions,sourceChangeWarnings,wordingPrompts} from '@/lib/tailoring/recommendations';
+import {inspectKeywordCoverage} from '@/lib/tailoring/keywords';
 import type {CareerRecord} from '@/lib/career/schema';
 
 export function TailoringWorkspace({session,resumes,vault}:{
@@ -42,6 +43,7 @@ export function TailoringWorkspace({session,resumes,vault}:{
  const targeted=resumes.find(r=>r.id===session.tailored_resume_id);
  const changes=session.source_snapshot&&targeted?compareResume(session.source_snapshot,targeted.draft_content):[];
  const recommendations=contentSuggestions(matches,vault,targeted?.draft_content);
+ const keywordFindings=inspectKeywordCoverage(brief.requirements,targeted?.draft_content??null,vault);
  const writing=targeted?wordingPrompts(targeted.draft_content):[];
  const sourceWarnings=targeted?sourceChangeWarnings(targeted.draft_content,vault):[];
  const sourceOptions=resumes.filter(r=>r.id!==session.tailored_resume_id);
@@ -282,6 +284,16 @@ export function TailoringWorkspace({session,resumes,vault}:{
        </div>;
       })}
      <Link className="button secondary" href="/career-vault">Review or correct Career Vault →</Link>
+    </section>
+    <section className="card stack">
+     <h2 style={{margin:0}}>Transparent keyword inspection</h2>
+     <p className="subtle">Only exact employer terminology from approved requirements appears here. Wording already in a resume is not independently verified just because it is present. No keyword density targets or ATS score.</p>
+     {!keywordFindings.length?<p className="subtle">No supported technical terms detected yet. Review your requirements or continue editing manually.</p>:
+      <ul className="tailoring-keyword-list">{keywordFindings.map(term=><li key={term.term}>
+       <strong>{term.term}</strong><span>{term.status==='present'?'Present in targeted resume (not proof of proficiency)':
+        term.status==='confirmed-missing'?'Confirmed in Career Vault but absent from targeted resume':
+        term.status==='related'?'Related evidence — needs review':'No verified support found'}</span>
+      </li>)}</ul>}
     </section>
     <section className="card stack">
      <h2 style={{margin:0}}>Suggested career facts</h2>
