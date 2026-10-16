@@ -68,23 +68,29 @@ export async function createTargetedResume(id:string,revision:number,sourceId:st
  if(jobError||!job)return fail('Job brief not found.');
  if(job.revision!==revision)return fail('This session has changed. Reload before making a copy.',true);
  if(job.tailored_resume_id)return fail('A tailored resume already exists for this job. Open it instead.');
- let content=emptyResume(),sourceRevision:number|null=null;
+ let content=emptyResume(),sourceRevision:number|null=null,sourceVersionNumber:number|null=null;
  if(sourceId){
   const {data:source,error}=await supabase.from('resumes').select('*').eq('user_id',user.id).eq('id',sourceId).maybeSingle();
   if(error||!source)return fail('Selected source resume was not found.');
   sourceRevision=source.revision;
   if(versionId){
    const {data:version,error:versionError}=await supabase.from('resume_versions')
-    .select('snapshot_content').eq('id',versionId).eq('user_id',user.id).eq('resume_id',sourceId).maybeSingle();
+    .select('snapshot_content,version_number').eq('id',versionId).eq('user_id',user.id).eq('resume_id',sourceId).maybeSingle();
    if(versionError||!version)return fail('Selected source version was not found.');
    const parsed=resumeDocSchema.safeParse(version.snapshot_content);
    if(!parsed.success)return fail('The source version is invalid.');
-   content=structuredClone(parsed.data);
+   content=structuredClone(parsed.data);sourceVersionNumber=version.version_number;
   }else{
    const parsed=resumeDocSchema.safeParse(source.draft_content);
    if(!parsed.success)return fail('The source draft is invalid.');
    content=structuredClone(parsed.data);
   }
+ }else{
+  const {data:profile}=await supabase.from('profiles').select('full_name,display_name,city,country')
+   .eq('id',user.id).maybeSingle();
+  content.contact.name=(profile?.full_name?.trim()||profile?.display_name?.trim()||'').slice(0,160);
+  content.contact.email=user.email??'';
+  content.contact.location=[profile?.city,profile?.country].filter(Boolean).join(', ').slice(0,180);
  }
  const validated=resumeDocSchema.safeParse(content);
  if(!validated.success)return fail('The new resume could not be validated.');
@@ -97,7 +103,7 @@ export async function createTargetedResume(id:string,revision:number,sourceId:st
  if(copyError||!copy)return fail('Could not create the independent tailored resume.');
  const {data:linked,error:linkError}=await supabase.from('resume_tailoring_sessions')
   .update({source_resume_id:sourceId,source_resume_revision:sourceRevision,
-   source_snapshot:validated.data,tailored_resume_id:copy.id})
+   source_version_number:sourceVersionNumber,source_snapshot:validated.data,tailored_resume_id:copy.id})
   .eq('id',id).eq('user_id',user.id).eq('revision',revision)
   .is('tailored_resume_id',null).select('revision').maybeSingle();
  if(linkError||!linked){
@@ -145,4 +151,16 @@ export async function includeVerifiedCareerRecord(sessionId:string,recordId:stri
  if(!saved)return fail('Concurrent resume edit detected. Refresh before adding evidence.',true);
  refresh(sessionId);revalidatePath('/resume-studio/'+session.tailored_resume_id);
  return {ok:true,resumeId:session.tailored_resume_id,revision:saved.revision};
+}
+
+/** Available immutable sources for an explicit user-selected saved version. */
+export async function getAvailableResumeVersions(sourceId:string):Promise<
+ {id:string;version_number:number;label:string}[]>{
+ if(!uid.safeParse(sourceId).success)return [];
+ const {user,supabase}=await requireAccount();
+ const {data,error}=await supabase.from('resume_versions')
+  .select('id,version_number,label').eq('resume_id',sourceId)
+  .eq('user_id',user.id).order('version_number',{ascending:false}).limit(100);
+ if(error)return [];
+ return data??[];
 }
