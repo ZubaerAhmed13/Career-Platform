@@ -80,6 +80,26 @@ jobs:
         run: psql -X -v ON_ERROR_STOP=1 -f supabase/test/resume-assertions.sql
       - name: Assert RLS, AI provenance, and approval
         run: psql -X -v ON_ERROR_STOP=1 -f supabase/test/assertions.sql
+      - name: Prepare disposable JWT and PostgREST role
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/test/http-setup.sql
+      - name: Test real REST persistence, isolation, versions, restore and deletion
+        env:
+          CAREEROS_TEST_JWT_SECRET: ci-only-shared-jwt-secret-minimum-length-000000000
+          CAREEROS_TEST_REST_URL: http://127.0.0.1:3111
+        run: |
+          docker run -d --name careeros-ci-postgrest --network host \
+            -e PGRST_DB_URI="postgres://authenticator:temp-ci-postgrest-2026@127.0.0.1:5432/careeros_test" \
+            -e PGRST_DB_SCHEMAS="public" \
+            -e PGRST_DB_ANON_ROLE="anon" \
+            -e PGRST_SERVER_PORT="3111" \
+            -e PGRST_JWT_SECRET="$CAREEROS_TEST_JWT_SECRET" \
+            postgrest/postgrest:v12.2.12
+          trap 'docker logs careeros-ci-postgrest; docker rm -f careeros-ci-postgrest' EXIT
+          for i in $(seq 1 40); do
+            if curl -fsS "http://127.0.0.1:3111/" >/dev/null; then break; fi
+            sleep 2
+          done
+          node tests/resume-data-api.mjs
 
   browser-smoke:
     name: Desktop and mobile public/browser access
