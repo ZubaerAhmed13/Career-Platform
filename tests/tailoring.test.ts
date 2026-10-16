@@ -39,6 +39,14 @@ describe('Job-targeted resume intelligence without models',()=>{
   expect(jobBriefSchema.safeParse({...input,originalDescription:'tiny'}).success).toBe(false);
   expect(r.origin).toBe('user');
  });
+ it('matches explicit credentials only in the corresponding approved category',()=>{
+  const degree=fact('education','Bachelor of Business Administration','Completed Bachelor degree in Business');
+  expect(findEvidence(requirement('Bachelor degree','qualification'),[degree]).status).toBe('direct');
+  const ongoing={...degree,is_current:true};
+  expect(findEvidence(requirement('Bachelor degree','qualification'),[ongoing]).status).toBe('related');
+  const cert=fact('certification','PMP','Project Management Professional (PMP) certificate');
+  expect(findEvidence(requirement('PMP certification','certification'),[cert]).status).toBe('direct');
+ });
  it('does not invent SAP competence or regulated qualifications',()=>{
   const records=[fact('experience','Warehouse','Maintained inventory records')];
   expect(findEvidence(requirement('Advanced SAP FI/CO experience'),records).status).toBe('none');
