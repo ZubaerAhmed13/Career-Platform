@@ -4,7 +4,7 @@ import { profileCompletion } from '@/lib/profile';
 import { vaultCounts, type CareerRecord } from '@/lib/career/schema';
 
 const guidance:Record<string,string>={
- resume:'Start by adding experience and evidence to your permanent Career Vault before using future Resume Studio.',
+ resume:'Build a document from confirmed Vault information in Resume Studio, or create a blank resume.',
  cover_letter:'Add real projects and achievements that future cover letters can cite.',
  job_search:'Add skills and target experiences to prepare for future job matching.',
  applications:'Use the Career Vault now; the application tracker is still planned.',
@@ -57,8 +57,9 @@ export default async function Dashboard(){
     !activity.data?.length?<div className="muted-card">No career records have been changed yet.</div>:
     activity.data.map(event=><p key={event.id}>{event.action} · {new Date(event.created_at).toLocaleDateString()} · record {String(event.record_id).slice(0,8)}</p>)}
   </section>
+  <section className="card stack"><h2>Resume Studio</h2><p className="subtle">Create, edit, version and export resumes with facts from your Career Vault.</p><Link href="/resume-studio" className="button secondary">Open Resume Studio</Link></section>
   <section className="card stack"><h2>Other future modules</h2>
-   <p className="subtle">Resume Studio, cover letters, application tracking and job discovery remain planned and unavailable. No sample job records or career activities are invented.</p>
+   <p className="subtle">Cover letters, application tracking and job discovery remain planned and unavailable. No sample job records or career activities are invented.</p>
   </section>
  </div>;
 }

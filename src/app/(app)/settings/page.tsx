@@ -21,7 +21,7 @@ export default async function Settings(){
   </section>
   <section className="card stack">
    <h2>Privacy and data export</h2>
-   <p className="subtle">Download your account profile, saved file metadata, career records, evidence, pending and reviewed proposals, interview messages, and activity. Your password, live sessions, internal quota records and platform backups are not included.</p>
+   <p className="subtle">Download your account profile, saved file metadata, career records, evidence, pending and reviewed proposals, interview messages, activity, saved resume drafts and immutable resume versions. Your password, live sessions, internal quota records and platform backups are not included.</p>
    <Link className="button secondary" href="/api/account/export">Export my account data (JSON)</Link>
    <Link href="/career-vault/privacy">Export or clear only my Career Vault</Link>
   </section>

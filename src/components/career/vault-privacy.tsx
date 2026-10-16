@@ -19,7 +19,7 @@ export function VaultPrivacy(){
   </section>
   <section className="card stack" style={{border:'1px solid var(--line)'}}>
    <h2>Clear your saved career history</h2>
-   <p className="subtle">This deletes your saved Vault records, pending review suggestions, supporting evidence, relationships, interview sessions/messages and Vault activity in one database operation. It does not delete your authentication account or general profile, and does not itself remove database backups. Download your export first.</p>
+   <p className="subtle">This deletes your saved Vault records, pending review suggestions, supporting evidence, relationships, interview sessions/messages and Vault activity in one database operation. It does not delete your authentication account or general profile. Saved resumes and their historical versions retain independent copies of career facts and are NOT removed by clearing the Vault. Delete resumes separately in Resume Studio, and export them through Settings first. This operation also does not remove database backups. Download your export first.</p>
    {!open&&<button className="button secondary" type="button" onClick={()=>setOpen(true)}>Show irreversible Vault-clear controls</button>}
    {open&&<form className="stack" action={action}>
     <label className="label" htmlFor="vault-confirm-phrase">Type DELETE MY CAREER VAULT to confirm</label>

@@ -76,6 +76,8 @@ jobs:
             echo "Checking $migration"
             psql -X -v ON_ERROR_STOP=1 -f "$migration"
           done
+      - name: Assert Resume Studio ownership, revisions, versions and cascading deletion
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/test/resume-assertions.sql
       - name: Assert RLS, AI provenance, and approval
         run: psql -X -v ON_ERROR_STOP=1 -f supabase/test/assertions.sql
 

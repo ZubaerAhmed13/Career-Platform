@@ -9,3 +9,141 @@
 .mobile-nav summary:focus-visible,.nav-link:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 @media(max-width:850px){.mobile-nav nav{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:420px){.mobile-nav nav{grid-template-columns:minmax(0,1fr)}.card{padding:18px}.main{padding:18px 12px}}
+
+
+/* Step 3 — Resume Studio. Editor chrome uses app tokens; printed documents do not. */
+.resume-form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:12px}
+.resume-fieldset{border:1px solid var(--line);border-radius:12px;display:grid;gap:12px;padding:14px}
+.resume-fieldset legend{font-weight:700}.resume-fieldset label,.resume-visibility{display:flex;align-items:center;gap:9px;font-size:13px}
+.resume-library-toolbar{display:flex;flex-wrap:wrap;align-items:end;gap:14px}.resume-library-toolbar h2{margin-right:auto}
+.resume-library-toolbar .field{min-width:170px}.resume-library-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:18px}
+.resume-library-card{gap:12px;justify-content:space-between}
+.resume-template-thumb{width:96px;height:132px;padding:13px 11px;display:grid;align-content:start;gap:7px;background:white;border:1px solid #cbd5e1;box-shadow:0 7px 15px #0f172a12;border-radius:3px}
+.resume-template-thumb span{display:block;background:#334155;width:55px;height:7px}
+.resume-template-thumb strong{display:block;background:#94a3b8;width:64px;height:3px;margin-top:5px}
+.resume-template-thumb i{display:block;background:#cbd5e1;width:100%;height:3px}.resume-template-thumb i:nth-last-child(1){width:65%}
+.resume-card-actions,.resume-top-actions{display:flex;gap:8px;flex-wrap:wrap}.resume-card-actions .button,.resume-top-actions .button{font-size:12px;padding:8px 11px;min-height:36px}
+.resume-editor-top{display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:18px}
+.resume-studio-editor{max-width:1700px;margin:auto}
+.resume-editor-grid{display:grid;grid-template-columns:minmax(285px,1fr) minmax(240px,.65fr) minmax(350px,1.15fr);align-items:start;gap:16px}
+.resume-editor-panel{min-width:0;display:grid;gap:16px}.resume-editor-panel .card{padding:18px}
+.resume-editor-panel h2{font-size:1.13rem}.resume-editor-panel h3{font-size:.95rem}
+.resume-inline-header{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.resume-inline-header h2,.resume-inline-header h3{margin:0}
+.resume-inline-header .button,.resume-section-form .button{font-size:12px;padding:8px 10px;min-height:34px}
+.resume-sections-list{display:grid;gap:5px}
+.resume-section-row{display:flex;align-items:center;gap:5px;background:var(--background);border-radius:9px;padding:5px}
+.resume-section-row button:not(.resume-select-section),.resume-mini-actions button{background:var(--surface);border:1px solid var(--line);color:var(--foreground);border-radius:6px;min-width:28px;min-height:30px}
+.resume-select-section{flex:1;text-align:left;padding:8px;background:transparent;color:var(--foreground);border:0;border-radius:7px;font-size:13px}
+.resume-select-section.active{background:var(--surface);box-shadow:inset 0 0 0 1px var(--accent);font-weight:700}
+.resume-section-form{padding-top:12px;border-top:1px solid var(--line)}
+.resume-entry-editor{border:1px solid var(--line);padding:12px;border-radius:12px}
+.resume-mini-actions{display:flex;align-items:center;gap:4px}
+.resume-bullet-editor{display:flex;gap:7px;align-items:start}
+.resume-bullet-editor textarea{min-width:0}.resume-bullet-editor .resume-mini-actions{display:flex;flex-direction:column}
+.resume-vault-list,.resume-version-list{display:grid;gap:9px;max-height:440px;overflow:auto}
+.resume-vault-row,.resume-version-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:11px;border:1px solid var(--line);border-radius:10px}
+.resume-vault-row strong{font-size:13px}
+.resume-vault-row .button{font-size:12px;padding:7px 11px;min-height:34px}
+.resume-version-row small{display:block;font-size:11px}
+.resume-preview-panel{min-width:0;position:sticky;top:20px}
+.resume-preview-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding-bottom:12px}
+.resume-preview-toolbar .button{font-size:12px;padding:8px 10px}
+.resume-preview-zoom{display:flex;align-items:center;gap:6px;font-size:12px}
+.resume-preview-zoom .field{min-height:30px;padding:4px}
+.resume-preview-scroll{max-height:83vh;overflow:auto;background:#e9edf4;border:1px solid #cbd5e1;border-radius:12px;padding:14px}
+.resume-paper{--resume-accent:#1d3557;--resume-font:Arial;--resume-body:10.5pt;--resume-heading:12pt;--resume-line:1.2;
+ width:var(--resume-page-width,210mm);min-height:var(--resume-page-min-height,297mm);
+ background:#fff;color:#172033;box-shadow:0 14px 32px #0f172a24;
+ padding:16mm;font:var(--resume-body)/var(--resume-line) var(--resume-font),sans-serif;
+ overflow-wrap:anywhere;letter-spacing:0;font-weight:400;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+.resume-paper h1,.resume-paper h2,.resume-paper h3,.resume-paper p,.resume-paper ul{margin:0}
+.resume-paper .resume-document-head{margin-bottom:17px}
+.resume-paper h1{font-size:23pt;line-height:1.12;color:var(--resume-accent);letter-spacing:-.03em}
+.resume-paper .resume-headline{font-size:11pt;font-weight:600;padding:5px 0}
+.resume-paper .resume-contact{font-size:9pt;color:#475569;line-height:1.4;margin-top:6px}
+.resume-paper a{text-decoration:none;color:inherit;overflow-wrap:anywhere}
+.resume-paper .resume-section{margin-top:13px;break-inside:auto}
+.resume-paper h2{font-size:var(--resume-heading);font-weight:700;text-transform:uppercase;color:var(--resume-accent);
+ letter-spacing:.06em;border-bottom:1px solid #cbd5e1;padding-bottom:4px;margin-bottom:8px;break-after:avoid}
+.resume-paper .resume-summary{white-space:pre-line}
+.resume-paper .resume-entry{margin:8px 0 10px;break-inside:avoid-page}
+.resume-paper .resume-entry-title{display:flex;justify-content:space-between;align-items:baseline;gap:14px}
+.resume-paper h3{font-size:calc(var(--resume-body) + .5pt);font-weight:700}
+.resume-paper .resume-entry-title span{font-size:9pt;color:#475569;text-align:right;white-space:nowrap}
+.resume-paper .resume-entry-meta{font-style:italic;color:#475569;margin:2px 0 4px}
+.resume-paper ul{padding:0 0 0 17px;margin:5px 0;list-style:disc}
+.resume-paper li{padding-left:1px;margin:0 0 3px;break-inside:avoid-page}
+.resume-paper.resume-compact{padding:11mm}.resume-paper.resume-tight .resume-section{margin-top:8px}
+.resume-paper.resume-tight .resume-entry{margin:5px 0}.resume-paper.resume-tight li{margin-bottom:1px}
+/* Five structurally different typography and section treatments. */
+.resume-classic h1{color:#000;text-align:left;font-size:21pt;font-family:Georgia,serif}
+.resume-classic h2{color:#000;border-bottom:1px solid #000;letter-spacing:0}
+.resume-classic{color:#000}.resume-classic .resume-document-head{border-bottom:2px solid #000;padding-bottom:9px}
+.resume-modern .resume-document-head{border-left:5px solid var(--resume-accent);padding-left:15px}
+.resume-modern h2{border-bottom:0;border-left:3px solid var(--resume-accent);padding-left:9px}
+.resume-modern .resume-entry{padding-left:12px;border-left:1px solid #e2e8f0}
+.resume-graduate .resume-document-head{text-align:center;padding-bottom:13px;border-bottom:2px solid var(--resume-accent)}
+.resume-graduate h1{font-size:24pt}.resume-graduate h2{border-bottom:1px solid var(--resume-accent);text-align:center}
+.resume-european .resume-document-head{display:grid;grid-template-columns:1fr auto;column-gap:12px;align-items:start}
+.resume-european .resume-contact{grid-column:1/-1}
+.resume-european h2{background:#eef2f7;border:0;padding:6px 9px;color:#1e293b}
+.resume-european .resume-entry-title{border-bottom:1px dotted #d5dce5;padding-bottom:3px}
+.resume-executive h1{font-size:26pt;letter-spacing:.01em;text-transform:uppercase;font-family:Georgia,serif}
+.resume-executive h2{font-family:Georgia,serif;letter-spacing:.11em;border-bottom:2px solid var(--resume-accent)}
+.resume-executive .resume-document-head{padding-bottom:14px;border-bottom:1px solid #94a3b8}
+.resume-executive .resume-entry-meta{font-style:normal}
+.resume-mobile-tabs{display:none}
+.resume-print-page .print-actions{margin:0 auto 22px;max-width:var(--resume-page-width,210mm)}
+.resume-print-page .resume-paper{margin:0 auto}
+@media(max-width:1420px){
+ .resume-editor-grid{grid-template-columns:minmax(280px,1fr) minmax(350px,1fr)}
+ .resume-design-panel{grid-column:1}
+ .resume-preview-panel{grid-column:2;grid-row:1/3}
+}
+@media(max-width:960px){
+ .resume-editor-grid{display:block}
+ .resume-mobile-tabs{display:flex;position:sticky;top:0;z-index:5;background:var(--background);padding:10px 0;gap:8px}
+ .resume-mobile-tabs .button{flex:1}
+ .resume-mobile-hidden{display:none!important}
+ .resume-editor-panel,.resume-preview-panel{display:grid;gap:12px;position:static}
+ .resume-preview-scroll{max-height:none}
+}
+@media(max-width:480px){
+ .resume-preview-scroll{padding:3px;max-width:100%;overflow:auto}
+ .resume-preview-scroll .resume-paper{transform-origin:top left}
+ .resume-bullet-editor{display:grid}.resume-bullet-editor .resume-mini-actions{flex-direction:row}
+ .resume-editor-top .heading{font-size:1.7rem}
+}
+@page resumeA4 {size:A4;margin:15mm}
+@page resumeLetter {size:letter;margin:15mm}
+@media print{
+ :root,.dark{color-scheme:light}
+ html,body{padding:0!important;margin:0!important;background:#fff!important}
+ .app-layout{display:block!important;min-height:0!important}
+ .sidebar,.mobile-nav,.print-actions,.skip-link{display:none!important}
+ .main{padding:0!important;margin:0!important;overflow:visible!important}
+ .resume-print-page{padding:0!important;margin:0!important}
+ .resume-paper{width:100%!important;min-height:0!important;margin:0!important;padding:0!important;
+  border:0!important;box-shadow:none!important;font-size:var(--resume-body)!important}
+ .resume-paper h2{break-after:avoid-page}
+ .resume-paper .resume-entry{break-inside:avoid-page}
+ .resume-paper li{break-inside:avoid-page}
+ .resume-print-page:has(.resume-paper[data-paper="Letter"]){page:resumeLetter}
+ .resume-print-page:has(.resume-paper[data-paper="A4"]){page:resumeA4}
+}
+
+/* Mobile preview fits the available width; manual zoom can still pan inside its viewport. */
+.resume-preview-scroll{max-width:100%;min-width:0}
+@media(max-width:960px){.resume-preview-panel{max-width:100%;min-width:0}}
+
+.resume-paper .resume-extra{font-size:9pt;color:#475569;white-space:pre-line;margin:3px 0}
+.resume-paper .resume-extra strong{color:#334155}
+
+/* Optional photo is never part of an ATS-first resume unless explicitly selected. */
+.resume-paper .resume-profile-photo{float:right;width:89px;height:89px;border-radius:8px;object-fit:cover;object-position:center;margin:0 0 9px 15px}
+.resume-paper .resume-document-head::after{content:"";display:block;clear:both}
+.resume-graduate .resume-profile-photo{float:none;display:block;margin:0 auto 10px;border-radius:50%}
+.resume-european .resume-profile-photo{grid-column:2;grid-row:1/4;margin:0 0 0 12px}
+.resume-european .resume-contact{grid-column:1 / -1}
+@media(max-width:480px){.resume-photo-control .field{max-width:100%}}
