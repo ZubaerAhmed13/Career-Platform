@@ -40,12 +40,14 @@ function document(){
 }
 async function main(){
  const noToken=await req('/resumes?select=id');
- assert([401,403].includes(noToken.status),'anonymous access must fail');
+ assert([401,403].includes(noToken.status)||(noToken.status===200&&Array.isArray(noToken.data)&&noToken.data.length===0),'anonymous users must never see private rows');
  const added=await ok('/resumes?select=id,revision',{token:a,method:'POST',prefer:'return=representation',
   body:{user_id:A,name:'Synthetic CV',focus_label:'Student',draft_content:document(),
    template_id:'ats-classic',paper_size:'A4',document_language:'en'}});
  assert.equal(added.length,1);assert.equal(added[0].revision,1);
  const id=added[0].id;
+ const anonymousAfterCreate=await req('/resumes?select=id&id=eq.'+id);
+ assert([401,403].includes(anonymousAfterCreate.status)||(anonymousAfterCreate.status===200&&Array.isArray(anonymousAfterCreate.data)&&anonymousAfterCreate.data.length===0),'anonymous users must not see newly created resume');
  const refreshed=await ok('/resumes?select=id,draft_content&id=eq.'+id,{token:jwt(A)});
  assert.equal(refreshed.length,1);assert.equal(refreshed[0].draft_content.contact.name,'Synthetic Owner A');
  console.log('PASS anonymous isolation; authenticated create; fresh-token reload');
