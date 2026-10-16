@@ -13,7 +13,7 @@ Branch: `feat/step4-advanced-resume-tailoring`
 | Essential/preferred/unclassified priorities | Yes | Vitest | User review for ambiguous text |
 | Confirmed Vault evidence mapping | Yes | Vitest + owner checks | Curated aliases, not semantic AI |
 | Transparent gap and coverage counts | Yes | Vitest | Counts documented evidence only |
-| Independent targeted draft | Yes | Synthetic REST and manual flow required | Saved version selection not exposed in tailoring wizard |
+| Independent targeted draft | Yes | Synthetic REST and manual flow required | Version choices load from owned immutable history |
 | User-approved inclusion from Vault | Yes | Existing source guard and revision checks | Real signed-in interaction not verified |
 | Content ordering & human editing | Reuses Step 3 | Existing editor tests | No independent Step 4 editor |
 | Before-and-after comparison | Yes | Vitest | Text and structural changes, not PDF pixel diffs |
