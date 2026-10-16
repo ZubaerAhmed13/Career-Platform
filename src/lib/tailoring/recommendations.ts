@@ -58,7 +58,7 @@ export function sourceChangeWarnings(doc:ResumeDoc,records:CareerRecord[]){
  for(const section of doc.sections)for(const entry of section.entries){
   if(!entry.source)continue;
   const current=byId.get(entry.source.recordId);
-  if(!current)warnings.push(entry.title+': the original confirmed Vault record is unavailable or no longer confirmed. Saved text is unchanged.');
+  if(!current||current.status!=='confirmed')warnings.push(entry.title+': the original confirmed Vault record is unavailable or no longer confirmed. Saved text is unchanged.');
   else if(current.revision!==entry.source.revision)
    warnings.push(entry.title+': Career Vault has a newer revision. Review before manually refreshing this copy.');
  }
