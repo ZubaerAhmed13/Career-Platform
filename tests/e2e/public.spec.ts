@@ -84,3 +84,29 @@ test('browser PDF has selectable text and multiple intact pages for a long resum
   }finally{await (proxy as unknown as {destroy?:()=>Promise<void>}).destroy?.();}
  }
 });
+
+
+test('synthetic Resume Studio editor supports fact selection and template switching',async({page,isMobile})=>{
+ await page.goto('/resume-fixture/editor');
+ await expect(page.getByRole('heading',{name:'Synthetic CV – preview test'})).toBeVisible();
+ await page.getByRole('button',{name:'Add',exact:true}).click();
+ await expect(page.getByText('Synthetic Inventory Assistant',{exact:true}).first()).toBeVisible();
+ if(isMobile)await page.getByRole('button',{name:'Preview',exact:true}).first().click();
+ await expect(page.getByRole('heading',{name:'Synthetic Inventory Assistant',exact:true})).toBeVisible();
+ if(isMobile)await page.getByRole('button',{name:'Design',exact:true}).first().click();
+ await page.getByLabel('Template',{exact:true}).selectOption('modern-professional');
+ if(isMobile)await page.getByRole('button',{name:'Preview',exact:true}).first().click();
+ await expect(page.locator('.resume-paper')).toHaveClass(/resume-modern/);
+ const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth+2);
+ expect(overflow).toBe(false);
+});
+test('optional photo can be added and removed privately in the synthetic editor',async({page})=>{
+ await page.goto('/resume-fixture/editor');
+ const photo=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLttAAAAABJRU5ErkJggg==','base64');
+ await page.getByLabel('Add or replace resume photo').setInputFiles({
+  name:'example.png',mimeType:'image/png',buffer:photo
+ });
+ await expect(page.getByRole('img',{name:'Resume portrait'})).toBeVisible();
+ await page.getByRole('button',{name:'Remove photo'}).click();
+ await expect(page.getByRole('img',{name:'Resume portrait'})).toHaveCount(0);
+});
