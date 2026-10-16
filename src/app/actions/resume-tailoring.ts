@@ -32,7 +32,7 @@ export async function createTailoringSession(input:{
  if(!parsed.success)return fail('Enter a genuine job title and at least 40 characters of job text. Check the URL and field limits.');
  const {user,supabase}=await requireAccount();
  const {data,error}=await supabase.from('resume_tailoring_sessions')
-  .insert({user_id:user.id,...values(parsed.data)}).select('id').single();
+  .insert({user_id:user.id,initial_job_description:parsed.data.originalDescription,...values(parsed.data)}).select('id').single();
  if(error||!data)return fail('Could not save the job brief. Step 4 database migration may still be pending.');
  refresh();return {ok:true,id:data.id};
 }
