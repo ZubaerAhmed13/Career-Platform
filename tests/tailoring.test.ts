@@ -39,6 +39,13 @@ describe('Job-targeted resume intelligence without models',()=>{
   expect(merged.origin).toBe('user');
   expect(()=>splitRequirement(source,'','PowerPoint')).toThrow();
  });
+ it('preserves working-hour numbers while recognising proficiency and certification words',()=>{
+  const source='20 working hours per week required\nProficiency in stakeholder communication essential\nCertification is preferred';
+  const items=extractRequirements(source);
+  expect(items.some(x=>x.text.startsWith('20 working hours'))).toBe(true);
+  expect(items.some(x=>x.text.startsWith('Proficiency'))).toBe(true);
+  expect(items.some(x=>x.text.startsWith('Certification'))).toBe(true);
+ });
  it('does not silently classify optional as mandatory',()=>{
   const r=extractRequirements('Preferred: Proficiency using Power BI and Excel.');
   expect(r[0].priority).toBe('preferred');
