@@ -11,7 +11,7 @@ Step 4 is intentionally **deterministic**. It uses curated phrase aliases, exact
 ## Existing Step 3 integration
 
 - Source resumes, confirmed Career Vault facts and immutable versions stay in their existing tables.
-- Targeted copies are independent `resumes` rows, with full snapshot/template/portrait choices copied from a selected draft (or a fresh blank document).
+- Targeted copies are independent `resumes` rows, with full snapshot/template/portrait choices copied from a selected draft or selected immutable version (or a fresh blank document with account contact details prefilled).
 - Job-specific metadata is stored in a private tailoring session, never printed in a CV by default.
 - User-selected confirmed Vault records are inserted into a target using the existing `entryFromRecord` provenance data and optimistic resume revision guard.
 - Source comparison preserves the exact captured document snapshot. It does not silently change if Career Vault source facts are edited or deleted.
