@@ -176,3 +176,6 @@
 .tailoring-compare pre{white-space:pre-wrap;overflow-wrap:anywhere;font-family:inherit;font-size:.85rem;line-height:1.5;
  background:var(--background);border:1px solid var(--line);border-radius:10px;padding:12px;max-height:550px;overflow:auto}
 @media(max-width:700px){.tailoring-compare{grid-template-columns:1fr}}
+
+.tailoring-original-text{white-space:pre-wrap;overflow-wrap:anywhere;max-height:350px;overflow:auto;
+ background:var(--background);border:1px solid var(--line);border-radius:10px;padding:12px;font:inherit}
