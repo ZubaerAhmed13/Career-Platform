@@ -16,7 +16,9 @@ const aliases:readonly (readonly string[])[]=[
  ['project coordination','coordinating projects','project coordinator'],
  ['microsoft powerpoint','ms powerpoint','powerpoint'],
  ['sql'],['sap fi/co','sap fico'],['sap'],['oracle'],['python'],
- ['financial modelling','financial modeling'],['replenishment'],['reporting'],['procurement']
+ ['financial modelling','financial modeling'],['replenishment'],['reporting'],['procurement'],
+ ['bachelor of business administration','bba'],['bachelor degree','bachelors degree','bachelor'],
+ ['masters degree','master degree','master of arts','ma'],['pmp','project management professional']
 ];
 const normalize=(s:string)=>s.toLowerCase().normalize('NFKC').replace(/[^\p{L}\p{N}]+/gu,' ').trim().replace(/\s+/g,' ');
 function hasPhrase(text:string,phrase:string){
@@ -53,16 +55,29 @@ export function findEvidence(requirement:JobRequirement,records:CareerRecord[]):
   if(gap){warning=gap;continue;}
   const matched=terms.filter(group=>group.some(v=>hasPhrase(value,v)));
   const all=terms.length>0&&matched.length===terms.length;
-  const relevant=matched.length>0||(requirement.category==='language'&&!!language&&hasPhrase(value,language));
+  // Credentials cannot be deduced from a related degree or a generic tool keyword.
+  const certificationNamed=requirement.category==='certification'&&
+   record.title.trim().length>=3&&hasPhrase(query,record.title);
+  const degreeNamed=requirement.category==='qualification'&&
+   (matched.length>0||hasPhrase(query,record.title));
+  const relevant=matched.length>0||certificationNamed||degreeNamed||
+   (requirement.category==='language'&&!!language&&hasPhrase(value,language));
   if(!relevant)continue;
   // No single skill keyword proves years of experience, seniority, fluency or certification.
   const advanced=/\b(advanced|expert|senior|years|certified|certification|qualified|professional)\b/i.test(query);
-  const direct=all&&!advanced&&requirement.relation==='single'&&
-   (record.kind==='skill'||record.kind==='certification'||record.kind==='language'||
-    /\b(used|using|managed|performed|developed|maintained|created|coordinated|analysed|analyzed|conducted|worked with)\b/i.test(value));
+  const handsOn=/\\b(used|using|managed|performed|developed|maintained|created|coordinated|analysed|analyzed|conducted|worked with)\\b/i.test(value);
+  const direct=requirement.relation==='single'&&(
+   certificationNamed||
+   (requirement.category==='qualification'&&degreeNamed&&!record.is_current&&
+    /\\b(completed|graduated|awarded|degree|diploma|bba|mba|bachelor|master)\\b/i.test(value))||
+   (requirement.category==='language'&&!!language&&!gap)||
+   (all&&!advanced&&(
+    (record.kind==='skill'&&!/\\b(years|experience|advanced|expert)\\b/i.test(query))||
+    handsOn))
+  );
   matches.push({recordId:record.id,revision:record.revision,kind:record.kind,
    title:record.title,excerpt:(record.description||record.title).slice(0,450),
-   rule:'Approved exact phrase / controlled alias: '+(matched[0]?.[0]??language??''),
+   rule:'Approved exact phrase / controlled alias: '+(matched[0]?.[0]??(certificationNamed?record.title:language)??''),
    classification:direct?'direct':requirement.relation!=='single'?'needs-review':'related'});
  }
  matches.sort((a,b)=>(a.classification==='direct'?0:1)-(b.classification==='direct'?0:1));
