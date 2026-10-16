@@ -20,8 +20,8 @@ function download(data:BlobPart,type:string,name:string){
  const anchor=document.createElement('a');anchor.href=url;anchor.download=name;anchor.click();
  setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
-export function ResumeEditor({row,versions:initialVersions,vault,openVault}:{
- row:ResumeRow;versions:ResumeVersion[];vault:CareerRecord[];openVault:boolean
+export function ResumeEditor({row,versions:initialVersions,vault,openVault,demoMode=false}:{
+ row:ResumeRow;versions:ResumeVersion[];vault:CareerRecord[];openVault:boolean;demoMode?:boolean
 }){
  const [doc,setDoc]=useState<ResumeDoc>(()=>structuredClone(row.draft_content));
  const [versions,setVersions]=useState(initialVersions);
@@ -61,6 +61,14 @@ export function ResumeEditor({row,versions:initialVersions,vault,openVault}:{
  function undo(){const last=undoRef.current.pop();if(!last)return;redoRef.current.push(doc);setDoc(last);setStatus('Unsaved changes');}
  function redo(){const next=redoRef.current.pop();if(!next)return;undoRef.current.push(doc);setDoc(next);setStatus('Unsaved changes');}
  async function save(snapshot:ResumeDoc){
+  // Development-only synthetic UI fixture: keep fake content in memory.
+  // Never call Auth or Supabase from the fixture.
+  if(demoMode){
+   savedRef.current=JSON.stringify(snapshot);
+   revisionRef.current+=1;
+   setStatus(JSON.stringify(docRef.current)===savedRef.current?'All changes saved (demo)':'Unsaved changes');
+   return true;
+  }
   if(savingRef.current||blockedRef.current)return false;
   savingRef.current=true;setStatus('Saving…');
   try{

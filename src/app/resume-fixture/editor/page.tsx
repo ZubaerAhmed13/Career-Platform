@@ -23,5 +23,5 @@ export default function SyntheticEditorFixture(){
   details:{tools:'Spreadsheet'},source:'manual',status:'confirmed'
  };
  return <main className="container"><p className="subtle">Development-only synthetic UI fixture · not linked to a real account.</p>
-  <ResumeEditor row={row} versions={[]} vault={[record]} openVault/></main>;
+  <ResumeEditor row={row} versions={[]} vault={[record]} openVault demoMode/></main>;
 }

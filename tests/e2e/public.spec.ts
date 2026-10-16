@@ -106,7 +106,13 @@ test('optional photo can be added and removed privately in the synthetic editor'
  await page.getByLabel('Add or replace resume photo').setInputFiles({
   name:'example.png',mimeType:'image/png',buffer:photo
  });
+ if(page.viewportSize()?.width&&page.viewportSize()!.width<960){
+  await page.getByRole('button',{name:'Preview',exact:true}).first().click();
+ }
  await expect(page.getByRole('img',{name:'Resume portrait'})).toBeVisible();
+ if(page.viewportSize()?.width&&page.viewportSize()!.width<960){
+  await page.getByRole('button',{name:'Content',exact:true}).first().click();
+ }
  await page.getByRole('button',{name:'Remove photo'}).click();
  await expect(page.getByRole('img',{name:'Resume portrait'})).toHaveCount(0);
 });
