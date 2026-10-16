@@ -7,6 +7,7 @@ import {briefFromRow,requirementCategories,requirementPriorities,type JobBrief,t
 import {newManualRequirement,extractRequirements} from '@/lib/tailoring/requirements';
 import {compareResume,coverage,findEvidence} from '@/lib/tailoring/matching';
 import {qualityWarnings,type ResumeRow} from '@/lib/resume/schema';
+import {resumePlainText} from '@/lib/resume/exports';
 import {contentSuggestions,sourceChangeWarnings,wordingPrompts} from '@/lib/tailoring/recommendations';
 import type {CareerRecord} from '@/lib/career/schema';
 
@@ -247,6 +248,15 @@ export function TailoringWorkspace({session,resumes,vault}:{
      <p className="subtle">Comparison is against the source snapshot captured when the copy was created; it never changes retroactively. Refresh after edits made in another tab.</p>
      <div className="resume-card-actions"><button type="button" className="button secondary" onClick={()=>router.refresh()}>Refresh comparison</button>
       <Link className="button secondary" href={'/resume-studio/'+targeted.id}>Edit / version / DOCX / text</Link></div>
+     {session.source_snapshot&&<details>
+      <summary>Show full before-and-after document text</summary>
+      <div className="tailoring-compare">
+       <section><h3>Source snapshot (unchanged)</h3>
+        <pre>{resumePlainText(session.source_snapshot)}</pre></section>
+       <section><h3>Current targeted resume</h3>
+        <pre>{resumePlainText(targeted.draft_content)}</pre></section>
+      </div>
+     </details>}
      {changes.length?<ul className="tailoring-diff">{changes.map((change,i)=><li key={i}><strong>{change.kind}</strong> {change.label}</li>)}</ul>:
       <p>No differences recorded yet between this targeted draft and its source snapshot.</p>}
      {sourceWarnings.length>0&&<><h3>Source change awareness</h3>
