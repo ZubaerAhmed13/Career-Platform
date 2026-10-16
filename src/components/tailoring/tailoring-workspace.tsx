@@ -2,11 +2,12 @@
 import Link from 'next/link';
 import {useEffect,useMemo,useRef,useState,useTransition} from 'react';
 import {useRouter} from 'next/navigation';
-import {createTargetedResume,saveTailoringSession} from '@/app/actions/resume-tailoring';
+import {createTargetedResume,saveTailoringSession,includeVerifiedCareerRecord} from '@/app/actions/resume-tailoring';
 import {briefFromRow,requirementCategories,requirementPriorities,type JobBrief,type JobRequirement,type TailoringRow} from '@/lib/tailoring/schema';
 import {newManualRequirement,extractRequirements} from '@/lib/tailoring/requirements';
 import {compareResume,coverage,findEvidence} from '@/lib/tailoring/matching';
 import {qualityWarnings,type ResumeRow} from '@/lib/resume/schema';
+import {contentSuggestions,sourceChangeWarnings,wordingPrompts} from '@/lib/tailoring/recommendations';
 import type {CareerRecord} from '@/lib/career/schema';
 
 export function TailoringWorkspace({session,resumes,vault}:{
@@ -28,6 +29,9 @@ export function TailoringWorkspace({session,resumes,vault}:{
  const summary=coverage(matches);
  const targeted=resumes.find(r=>r.id===session.tailored_resume_id);
  const changes=session.source_snapshot&&targeted?compareResume(session.source_snapshot,targeted.draft_content):[];
+ const recommendations=contentSuggestions(matches,vault,targeted?.draft_content);
+ const writing=targeted?wordingPrompts(targeted.draft_content):[];
+ const sourceWarnings=targeted?sourceChangeWarnings(targeted.draft_content,vault):[];
  const sourceOptions=resumes.filter(r=>r.id!==session.tailored_resume_id);
  const displayed=matches.filter(e=>filter==='all'||(filter==='approved'?e.requirement.review==='approved':
   e.requirement.review==='approved'&&e.status!=='direct'));
@@ -76,6 +80,15 @@ export function TailoringWorkspace({session,resumes,vault}:{
  function reanalyse(){
   if(!window.confirm('Replace all current requirement annotations with fresh candidate extractions? Previously approved or manually added requirements will be lost.'))return;
   change(b=>{b.requirements=extractRequirements(b.originalDescription);});
+ }
+ function addSelectedFact(recordId:string){
+  if(!targeted)return;
+  start(async()=>{
+   const result=await includeVerifiedCareerRecord(session.id,recordId,targeted.revision);
+   if(!result.ok){setMessage(result.error);return;}
+   setMessage('Confirmed career fact added to the targeted CV. The source resume and Career Vault are unchanged.');
+   router.refresh();
+  });
  }
  function createCopy(){
   start(async()=>{
@@ -199,6 +212,21 @@ export function TailoringWorkspace({session,resumes,vault}:{
      <Link className="button secondary" href="/career-vault">Review or correct Career Vault →</Link>
     </section>
     <section className="card stack">
+     <h2 style={{margin:0}}>Suggested career facts</h2>
+     <p className="subtle">Each suggestion references a confirmed source record and a reviewed requirement. An inclusion only happens after you choose it.</p>
+     {!recommendations.length?<p className="subtle">No unrepresented confirmed facts were detected for the approved criteria. You can still add facts manually in Resume Studio.</p>:
+      recommendations.map(item=><article key={item.recordId} className="tailoring-evidence-row stack">
+       <div className="resume-inline-header"><strong>{item.record.title}</strong>
+        <span className="subtle">{item.classification==='include'?'Include — direct evidence':'Consider — related evidence'}</span></div>
+       <p className="subtle">{item.reason}</p>
+       <p className="subtle">Supports: {item.requirements.slice(0,2).join(' · ')}</p>
+       <p>{item.record.description.slice(0,320)}</p>
+       {targeted&&<div><button className="button secondary" disabled={pending} onClick={()=>addSelectedFact(item.recordId)}>
+        Add this confirmed fact to targeted CV
+       </button></div>}
+      </article>)}
+    </section>
+    <section className="card stack">
      <h2 style={{margin:0}}>4. Make your targeted resume</h2>
      {session.tailored_resume_id?<>
       <p>An independent tailored CV is linked. Editing it never rewrites the source resume or confirmed Career Vault facts.</p>
@@ -221,6 +249,11 @@ export function TailoringWorkspace({session,resumes,vault}:{
       <Link className="button secondary" href={'/resume-studio/'+targeted.id}>Edit / version / DOCX / text</Link></div>
      {changes.length?<ul className="tailoring-diff">{changes.map((change,i)=><li key={i}><strong>{change.kind}</strong> {change.label}</li>)}</ul>:
       <p>No differences recorded yet between this targeted draft and its source snapshot.</p>}
+     {sourceWarnings.length>0&&<><h3>Source change awareness</h3>
+      <ul>{sourceWarnings.map((warning,i)=><li key={i}>{warning}</li>)}</ul></>}
+     {writing.length>0&&<><h3>Wording guidance (not automatic rewriting)</h3>
+      <ul>{writing.map((prompt,i)=><li key={i}><strong>{prompt.entry}:</strong> {prompt.message}
+       <p className="subtle">{prompt.bullet}</p></li>)}</ul></>}
      <h3>Document checks</h3>
      {qualityWarnings(targeted.draft_content).length?
       <ul>{qualityWarnings(targeted.draft_content).map((warning,i)=><li key={i}>{warning}</li>)}</ul>:
