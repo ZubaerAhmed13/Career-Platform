@@ -45,7 +45,6 @@ export function findEvidence(requirement:JobRequirement,records:CareerRecord[]):
  for(const record of approved){
   const value=[record.title,record.description,record.organization,
    ...Object.values(record.details??{})].join(' ');
-  const text=normalize(value);
   if(requirement.category==='language'&&record.kind!=='language')continue;
   if(requirement.category==='certification'&&record.kind!=='certification')continue;
   if(requirement.category==='qualification'&&record.kind!=='education')continue;
