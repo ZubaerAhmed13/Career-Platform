@@ -26,6 +26,18 @@ describe('Resume Studio structured model',()=>{
   entry.title='Changed on resume only';
   expect(record).toEqual(before);
  });
+ it('defaults to no photo, validates embedded JPEG and preserves user choice',()=>{
+  const doc=emptyResume();
+  expect(doc.contact.photo).toBe('');
+  expect(doc.contact.showPhoto).toBe(false);
+  doc.contact.photo='data:image/svg+xml;base64,PHN2Zy8+';doc.contact.showPhoto=true;
+  expect(resumeDocSchema.safeParse(doc).success).toBe(false);
+  doc.contact.photo='data:image/jpeg;base64,/9j/2Q==';
+  expect(resumeDocSchema.safeParse(doc).success).toBe(true);
+  const copy=duplicateDraft(doc);
+  copy.contact.photo='';copy.contact.showPhoto=false;
+  expect(doc.contact.showPhoto).toBe(true);
+ });
  it('rejects pending/unapproved sources',()=>{
   expect(()=>entryFromRecord({...record,status:'unreviewed'})).toThrow(/confirmed/);
  });

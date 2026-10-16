@@ -58,13 +58,13 @@ function crc32(bytes:Uint8Array){
  for(const b of bytes){crc^=b;for(let j=0;j<8;j++)crc=(crc>>>1)^((crc&1)?0xedb88320:0);}
  return (crc^0xffffffff)>>>0;
 }
-function zipStore(files:{name:string;data:string}[]):Uint8Array {
+function zipStore(files:{name:string;data:string|Uint8Array}[]):Uint8Array {
  const encoder=new TextEncoder(),parts:Uint8Array[]=[],central:Uint8Array[]=[];
  let offset=0;
  const u16=(view:DataView,p:number,n:number)=>view.setUint16(p,n,true);
  const u32=(view:DataView,p:number,n:number)=>view.setUint32(p,n,true);
  for(const file of files){
-  const name=encoder.encode(file.name),data=encoder.encode(file.data),crc=crc32(data);
+  const name=encoder.encode(file.name),data=typeof file.data==='string'?encoder.encode(file.data):file.data,crc=crc32(data);
   const local=new Uint8Array(30+name.length),v=new DataView(local.buffer);
   u32(v,0,0x04034b50);u16(v,4,20);u16(v,6,0x800);u16(v,8,0);
   u32(v,14,crc);u32(v,18,data.length);u32(v,22,data.length);u16(v,26,name.length);
@@ -88,6 +88,18 @@ function zipStore(files:{name:string;data:string}[]):Uint8Array {
 export function makeResumeDocx(doc:ResumeDoc):Uint8Array{
  const pts=(value:number)=>String(Math.round(value*20));
  const style=doc.settings;
+ const photo=doc.contact.showPhoto&&doc.contact.photo&&
+  /^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(doc.contact.photo)
+   ?Uint8Array.from(atob(doc.contact.photo.slice('data:image/jpeg;base64,'.length)),char=>char.charCodeAt(0)):null;
+ // The optional portrait is a genuinely editable OOXML embedded JPEG, not an external URI.
+ const imageXml=photo?'<w:p><w:pPr><w:jc w:val="right"/></w:pPr><w:r><w:drawing>'+
+  '<wp:inline><wp:extent cx="1016000" cy="1016000"/><wp:docPr id="1" name="Portrait" descr="Resume portrait"/>'+
+  '<a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">'+
+  '<pic:pic><pic:nvPicPr><pic:cNvPr id="0" name="Resume portrait"/><pic:cNvPicPr/></pic:nvPicPr>'+
+  '<pic:blipFill><a:blip r:embed="rId3"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>'+
+  '<pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="1016000" cy="1016000"/></a:xfrm>'+
+  '<a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic>'+
+  '</a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>':'';
  const body=resumeLines(doc).map(line=>{
   const bold=['name','section','entry'].includes(line.type);
   const heading=line.type==='section'?'Section':line.type==='name'?'Name':line.type==='entry'?'Entry':'Normal';
@@ -99,8 +111,12 @@ export function makeResumeDocx(doc:ResumeDoc):Uint8Array{
  const a4=style.paper==='A4';
  const margins=style.margin==='compact'?850:1134;
  const document='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
-  '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'+
-  '<w:body>'+body+'<w:sectPr><w:pgSz w:w="'+(a4?'11906':'12240')+'" w:h="'+(a4?'16838':'15840')+'"/>'+
+  '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"'+
+  ' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"'+
+  ' xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"'+
+  ' xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"'+
+  ' xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">'+
+  '<w:body>'+imageXml+body+'<w:sectPr><w:pgSz w:w="'+(a4?'11906':'12240')+'" w:h="'+(a4?'16838':'15840')+'"/>'+
   '<w:pgMar w:top="'+margins+'" w:right="'+margins+'" w:bottom="'+margins+'" w:left="'+margins+'"/></w:sectPr></w:body></w:document>';
  const styles='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
   '<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'+
@@ -117,7 +133,7 @@ export function makeResumeDocx(doc:ResumeDoc):Uint8Array{
   {name:'[Content_Types].xml',data:'<?xml version="1.0" encoding="UTF-8"?>'+
    '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'+
    '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'+
-   '<Default Extension="xml" ContentType="application/xml"/>'+
+   '<Default Extension="xml" ContentType="application/xml"/>'+ (photo?'<Default Extension="jpg" ContentType="image/jpeg"/>':'')+
    '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'+
    '<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>'+
    '<Override PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/>'+
@@ -129,9 +145,10 @@ export function makeResumeDocx(doc:ResumeDoc):Uint8Array{
   {name:'word/_rels/document.xml.rels',data:'<?xml version="1.0" encoding="UTF-8"?>'+
    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>'+
-   '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="numbering.xml"/>'+
+   '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="numbering.xml"/>'+ (photo?'<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/portrait.jpg"/>':'')+
    '</Relationships>'},
-  {name:'word/document.xml',data:document},{name:'word/styles.xml',data:styles},{name:'word/numbering.xml',data:numbering}
+  {name:'word/document.xml',data:document},{name:'word/styles.xml',data:styles},{name:'word/numbering.xml',data:numbering},
+  ...(photo?[{name:'word/media/portrait.jpg',data:photo}]:[])
  ];
  return zipStore(files);
 }

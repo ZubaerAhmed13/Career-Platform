@@ -19,8 +19,12 @@ describe('real editable DOCX integrity',()=>{
    details:{},status:'confirmed',source:'manual'
   } satisfies CareerRecord;
   doc.sections.find(s=>s.kind==='project')!.entries.push(entryFromRecord(example));
+  doc.contact.photo='data:image/jpeg;base64,'+Buffer.from([0xff,0xd8,0xff,0xd9]).toString('base64');
+  doc.contact.showPhoto=true;
   const bytes=makeResumeDocx(doc);
   validateLocalDocxArchive(bytes);
+  expect(new TextDecoder().decode(bytes)).toContain('word/media/portrait.jpg');
+  expect(new TextDecoder().decode(bytes)).toContain('a:blip r:embed="rId3"');
   const parsed=await extractRawText({buffer:Buffer.from(bytes)});
   expect(parsed.value).toContain('Zoë Résumé');
   expect(parsed.value).toContain('International analysis');
