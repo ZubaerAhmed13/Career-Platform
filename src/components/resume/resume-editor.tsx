@@ -31,6 +31,7 @@ export function ResumeEditor({row,versions:initialVersions,vault,openVault}:{
  const [selectedVaultIds,setSelectedVaultIds]=useState<string[]>([]);
  const [message,setMessage]=useState(''),[status,setStatus]=useState('All changes saved');
  const [previewVersion,setPreviewVersion]=useState<ResumeVersion|null>(null);
+ const [photoBusy,setPhotoBusy]=useState(false);
  const [versionLabel,setVersionLabel]=useState(''),[busy,startTransition]=useTransition();
  const [mobileZoom,setMobileZoom]=useState(0),[fitScale,setFitScale]=useState(1),[tick,setTick]=useState(0);
  const previewScrollRef=useRef<HTMLDivElement>(null);
@@ -159,6 +160,33 @@ export function ResumeEditor({row,versions:initialVersions,vault,openVault}:{
    setStatus('All changes saved');setMessage('Draft restored. Original saved version preserved.');
   });
  }
+ async function processPortrait(file:File){
+  if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>3*1024*1024){
+   setMessage('Choose a JPEG, PNG or WebP image smaller than 3 MB.');return;
+  }
+  setPhotoBusy(true);
+  try{
+   const objectUrl=URL.createObjectURL(file);
+   try{
+    const portrait=new Image();
+    portrait.src=objectUrl;
+    await portrait.decode();
+    if(!portrait.naturalWidth||!portrait.naturalHeight||portrait.naturalWidth*portrait.naturalHeight>24_000_000)
+     throw new Error('Image dimensions exceed the safe limit.');
+    const canvas=document.createElement('canvas');canvas.width=320;canvas.height=320;
+    const context=canvas.getContext('2d');if(!context)throw new Error('Image processing unavailable.');
+    context.fillStyle='#ffffff';context.fillRect(0,0,320,320);
+    const side=Math.min(portrait.naturalWidth,portrait.naturalHeight);
+    context.drawImage(portrait,(portrait.naturalWidth-side)/2,(portrait.naturalHeight-side)/2,
+     side,side,0,0,320,320);
+    const data=canvas.toDataURL('image/jpeg',.78);
+    if(data.length>92000)throw new Error('Processed image exceeds the resume size limit.');
+    edit(d=>{d.contact.photo=data;d.contact.showPhoto=true;});
+    setMessage('Portrait processed privately in your browser. Nothing was sent to an image service.');
+   }finally{URL.revokeObjectURL(objectUrl);}
+  }catch{setMessage('Could not process that image. Choose another JPEG or PNG photo.');}
+  finally{setPhotoBusy(false);}
+ }
  function addBullet(sid:string,eid:string){
   edit(d=>{const e=d.sections.find(s=>s.id===sid)?.entries.find(x=>x.id===eid);
    if(e&&e.bullets.length<40)e.bullets.push({id:crypto.randomUUID(),text:'',visible:true});});
@@ -206,6 +234,18 @@ export function ResumeEditor({row,versions:initialVersions,vault,openVault}:{
          onChange={e=>edit(d=>{d.contact.hidden=e.target.checked?
           d.contact.hidden.filter(v=>v!==key):[...d.contact.hidden,key];})}/> Show on resume</span>}
        </label>)}
+     </div>
+     <div className="resume-photo-control stack" style={{gap:10}}>
+      <strong>Optional resume photo</strong>
+      <p className="subtle" style={{margin:0}}>Leave this blank for an ATS-first CV. Adding a portrait is entirely your choice. Selected files are cropped and compressed on your device before the resume is saved.</p>
+      <input className="field" type="file" accept="image/jpeg,image/png,image/webp" aria-label="Add or replace resume photo"
+       disabled={photoBusy} onChange={e=>{const file=e.target.files?.[0];if(file)void processPortrait(file);e.target.value='';}}/>
+      {photoBusy&&<p role="status">Processing image…</p>}
+      {doc.contact.photo&&<div className="resume-inline-header">
+       <label className="resume-visibility"><input type="checkbox" checked={doc.contact.showPhoto}
+        onChange={e=>edit(d=>{d.contact.showPhoto=e.target.checked;})}/> Show photo on this CV</label>
+       <button className="button secondary" type="button" onClick={()=>edit(d=>{d.contact.photo='';d.contact.showPhoto=false;})}>Remove photo</button>
+      </div>}
      </div>
     </section>
     <section className="card stack">

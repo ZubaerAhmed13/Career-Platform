@@ -139,3 +139,11 @@
 
 .resume-paper .resume-extra{font-size:9pt;color:#475569;white-space:pre-line;margin:3px 0}
 .resume-paper .resume-extra strong{color:#334155}
+
+/* Optional photo is never part of an ATS-first resume unless explicitly selected. */
+.resume-paper .resume-profile-photo{float:right;width:89px;height:89px;border-radius:8px;object-fit:cover;object-position:center;margin:0 0 9px 15px}
+.resume-paper .resume-document-head::after{content:"";display:block;clear:both}
+.resume-graduate .resume-profile-photo{float:none;display:block;margin:0 auto 10px;border-radius:50%}
+.resume-european .resume-profile-photo{grid-column:2;grid-row:1/4;margin:0 0 0 12px}
+.resume-european .resume-contact{grid-column:1 / -1}
+@media(max-width:480px){.resume-photo-control .field{max-width:100%}}

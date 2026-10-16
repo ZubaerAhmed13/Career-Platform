@@ -18,6 +18,9 @@ export function ResumePreview({doc,fit=false}:{doc:ResumeDoc;fit?:boolean}){
    '--resume-page-min-height':s.paper==='A4'?'297mm':'279.4mm'} as React.CSSProperties}
   aria-label="Live resume document preview" data-paper={s.paper} id="resume-print">
   <header className="resume-document-head">
+   {c.showPhoto&&c.photo&&/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(c.photo)&&
+    /* eslint-disable-next-line @next/next/no-img-element */
+    <img className="resume-profile-photo" src={c.photo} alt="Resume portrait"/>}
    {c.name&&<h1>{c.name}</h1>}
    {c.headline&&!c.hidden.includes('headline')&&<p className="resume-headline">{c.headline}</p>}
    {contact.length>0&&<p className="resume-contact">{contact.map((key,i)=><span key={key}>

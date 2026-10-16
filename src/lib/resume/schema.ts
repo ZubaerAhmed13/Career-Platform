@@ -18,9 +18,11 @@ const optionalDate=z.string().max(10).refine(value=>{
  const date=new Date(value+'T12:00:00Z');
  return !Number.isNaN(date.getTime())&&date.toISOString().slice(0,10)===value;
 },'Use a valid date in YYYY-MM-DD format');
+export const embeddedPhotoSchema=z.union([z.literal(''),z.string().max(92000).regex(/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/,'Only browser-processed JPEG images are accepted')]);
 const link = z.union([z.literal(''),z.url().max(500).refine(url=>/^https:\/\/|^http:\/\//i.test(url),'Only HTTP(S) links are allowed')]);
 export const contactSchema = z.object({
  name:short(160).default(''), headline:short(200).default(''),
+ photo:embeddedPhotoSchema.default(''),showPhoto:z.boolean().default(false),
  email:z.union([z.literal(''),z.email().max(254)]).default(''),
  phone:short(80).default(''),location:short(180).default(''),
  linkedin:link.default(''),portfolio:link.default(''),github:link.default(''),website:link.default(''),
@@ -90,7 +92,7 @@ const headings:Record<Exclude<ResumeKind,'custom'>,string>={
  project:'Projects',achievement:'Achievements',certification:'Certifications',volunteering:'Volunteering'
 };
 export function emptyResume(template:ResumeSettings['template']='ats-classic',paper:ResumeSettings['paper']='A4'):ResumeDoc {
- return {schemaVersion:1,contact:{name:'',headline:'',email:'',phone:'',location:'',linkedin:'',portfolio:'',github:'',website:'',hidden:[]},
+ return {schemaVersion:1,contact:{name:'',headline:'',photo:'',showPhoto:false,email:'',phone:'',location:'',linkedin:'',portfolio:'',github:'',website:'',hidden:[]},
  summary:'',summaryVisible:true,
  sections:(Object.keys(headings) as Exclude<ResumeKind,'custom'>[])
   .sort((a,b)=>template==='student-graduate'?
