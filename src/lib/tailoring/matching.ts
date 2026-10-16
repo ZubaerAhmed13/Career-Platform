@@ -9,7 +9,7 @@ export type EvidenceMatch={
 export type RequirementEvidence={requirement:JobRequirement;matches:EvidenceMatch[];
  status:'direct'|'related'|'none'|'needs-review';warning?:string};
 
-const aliases:readonly (readonly string[])[]=[
+export const controlledAliases:readonly (readonly string[])[]=[
  ['microsoft excel','ms excel','excel'],
  ['inventory cycle counting','cycle counting','cycle counts','inventory counts'],
  ['power bi','powerbi'],
@@ -40,7 +40,7 @@ export function detectLanguageGap(required:string,recordText:string){
 export function findEvidence(requirement:JobRequirement,records:CareerRecord[]):RequirementEvidence{
  const approved=records.filter(r=>r.status==='confirmed');
  const query=requirement.text;
- const terms=aliases.filter(group=>group.some(v=>hasPhrase(query,v)));
+ const terms=controlledAliases.filter(group=>group.some(v=>hasPhrase(query,v)));
  const language=languageWords.find(word=>hasPhrase(query,word));
  const matches:EvidenceMatch[]=[];
  let warning: string|undefined;
