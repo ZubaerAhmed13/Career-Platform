@@ -84,8 +84,10 @@ async function main(){
  assert.equal(versions.length,1);
  assert.equal(versions[0].snapshot_content.sections[0].entries[0].source.recordId,record);
  assert.deepEqual(await ok('/resume_versions?select=id&resume_id=eq.'+id,{token:b}),[]);
- const mutation=await req('/resume_versions?id=eq.'+versions[0].id,{token:a,method:'PATCH',body:{label:'Forge'}});
- assert(mutation.status>=400);
+ const mutation=await req('/resume_versions?id=eq.'+versions[0].id+'&select=id',{token:a,method:'PATCH',prefer:'return=representation',body:{label:'Forge'}});
+ assert(mutation.status>=400||(mutation.status===200&&Array.isArray(mutation.data)&&mutation.data.length===0),'Historical versions must not be editable');
+ const unchanged=await ok('/resume_versions?select=label&id=eq.'+versions[0].id,{token:a});
+ assert.equal(unchanged[0].label,'Baseline');
  console.log('PASS independent immutable versions, owner-restricted RPC');
  const stale=await ok('/resumes?select=id&id=eq.'+id+'&revision=eq.1',{
   token:a,method:'PATCH',prefer:'return=representation',body:{name:'Stale'}});
