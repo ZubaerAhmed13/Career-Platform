@@ -65,14 +65,14 @@ export function findEvidence(requirement:JobRequirement,records:CareerRecord[]):
   if(!relevant)continue;
   // No single skill keyword proves years of experience, seniority, fluency or certification.
   const advanced=/\b(advanced|expert|senior|years|certified|certification|qualified|professional)\b/i.test(query);
-  const handsOn=/\\b(used|using|managed|performed|developed|maintained|created|coordinated|analysed|analyzed|conducted|worked with)\\b/i.test(value);
+  const handsOn=/\b(used|using|managed|performed|developed|maintained|created|coordinated|analysed|analyzed|conducted|worked with)\b/i.test(value);
   const direct=requirement.relation==='single'&&(
    certificationNamed||
    (requirement.category==='qualification'&&degreeNamed&&!record.is_current&&
-    /\\b(completed|graduated|awarded|degree|diploma|bba|mba|bachelor|master)\\b/i.test(value))||
+    /\b(completed|graduated|awarded|degree|diploma|bba|mba|bachelor|master)\b/i.test(value))||
    (requirement.category==='language'&&!!language&&!gap)||
    (all&&!advanced&&(
-    (record.kind==='skill'&&!/\\b(years|experience|advanced|expert)\\b/i.test(query))||
+    (record.kind==='skill'&&!/\b(years|experience|advanced|expert)\b/i.test(query))||
     handsOn))
   );
   matches.push({recordId:record.id,revision:record.revision,kind:record.kind,
