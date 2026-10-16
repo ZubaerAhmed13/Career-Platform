@@ -4,7 +4,7 @@ import {useEffect,useMemo,useRef,useState,useTransition} from 'react';
 import {useRouter} from 'next/navigation';
 import {createTargetedResume,saveTailoringSession,includeVerifiedCareerRecord,getAvailableResumeVersions} from '@/app/actions/resume-tailoring';
 import {briefFromRow,requirementCategories,requirementPriorities,type JobBrief,type JobRequirement,type TailoringRow} from '@/lib/tailoring/schema';
-import {newManualRequirement,extractRequirements} from '@/lib/tailoring/requirements';
+import {newManualRequirement,extractRequirements,splitRequirement,mergeRequirements} from '@/lib/tailoring/requirements';
 import {compareResume,coverage,findEvidence} from '@/lib/tailoring/matching';
 import {qualityWarnings,type ResumeRow} from '@/lib/resume/schema';
 import {resumePlainText} from '@/lib/resume/exports';
@@ -22,6 +22,9 @@ export function TailoringWorkspace({session,resumes,vault}:{
  const [versions,setVersions]=useState<{id:string;version_number:number;label:string}[]>([]);
  const [pending,start]=useTransition();
  const [newRequirement,setNewRequirement]=useState('');
+ const [splitId,setSplitId]=useState<string|null>(null);
+ const [splitFirst,setSplitFirst]=useState(''),[splitSecond,setSplitSecond]=useState('');
+ const [mergeSelections,setMergeSelections]=useState<Record<string,string>>({});
  const [filter,setFilter]=useState<'all'|'approved'|'needs'>('all');
  const revision=useRef(session.revision),saving=useRef(false),blocked=useRef(false);
  const saved=useRef(JSON.stringify(brief)),current=useRef(brief);
@@ -85,6 +88,38 @@ export function TailoringWorkspace({session,resumes,vault}:{
   if(value.length<2||value.length>1200){setMessage('Enter a requirement between 2 and 1,200 characters.');return;}
   change(b=>{if(b.requirements.length>=100)return;b.requirements.push(newManualRequirement(value));});
   setNewRequirement('');
+ }
+ function prepareSplit(item:JobRequirement){
+  setSplitId(item.id);setSplitFirst(item.text);setSplitSecond('');
+ }
+ function applySplit(id:string){
+  const item=brief.requirements.find(r=>r.id===id);
+  if(!item)return;
+  try{
+   const children=splitRequirement(item,splitFirst,splitSecond);
+   change(b=>{
+    const index=b.requirements.findIndex(r=>r.id===id);
+    if(index>=0&&b.requirements.length<100)b.requirements.splice(index,1,...children);
+   });
+   setSplitId(null);setSplitFirst('');setSplitSecond('');
+   setMessage('Requirement split into two candidate criteria. Review and approve each separately.');
+  }catch(error){setMessage(error instanceof Error?error.message:'Unable to split this criterion.');}
+ }
+ function applyMerge(id:string){
+  const otherId=mergeSelections[id];
+  const first=brief.requirements.find(r=>r.id===id);
+  const second=brief.requirements.find(r=>r.id===otherId);
+  if(!first||!second){setMessage('Choose another criterion to merge.');return;}
+  try{
+   const merged=mergeRequirements(first,second);
+   change(b=>{
+    const index=b.requirements.findIndex(r=>r.id===id);
+    b.requirements=b.requirements.filter(r=>r.id!==id&&r.id!==otherId);
+    b.requirements.splice(Math.min(index,b.requirements.length),0,merged);
+   });
+   setMergeSelections({});
+   setMessage('Criteria merged into a new candidate. Check whether this is an AND/OR condition before approval.');
+  }catch(error){setMessage(error instanceof Error?error.message:'Unable to merge criteria.');}
  }
  function reanalyse(){
   if(!window.confirm('Replace all current requirement annotations with fresh candidate extractions? Previously approved or manually added requirements will be lost.'))return;
@@ -197,7 +232,32 @@ export function TailoringWorkspace({session,resumes,vault}:{
         <strong>{link.title}</strong> · {link.classification}<p>{link.excerpt||'No description recorded'}</p>
         <small>{link.rule} · Source revision {link.revision}</small>
        </li>)}</ul></details>}
+      {splitId===r.id&&<fieldset className="resume-fieldset stack">
+       <legend>Split into two separately reviewed criteria</legend>
+       <label className="form-row"><span className="label">First criterion</span>
+        <textarea className="field" value={splitFirst} maxLength={1200} rows={2}
+         onChange={e=>setSplitFirst(e.target.value)}/></label>
+       <label className="form-row"><span className="label">Second criterion</span>
+        <textarea className="field" value={splitSecond} maxLength={1200} rows={2}
+         onChange={e=>setSplitSecond(e.target.value)}/></label>
+       <div className="resume-card-actions">
+        <button className="button secondary" type="button" onClick={()=>applySplit(r.id)}>Split and review</button>
+        <button className="button secondary" type="button" onClick={()=>setSplitId(null)}>Cancel</button>
+       </div>
+      </fieldset>}
+      {brief.requirements.length>1&&<div className="resume-form-grid">
+       <label className="form-row"><span className="label">Merge with another criterion</span>
+        <select className="field" value={mergeSelections[r.id]??''}
+         onChange={e=>setMergeSelections(current=>({...current,[r.id]:e.target.value}))}>
+         <option value="">Choose a duplicate or related line</option>
+         {brief.requirements.filter(other=>other.id!==r.id).map(other=><option key={other.id} value={other.id}>{other.text.slice(0,75)}</option>)}
+        </select></label>
+       <button className="button secondary" type="button" disabled={!mergeSelections[r.id]}
+        onClick={()=>applyMerge(r.id)}>Merge and review</button>
+      </div>}
       <div className="resume-card-actions">
+       <button className="button secondary" type="button" disabled={splitId===r.id||brief.requirements.length>=100}
+        onClick={()=>prepareSplit(r)}>Split criterion</button>
        <button className="button secondary" onClick={()=>patchRequirement(r.id,{review:'approved'})} disabled={r.review==='approved'}>Approve</button>
        <button className="button secondary" onClick={()=>patchRequirement(r.id,{review:'rejected'})} disabled={r.review==='rejected'}>Reject</button>
       </div>
