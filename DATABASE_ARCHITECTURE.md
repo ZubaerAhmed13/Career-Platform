@@ -1,5 +1,8 @@
 # Database architecture
 
+> **Current implementation update (16 October 2026):** Career Vault and Resume Studio are now implemented in later migrations; the early lists below record the original roadmap, not current availability. Step 3 `resumes` and `resume_versions` migrations were separately approved/applied on 16 October. Step 4 `resume_tailoring_sessions` is proposed in draft PR #10 and **not applied** to the live project. It uses owner RLS, composite references, revision guards and immutable source snapshots. See `docs/STEP4_TECHNICAL_DESIGN.md`.
+
+
 **Implemented in migration 202610120001_initial.sql:** auth.users (Supabase-managed), public.profiles (1:1 UUID owner), public.file_metadata (owner-scoped and reserved for later use), and private storage bucket career-private. Database RLS enforces auth.uid() = owner for profile reads/writes and metadata reads/creates/deletes. Storage object read policy restricts to first folder = authenticated UUID; no upload policy is granted. Auth trigger initializes a profile on account creation. Database trigger maintains updated_at.
 
 **Not yet implemented:** CareerProfiles, Experiences, EducationRecords, Skills, Projects, CareerFacts, EvidenceSources, Resumes, ResumeVersions, CoverLetters, CoverLetterVersions, SavedJobs, JobRequirements, Applications, ApplicationEvents, ApplicationDocuments, InterviewSessions, InterviewQuestions, InterviewFeedback, NotificationPreferences and AuditEvents.
