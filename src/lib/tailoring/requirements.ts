@@ -1,6 +1,6 @@
 import type {JobRequirement} from './schema';
 
-const qualifying=/\b(experience|proficien|knowledge|familiar|ability|skills?|degree|bachelor|master|diploma|certific|fluency|fluent|language|excel|sql|sap|oracle|python|power bi|tableau|requirements?|responsib|manage|coordinate|analyse|analyze|reporting|communication|working hours|available|travel|location)\b/i;
+const qualifying=/\b(experience|proficien\w*|knowledge|familiar\w*|ability|skills?|degree|bachelor|master|diploma|certific\w*|fluency|fluent|language|excel|sql|sap|oracle|python|power bi|tableau|requirements?|responsib\w*|manag\w*|coordinat\w*|analys\w*|analyz\w*|reporting|communication|working hours|available|travel|location)\b/i;
 const head=/^(responsibilities|your profile|requirements|qualifications|what you bring|who you are|benefits|about us|nice to have|must have|tasks|profil|anforderungen|aufgaben)\s*:?$/i;
 const preferred=/\b(preferred|nice to have|advantageous|desirable|optional|plus|ideally|von vorteil|wünschenswert)\b/i;
 const essential=/\b(required|essential|must have|mandatory|minimum|need to|you must|erforderlich|voraussetzung|zwingend)\b/i;
@@ -20,7 +20,7 @@ export function extractRequirements(source:string):JobRequirement[]{
  const results:JobRequirement[]=[];
  let offset=0;const seen=new Set<string>();
  for(const line of source.split(/\n/)){
-  const full=line.trim().replace(/^[•*\-–\d.)\s]+/,'').trim();
+  const full=line.trim().replace(/^(?:[•*–-]\s+|\d+[.)]\s+)/,'').trim();
   const position=line.indexOf(full)>=0?offset+line.indexOf(full):offset;
   offset+=line.length+1;
   if(!full||head.test(full)||full.length<9||full.length>1200||!qualifying.test(full))continue;
