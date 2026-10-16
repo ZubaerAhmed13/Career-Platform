@@ -32,6 +32,7 @@ export type TailoringRow={
  id:string;user_id:string;job_title:string;employer_name:string;job_location:string;
  employment_type:string;job_url:string;original_job_description:string;initial_job_description:string;private_notes:string;
  requirements:JobRequirement[];source_resume_id:string|null;source_resume_revision:number|null;
+ source_version_number:number|null;
  source_snapshot:ResumeDoc|null;tailored_resume_id:string|null;
  revision:number;created_at:string;updated_at:string;
 };
