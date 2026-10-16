@@ -16,6 +16,7 @@ create table public.resume_tailoring_sessions (
   and octet_length(requirements::text)<=70000),
  source_resume_id uuid,
  source_resume_revision integer check (source_resume_revision>0),
+ source_version_number integer check (source_version_number>0),
  source_snapshot jsonb check (source_snapshot is null or (
   jsonb_typeof(source_snapshot)='object'
   and source_snapshot->>'schemaVersion'='1'
