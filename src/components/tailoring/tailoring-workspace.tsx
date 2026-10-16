@@ -149,6 +149,9 @@ export function TailoringWorkspace({session,resumes,vault}:{
      <label className="form-row"><span className="label">Original description</span>
       <textarea className="field" rows={6} maxLength={50000} value={brief.originalDescription}
        onChange={e=>change(b=>{b.originalDescription=e.target.value;})}/></label>
+     <details><summary>Show the first saved original posting (immutable source copy)</summary>
+      <pre className="tailoring-original-text">{session.initial_job_description}</pre>
+     </details>
      <button type="button" className="button secondary" onClick={reanalyse}>Re-analyse text (replaces reviewed annotations)</button>
      <label className="form-row"><span className="label">Private notes</span>
       <textarea className="field" rows={2} maxLength={4000} value={brief.notes} onChange={e=>change(b=>{b.notes=e.target.value;})}/></label>
