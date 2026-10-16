@@ -25,3 +25,8 @@ PDF is provided by the actual browser Print / Save as PDF flow; not a fake binar
 
 ## Acceptance boundary
 Unit, public Playwright, and disposable Postgres RLS tests run in PR CI. Authenticated sign-in/edit/relogin against the owner's real Supabase has not run and must not be claimed passed. The additive migration is not applied to the owner's live project by this GitHub-only work. The owner requested completion, and the reviewed source was merged without deploying. Do not deploy to Vercel or modify the live Supabase project without specific further approval.
+
+## Resume Studio database grants
+
+The initial Step 3 migration adds RLS and explicit application grants. In Supabase projects whose historical default privileges automatically grant all table permissions, those are additive rather than restrictive. Run the additive hardening migration \`supabase/migrations/202610160001_resume_studio_least_privilege.sql\` after the main Step 3 migration. It revokes all direct \`anon\` and \`authenticated\` table privileges from the two resume tables, then grants exactly the authenticated operations the app needs. The restricted version-creation RPC remains the only authenticated path to append a historical version, and \`service_role\` retains administrative access. Existing resume rows are not changed.
+
