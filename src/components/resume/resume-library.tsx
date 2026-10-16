@@ -39,7 +39,7 @@ export function ResumeLibrary({initial}:{initial:ResumeRow[]}){
  }
  return <div className="stack" style={{gap:22}}>
   <header><p className="eyebrow">Career documents</p><h1 className="heading">Resume Studio</h1>
-   <p className="subtle">Build truthful, beautifully formatted resumes from your confirmed career facts or start from scratch. No AI required.</p>
+   <p className="subtle">Build truthful resumes from confirmed career facts or start from scratch. Your account contact details are prefilled, but fully editable. No AI required.</p>
   </header>
   <section className="card stack" aria-labelledby="new-resume-title">
    <h2 id="new-resume-title" style={{margin:0}}>Create a new resume</h2>

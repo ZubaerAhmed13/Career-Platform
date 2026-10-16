@@ -16,10 +16,23 @@ export async function createResume(input:{name:string;focus?:string;template?:Re
  const doc=resumeDocSchema.safeParse(emptyResume(input.template,input.paper));
  if(!doc.success)return fail('Invalid resume design settings.');
  const {user,supabase}=await requireAccount();
+ // Convenience only: identity fields are prefilled from the signed-in account,
+ // never from a forged request or AI inference. Every field remains editable.
+ const {data:profile}=await supabase.from('profiles').select('full_name,display_name,city,country')
+  .eq('id',user.id).maybeSingle();
+ const initial={
+  ...doc.data,contact:{...doc.data.contact,
+   name:(profile?.full_name?.trim()||profile?.display_name?.trim()||'').slice(0,160),
+   email:user.email??'',
+   location:[profile?.city,profile?.country].filter(Boolean).join(', ').slice(0,180)
+  }
+ };
+ const checked=resumeDocSchema.safeParse(initial);
+ if(!checked.success)return fail('Unable to create a resume from your account profile.');
  const {data,error}=await supabase.from('resumes').insert({
   user_id:user.id,name:meta.data.name,focus_label:meta.data.focus,
-  draft_content:doc.data,template_id:doc.data.settings.template,
-  paper_size:doc.data.settings.paper,document_language:doc.data.settings.language
+  draft_content:checked.data,template_id:checked.data.settings.template,
+  paper_size:checked.data.settings.paper,document_language:checked.data.settings.language
  }).select('id').single();
  if(error||!data)return fail('Could not create the resume. Check whether the Step 3 migration is applied.');
  refresh();return {ok:true,id:data.id};
