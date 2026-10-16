@@ -94,7 +94,7 @@ test('synthetic Resume Studio editor supports fact selection and template switch
  if(isMobile)await page.getByRole('button',{name:'Preview',exact:true}).first().click();
  await expect(page.getByRole('heading',{name:'Synthetic Inventory Assistant',exact:true})).toBeVisible();
  if(isMobile)await page.getByRole('button',{name:'Design',exact:true}).first().click();
- await page.getByLabel('Template',{exact:true}).selectOption('modern-professional');
+ await page.locator('#resume-design-template').selectOption('modern-professional');
  if(isMobile)await page.getByRole('button',{name:'Preview',exact:true}).first().click();
  await expect(page.locator('.resume-paper')).toHaveClass(/resume-modern/);
  const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth+2);

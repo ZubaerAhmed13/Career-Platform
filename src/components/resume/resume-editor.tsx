@@ -362,8 +362,8 @@ export function ResumeEditor({row,versions:initialVersions,vault,openVault,demoM
    <aside className={'resume-editor-panel resume-design-panel '+(!isDesign?'resume-mobile-hidden':'')}>
     <section className="card stack"><h2 style={{margin:0}}>Document design</h2>
      <p className="subtle">Switch templates without changing resume content.</p>
-     <label className="form-row"><span className="label">Template</span>
-      <select className="field" value={doc.settings.template} onChange={e=>edit(d=>{d.settings.template=e.target.value as typeof d.settings.template;})}>
+     <label className="form-row" htmlFor="resume-design-template"><span className="label">Template</span>
+      <select id="resume-design-template" aria-label="Template" className="field" value={doc.settings.template} onChange={e=>edit(d=>{d.settings.template=e.target.value as typeof d.settings.template;})}>
        {templateIds.map(id=><option key={id} value={id}>{templateNames[id]}</option>)}</select></label>
      <div className="resume-form-grid">
       <label className="form-row"><span className="label">Paper</span><select className="field" value={doc.settings.paper}
