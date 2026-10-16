@@ -1,5 +1,30 @@
 \set ON_ERROR_STOP on
 -- Step 3 assertions ONLY against ephemeral PostgreSQL CI fixture.
+-- Assert exact production-oriented grants before creating any synthetic users.
+do $$
+begin
+ if has_table_privilege('anon','public.resumes','SELECT') or
+    has_table_privilege('anon','public.resume_versions','SELECT') or
+    has_table_privilege('anon','public.resumes','INSERT') or
+    has_table_privilege('anon','public.resume_versions','INSERT') then
+  raise exception 'Anonymous grants are too broad';
+ end if;
+ if has_table_privilege('authenticated','public.resumes','TRUNCATE') or
+    has_table_privilege('authenticated','public.resumes','TRIGGER') or
+    has_table_privilege('authenticated','public.resume_versions','INSERT') or
+    has_table_privilege('authenticated','public.resume_versions','UPDATE') or
+    has_table_privilege('authenticated','public.resume_versions','DELETE') or
+    has_table_privilege('authenticated','public.resume_versions','TRUNCATE') then
+  raise exception 'Authenticated resume history or administrative grants are too broad';
+ end if;
+ if not (has_table_privilege('authenticated','public.resumes','SELECT')
+  and has_table_privilege('authenticated','public.resumes','INSERT')
+  and has_table_privilege('authenticated','public.resumes','UPDATE')
+  and has_table_privilege('authenticated','public.resumes','DELETE')
+  and has_table_privilege('authenticated','public.resume_versions','SELECT'))
+ then raise exception 'Required Resume Studio authenticated grants missing'; end if;
+end $$;
+
 do $$
 begin
  if has_function_privilege('anon','public.resume_source_guard()','EXECUTE') or
