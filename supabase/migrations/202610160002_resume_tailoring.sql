@@ -9,7 +9,8 @@ create table public.resume_tailoring_sessions (
  employment_type text not null default '' check (char_length(employment_type)<=100),
  weekly_hours text not null default '' check (char_length(weekly_hours)<=80),
  work_arrangement text not null default '' check (char_length(work_arrangement)<=80),
- posting_date text not null default '' check (posting_date='' or posting_date ~ '^\\d{4}-\\d{2}-\\d{2}
+ posting_date text not null default '' check (posting_date='' or posting_date ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'),
+ application_deadline text not null default '' check (application_deadline='' or application_deadline ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'),
  job_url text not null default '' check (char_length(job_url)<=1500 and (job_url='' or job_url ~* '^https?://')),
  original_job_description text not null check (char_length(original_job_description) between 40 and 50000),
  initial_job_description text not null check (char_length(initial_job_description) between 40 and 50000),
