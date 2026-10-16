@@ -43,3 +43,25 @@ export function newManualRequirement(text:string):JobRequirement{
  return {id:crypto.randomUUID(),text,excerpt:'',position:-1,category:'other',
   priority:'unclassified',relation:'single',origin:'user',review:'approved'};
 }
+
+/** Human-directed structural review. Never silently reinterpret AND/OR criteria. */
+export function splitRequirement(item:JobRequirement,left:string,right:string):[JobRequirement,JobRequirement]{
+ const a=left.trim(),b=right.trim();
+ if(a.length<2||b.length<2||a.length>1200||b.length>1200)
+  throw new Error('Split requirements must each contain 2–1,200 characters.');
+ return [a,b].map(text=>({...item,id:crypto.randomUUID(),text,
+  origin:'user' as const,review:'candidate' as const,
+  priority:'unclassified' as const,relation:'single' as const})) as [JobRequirement,JobRequirement];
+}
+export function mergeRequirements(a:JobRequirement,b:JobRequirement):JobRequirement{
+ if(a.id===b.id)throw new Error('Choose two different requirements.');
+ const text=a.text+'; '+b.text;
+ if(text.length>1200)throw new Error('Combined requirement exceeds the 1,200-character limit.');
+ return {
+  id:crypto.randomUUID(),text,excerpt:[a.excerpt,b.excerpt].filter(Boolean).join('\n').slice(0,1500),
+  position:a.position<0?b.position:b.position<0?a.position:Math.min(a.position,b.position),
+  category:a.category===b.category?a.category:'other',
+  priority:a.priority===b.priority?a.priority:'unclassified',
+  relation:'compound',origin:'user',review:'candidate',
+ };
+}
