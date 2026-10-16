@@ -213,7 +213,20 @@ export function ResumeEditor({row,versions:initialVersions,vault,openVault,demoM
     <button className="button secondary" disabled={!undoRef.current.length} onClick={undo}>Undo</button>
     <button className="button secondary" disabled={!redoRef.current.length} onClick={redo}>Redo</button>
     <button className="button secondary" disabled={busy||savingRef.current||blockedRef.current} onClick={()=>void save(doc)}>Save now</button>
-    <Link className="button secondary" href={'/resume-studio/'+row.id+'/print'+(previewVersion?'?version='+previewVersion.id:'')} target="_blank">Print / Save PDF</Link>
+    <button className="button secondary" type="button" onClick={()=>{
+     // Open while still inside the user's click, then load ONLY a confirmed saved draft.
+     const tab=window.open('about:blank','_blank');
+     if(!tab){setMessage('Allow pop-ups for this page to print your saved resume.');return;}
+     tab.opener=null;
+     void (async()=>{
+      if(!previewVersion&&dirty&&!await save(docRef.current)){tab.close();return;}
+      if(!previewVersion&&JSON.stringify(docRef.current)!==savedRef.current){
+       setMessage('More changes are unsaved. Save again before printing.');
+       tab.close();return;
+      }
+      tab.location.href='/resume-studio/'+row.id+'/print'+(previewVersion?'?version='+previewVersion.id:'');
+     })();
+    }}>Print / Save PDF</button>
     <button className="button secondary" onClick={()=>exportDoc('docx')}>Download DOCX</button>
     <button className="button secondary" onClick={()=>exportDoc('txt')}>Plain text</button>
    </div>
