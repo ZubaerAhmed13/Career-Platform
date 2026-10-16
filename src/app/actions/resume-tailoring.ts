@@ -2,7 +2,8 @@
 import {revalidatePath} from 'next/cache';
 import {z} from 'zod';
 import {requireAccount} from '@/lib/account';
-import {emptyResume,resumeDocSchema} from '@/lib/resume/schema';
+import {emptyResume,resumeDocSchema,entryFromRecord} from '@/lib/resume/schema';
+import type {CareerRecord} from '@/lib/career/schema';
 import {jobBriefSchema,isValidRevision,type JobBrief} from '@/lib/tailoring/schema';
 import {extractRequirements} from '@/lib/tailoring/requirements';
 
@@ -104,4 +105,44 @@ export async function createTargetedResume(id:string,revision:number,sourceId:st
   return fail('A concurrent edit interrupted linking. Reload before trying again.',true);
  }
  refresh(id);return {ok:true,resumeId:copy.id,revision:linked.revision};
+}
+
+/** Add one explicitly chosen confirmed fact, never silently insert recommendations. */
+export async function includeVerifiedCareerRecord(sessionId:string,recordId:string,
+ expectedResumeRevision:number):Promise<TailorResult>{
+ if(!uid.safeParse(sessionId).success||!uid.safeParse(recordId).success||
+  !isValidRevision(expectedResumeRevision))return fail('Invalid record or resume revision.');
+ const {user,supabase}=await requireAccount();
+ const {data:session,error:sessionError}=await supabase.from('resume_tailoring_sessions')
+  .select('tailored_resume_id').eq('id',sessionId).eq('user_id',user.id).maybeSingle();
+ if(sessionError||!session?.tailored_resume_id)return fail('Create a targeted resume first.');
+ const {data:resume,error:resumeError}=await supabase.from('resumes')
+  .select('draft_content,revision').eq('user_id',user.id)
+  .eq('id',session.tailored_resume_id).maybeSingle();
+ if(resumeError||!resume)return fail('Targeted resume is missing.');
+ if(resume.revision!==expectedResumeRevision)
+  return fail('Your resume was updated in another tab. Refresh before adding evidence.',true);
+ const {data:record,error:recordError}=await supabase.from('career_records')
+  .select('*').eq('user_id',user.id).eq('id',recordId).eq('status','confirmed').maybeSingle();
+ if(recordError||!record)return fail('This fact is not confirmed in your Career Vault.');
+ const parsed=resumeDocSchema.safeParse(resume.draft_content);
+ if(!parsed.success)return fail('Stored targeted resume could not be validated.');
+ const doc=structuredClone(parsed.data);
+ if(doc.sections.some(section=>section.entries.some(entry=>entry.source?.recordId===recordId)))
+  return fail('This Career Vault record is already present in the targeted resume.');
+ const category=record.kind as CareerRecord['kind'];
+ const section=doc.sections.find(s=>s.kind===category);
+ if(!section||section.entries.length>=70)return fail('There is no available section for this record.');
+ section.entries.push(entryFromRecord(record as CareerRecord));section.visible=true;
+ const checked=resumeDocSchema.safeParse(doc);
+ if(!checked.success)return fail('The record would exceed the resume size limit.');
+ const {data:saved,error:saveError}=await supabase.from('resumes').update({
+  draft_content:checked.data,template_id:checked.data.settings.template,
+  paper_size:checked.data.settings.paper,document_language:checked.data.settings.language
+ }).eq('id',session.tailored_resume_id).eq('user_id',user.id)
+  .eq('revision',expectedResumeRevision).select('revision').maybeSingle();
+ if(saveError)return fail('Unable to add this fact. The original resume has not changed.');
+ if(!saved)return fail('Concurrent resume edit detected. Refresh before adding evidence.',true);
+ refresh(sessionId);revalidatePath('/resume-studio/'+session.tailored_resume_id);
+ return {ok:true,resumeId:session.tailored_resume_id,revision:saved.revision};
 }
