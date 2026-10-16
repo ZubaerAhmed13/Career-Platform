@@ -210,7 +210,7 @@ export function TailoringWorkspace({session,resumes,vault}:{
         <option value="">Start blank (same Step 3 editor)</option>
         {sourceOptions.map(r=><option value={r.id} key={r.id}>{r.name}</option>)}
        </select></label>
-      <p className="subtle">The source's exact saved draft, design, portrait choice and confirmed source snapshots are copied. After copying, select or reorder Career Vault facts inside the usual editor.</p>
+      <p className="subtle">The source&apos;s exact saved draft, design, portrait choice and confirmed source snapshots are copied. After copying, select or reorder Career Vault facts inside the usual editor.</p>
       <button className="button" type="button" disabled={pending||blocked.current||saving.current} onClick={createCopy}>{pending?'Creating copy…':'Create independent targeted CV'}</button>
      </>}
     </section>
