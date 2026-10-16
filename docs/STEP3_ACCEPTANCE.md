@@ -15,6 +15,10 @@
 
 Successful exact-head PR CI: [38953206572](https://github.com/ZubaerAhmed13/Career-Platform/actions/runs/38953206572). Check post-merge `main` CI separately.
 
+## Additional isolated authenticated HTTP regression checks
+
+The GitHub-only acceptance job now exercises a genuine PostgREST HTTP API backed by a **disposable PostgreSQL fixture**, using two temporary synthetic JWT identities. It checks private create and re-read after a fresh token, owner isolation, source snapshot without Vault mutation, version creation and append-only history, revision conflict detection, restoration, owner-filtered draft/history data and cascade deletion. No Supabase service project is contacted. This is closer to real usage than SQL assertions alone, but **is not a substitute for real Auth sign-in/cookies, a deployed environment or manual user acceptance**.
+
 ## Outstanding real-account acceptance
 
 - [ ] Approve a non-production backend or deliberately approve applying `supabase/migrations/202610150001_resume_studio.sql` to the chosen Supabase project
