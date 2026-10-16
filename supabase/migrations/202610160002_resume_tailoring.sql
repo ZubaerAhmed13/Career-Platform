@@ -49,8 +49,14 @@ create policy "tailoring own update" on public.resume_tailoring_sessions for upd
 create policy "tailoring own delete" on public.resume_tailoring_sessions for delete to authenticated
  using (user_id=(select auth.uid()));
 create function public.tailoring_revision_guard() returns trigger
- language plpgsql set search_path='' as $$
+ language plpgsql set search_path='' as $
 begin
+ if tg_op='INSERT' then
+  if new.initial_job_description is distinct from new.original_job_description then
+   raise exception 'The first saved source text must match the original advert';
+  end if;
+  return new;
+ end if;
  if new.id<>old.id or new.user_id<>old.user_id or new.created_at<>old.created_at or
   new.initial_job_description is distinct from old.initial_job_description then
   raise exception 'Tailoring identity is immutable';
@@ -66,7 +72,7 @@ begin
  new.updated_at=now();
  return new;
 end; $$;
-create trigger bump_tailoring_revision before update on public.resume_tailoring_sessions
+create trigger bump_tailoring_revision before insert or update on public.resume_tailoring_sessions
  for each row execute function public.tailoring_revision_guard();
 revoke all on function public.tailoring_revision_guard() from public,anon,authenticated;
 -- Supabase can default to wide grants, so explicitly restrict before granting.
