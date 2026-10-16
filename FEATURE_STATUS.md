@@ -1,5 +1,8 @@
 # CareerOS — current GitHub status
 
+**Step 4 in review (not merged):** Draft [PR #10](https://github.com/ZubaerAhmed13/Career-Platform/pull/10) implements deterministic job-targeted resume tailoring on an isolated branch. The new private Supabase migration is **not applied** to the live project; no deployment or owner sign-off has occurred. See [technical design](docs/STEP4_TECHNICAL_DESIGN.md) and [acceptance matrix](docs/STEP4_ACCEPTANCE.md). CI validation and protected real-account acceptance remain distinct gates.
+
+
 **Last reviewed:** 16 October 2026. **Operating mode:** GitHub-only development; hosting paused by owner decision. No model server, scanning gateway or Vercel preview is required for Step 2. The last verified Step 2 merge on `main` was `163735a` (PR #4); the original Vault merged in PR #2 and export reliability improvements in PR #3.
 
 ## Merged in `main`
