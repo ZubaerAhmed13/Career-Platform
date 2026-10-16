@@ -22,9 +22,10 @@ insert into public.resumes(id,user_id,name,draft_content,template_id,paper_size,
 values ('babbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','abababab-abab-4aba-8aba-abababababab',
  'Base CV','{"schemaVersion":1}'::jsonb,'ats-classic','A4','en');
 insert into public.resume_tailoring_sessions
- (id,user_id,job_title,original_job_description,requirements,source_resume_id,source_resume_revision,source_snapshot)
+ (id,user_id,job_title,original_job_description,initial_job_description,requirements,source_resume_id,source_resume_revision,source_snapshot)
 values ('aaaaaaaa-1111-4111-8111-111111111111',
  'abababab-abab-4aba-8aba-abababababab','Example Analyst',
+ 'Experience with Microsoft Excel and reporting required. Good teamwork is desirable.',
  'Experience with Microsoft Excel and reporting required. Good teamwork is desirable.',
  '[]'::jsonb,'babbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',1,'{"schemaVersion":1}'::jsonb);
 update public.resume_tailoring_sessions set private_notes='Reviewed by A'
@@ -52,8 +53,9 @@ begin
  get diagnostics foreign_rows=row_count;
  if foreign_rows<>0 then raise exception 'Another owner can edit private job brief';end if;
  begin
-  insert into public.resume_tailoring_sessions(user_id,job_title,original_job_description,source_resume_id)
+  insert into public.resume_tailoring_sessions(user_id,job_title,original_job_description,initial_job_description,source_resume_id)
   values('cdcdcdcd-cdcd-4cdc-8cdc-cdcdcdcdcdcd','Forged',
+   'Experience with Microsoft Excel and reporting required. Good teamwork is desirable.',
    'Experience with Microsoft Excel and reporting required. Good teamwork is desirable.',
    'babbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb');
  exception when others then denied:=true;end;
