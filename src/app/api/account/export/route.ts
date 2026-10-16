@@ -16,7 +16,7 @@ export async function GET(){
   'profiles','file_metadata','career_records','career_evidence',
   'career_evidence_links','career_links','career_suggestions',
   'career_interview_sessions','career_interview_messages','career_events',
-  'resumes','resume_versions',
+  'resumes','resume_versions','resume_tailoring_sessions',
  ] as const;
  const personalData:Record<string,unknown[]>={};
  for(const table of tables){
@@ -48,7 +48,7 @@ export async function GET(){
  const payload={
   format:'CareerOS-Account-v1',
   exported_at:new Date().toISOString(),
-  scope_note:'Self-service export of profile, Career Vault, resume drafts and immutable resume versions. Auth passwords, sessions, service credentials, backend logs, backups and internal AI quota metrics are not in this archive.',
+  scope_note:'Self-service export of profile, Career Vault, resume drafts, job tailoring sessions and immutable resume versions. Auth passwords, sessions, service credentials, backend logs, backups and internal AI quota metrics are not in this archive.',
   account:{id:user.id,email:user.email??null,created_at:user.created_at},
   tables:personalData,
  };

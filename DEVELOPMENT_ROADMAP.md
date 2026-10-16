@@ -7,7 +7,7 @@ The owner will decide when the website is satisfactory and explicitly authorize 
 1. Core SaaS foundation (this change; provider verification pending)
 2. Permanent Career Intelligence Vault and evidence-backed fact model
 3. Resume Studio template/preview and printable documents
-4. Advanced resume tailoring against real vacancies
+4. Advanced resume tailoring against real vacancies — draft PR #10 under review, new migration not live-applied
 5. Cover Letter Studio and editing workflow
 6. Job Description Intelligence and verified matching
 7. Application Tracker and immutable document versions
