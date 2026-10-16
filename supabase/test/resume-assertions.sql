@@ -1,7 +1,7 @@
 \set ON_ERROR_STOP on
 -- Step 3 assertions ONLY against ephemeral PostgreSQL CI fixture.
 -- Assert exact production-oriented grants before creating any synthetic users.
-do $
+do $$
 begin
  if has_table_privilege('anon','public.resumes','SELECT') or
     has_table_privilege('anon','public.resume_versions','SELECT') or
@@ -23,7 +23,7 @@ begin
   and has_table_privilege('authenticated','public.resumes','DELETE')
   and has_table_privilege('authenticated','public.resume_versions','SELECT'))
  then raise exception 'Required Resume Studio authenticated grants missing'; end if;
-end $;
+end $$;
 
 do $$
 begin
