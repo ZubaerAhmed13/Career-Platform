@@ -1,6 +1,6 @@
-# CareerOS Step 2 — current GitHub status
+# CareerOS — current GitHub status
 
-**Last reviewed:** 15 October 2026. **Operating mode:** GitHub-only development; hosting paused by owner decision. No model server, scanning gateway or Vercel preview is required for Step 2. The last verified Step 2 merge on `main` was `163735a` (PR #4); the original Vault merged in PR #2 and export reliability improvements in PR #3.
+**Last reviewed:** 16 October 2026. **Operating mode:** GitHub-only development; hosting paused by owner decision. No model server, scanning gateway or Vercel preview is required for Step 2. The last verified Step 2 merge on `main` was `163735a` (PR #4); the original Vault merged in PR #2 and export reliability improvements in PR #3.
 
 ## Merged in `main`
 - Eight career record categories with authenticated create, edit, delete, evidence and relationships.
@@ -25,12 +25,15 @@
 - No GitHub-only task may trigger Vercel or alter the live Supabase project.
 
 ## Safe next steps
-1. PR #4 is merged. Monitor the corresponding `main` CI run and resolve any regressions before building Step 3.
-2. Use a disposable personal test record for manual signed-in CRUD/reload and small CV text import. Never test account deletion on the sole real account.
-3. Keep backup/export available and verify that export contains all owned records before relying on a backup.
-4. Begin Step 3 Resume Studio only when the Step 2 source-of-truth and revision-preservation behavior is satisfactory.
+1. Step 2 and Step 3 source code are merged; verify CI from the exact main merge commit, not from earlier feature-branch runs.
+2. Before attempting real signed-in Resume Studio usage, intentionally apply the Step 3 SQL migration to a separately approved database. This was **not** part of GitHub-only implementation.
+3. Use non-sensitive disposable resumes for create/edit/reload/relogin and owned record tests, then check Word/PDF exports and account JSON backup; avoid irreversible actions on the only real account.
+4. Keep automatic Vercel deployment off, preserve English-language navigation, and leave AI/model hosting deferred.
 
 See `docs/STEP2_ACCEPTANCE_MATRIX.md`, `docs/STEP2_RELEASE_GATES.md`, and `docs/BROWSER_LOCAL_CV_IMPORT.md`. Historical reports under `docs/` document earlier snapshots; their old branching, preview and AI requirements do **not** supersede these current operating instructions.
 
-## Step 3 feature branch — not merged or deployed
-GitHub feature branch feat/step3-resume-studio introduces the professional Resume Studio and migration for resumes and immutable versions. CI and manual acceptance are tracked in PR #6. Existing real Supabase is unchanged. Keep the application English-only and all AI/hosting postponed.
+## Step 3 — Resume Studio merged into main, not deployed
+
+[PR #6](https://github.com/ZubaerAhmed13/Career-Platform/pull/6) merged the non-AI Resume Studio source on 16 October 2026: eight career categories, five responsive templates, optional local portrait processing, owner-scoped document snapshots, versioned drafts, print/PDF, editable DOCX, text output and automated browser/database checks.
+
+**Scope boundary:** Database migration committed in GitHub only — **not applied to live Supabase**. Real-account end-to-end acceptance is **not completed**. Hosting and AI are still disabled. See `docs/STEP3_ACCEPTANCE.md`.
