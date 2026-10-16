@@ -9,6 +9,7 @@ create table public.resume_tailoring_sessions (
  employment_type text not null default '' check (char_length(employment_type)<=100),
  job_url text not null default '' check (char_length(job_url)<=1500 and (job_url='' or job_url ~* '^https?://')),
  original_job_description text not null check (char_length(original_job_description) between 40 and 50000),
+ initial_job_description text not null check (char_length(initial_job_description) between 40 and 50000),
  private_notes text not null default '' check (char_length(private_notes)<=4000),
  requirements jsonb not null default '[]'::jsonb check (
   jsonb_typeof(requirements)='array' and jsonb_array_length(requirements)<=100
@@ -45,8 +46,13 @@ create policy "tailoring own delete" on public.resume_tailoring_sessions for del
 create function public.tailoring_revision_guard() returns trigger
  language plpgsql set search_path='' as $$
 begin
- if new.id<>old.id or new.user_id<>old.user_id or new.created_at<>old.created_at then
+ if new.id<>old.id or new.user_id<>old.user_id or new.created_at<>old.created_at or
+  new.initial_job_description is distinct from old.initial_job_description then
   raise exception 'Tailoring identity is immutable';
+ end if;
+ if old.source_resume_id is not null and new.source_resume_id is distinct from old.source_resume_id
+  and new.source_resume_id is not null then
+  raise exception 'Source resume relationship cannot be reassigned';
  end if;
  if old.source_snapshot is not null and new.source_snapshot is distinct from old.source_snapshot then
   raise exception 'Original comparison snapshot is immutable';
