@@ -17,7 +17,7 @@ export const jobBriefSchema=z.object({
  location:z.string().trim().max(180).default(''),
  employmentType:z.string().trim().max(100).default(''),
  jobUrl:z.union([z.literal(''),z.url().max(1500).refine(s=>/^https?:\/\//i.test(s))]).default(''),
- originalDescription:z.string().trim().min(40).max(50000),
+ originalDescription:z.string().min(40).max(50000).refine(v=>v.trim().length>=40,'Provide a complete job description'),
  notes:z.string().max(4000).default(''),
  requirements:z.array(requirementSchema).max(100),
 }).superRefine((value,ctx)=>{
