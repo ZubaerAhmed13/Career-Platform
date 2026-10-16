@@ -19,3 +19,9 @@ insert into public.career_records
  '10101010-1010-4010-8010-101010101010','experience',
  'Synthetic Operations Assistant','Example Organisation',
  'Verified synthetic inventory responsibilities.','confirmed',1);
+
+-- The older, broad RLS assertion fixture grants all table privileges to anon
+-- and authenticated for unrelated testing. Restore the real Step 3 grants here.
+revoke all on public.resumes, public.resume_versions from anon;
+revoke insert,update,delete on public.resume_versions from authenticated;
+grant select on public.resume_versions to authenticated;
