@@ -16,9 +16,12 @@ export function reviewResumeBeforeExport(doc:ResumeDoc):ResumeExportReview{
  if(visible.length===0)warnings.push('The resume has no visible career entries.');
  if(visible.some(entry=>entry.bullets.some(b=>b.visible&&b.text.trim().length>230)))
   warnings.push('One or more bullets exceed 230 characters; review the document layout.');
- const unsupportedNumber=visible.some(entry=>entry.bullets.some(b=>
-  b.visible&&/\b\d+(?:[.,]\d+)?\s*%/.test(b.text)&&
-  (!entry.source||!/\b\d+(?:[.,]\d+)?\s*%/.test(entry.source.description))));
+ const percentages=(value:string)=>[...value.matchAll(/\b\d+(?:[.,]\d+)?\s*%/g)]
+  .map(hit=>hit[0].replace(/\s+/g,'').replace(',','.'));
+ const unsupportedNumber=visible.some(entry=>{
+  const original=new Set(percentages(entry.source?.description??''));
+  return entry.bullets.some(b=>b.visible&&percentages(b.text).some(value=>!original.has(value)));
+ });
  if(unsupportedNumber)warnings.push('Check percentage achievements against original evidence before using them.');
  return {errors:[],warnings:[...new Set(warnings)].slice(0,10)};
 }
