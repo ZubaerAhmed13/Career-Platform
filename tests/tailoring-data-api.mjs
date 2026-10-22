@@ -54,10 +54,13 @@ assert.deepEqual(stale,[]);
 // an orphan document after another tab changes the job or a stranger calls it.
 const rpc='/rpc/create_my_targeted_resume';
 const rpcBody={p_session:brief.id,p_revision:2,p_source:source.id,
- p_version:null,p_blank_doc:null};
+ p_version:null,p_blank_doc:null,p_expected_source_revision:source.revision};
 const before=await ok('/resumes?select=id',{identity:A});
 const crossOwner=await query(rpc,{method:'POST',identity:B,body:rpcBody});
 assert(crossOwner.status>=400,'A different account must not create a CV for this job');
+const outdatedSource=await query(rpc,{method:'POST',identity:A,
+ body:{...rpcBody,p_expected_source_revision:source.revision+1}});
+assert(outdatedSource.status>=400,'Changed source revision must reject the atomic copy');
 const outdated=await query(rpc,{method:'POST',identity:A,body:{...rpcBody,p_revision:1}});
 assert(outdated.status>=400,'A stale revision must reject the entire transaction');
 assert.equal((await ok('/resumes?select=id',{identity:A})).length,before.length,
