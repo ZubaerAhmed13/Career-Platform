@@ -93,6 +93,18 @@ describe('Job-targeted resume intelligence without models',()=>{
   expect(findEvidence(requirement('Business-fluent German required','language'),
    [fact('language','German','German A1')]).status).toBe('none');
  });
+ it('never treats C2 as native or German A1 as fluent when ad says fluently',()=>{
+  const nativeRequirement=requirement('Native German speaker required','language');
+  expect(findEvidence(nativeRequirement,[fact('language','German','German C2')]).status).toBe('none');
+  expect(findEvidence(nativeRequirement,[fact('language','German','German native speaker')]).status).toBe('direct');
+  const fluentRequirement=requirement('Must speak German fluently','language');
+  expect(findEvidence(fluentRequirement,[fact('language','German','German A1')]).status).toBe('none');
+  expect(findEvidence(fluentRequirement,[fact('language','German','German C1')]).status).toBe('direct');
+  const cefrRequirement=requirement('German B2 required','language');
+  expect(findEvidence(cefrRequirement,[fact('language','German','German B1')]).status).toBe('none');
+  expect(findEvidence(cefrRequirement,[fact('language','German','German fluent')]).status).toBe('none');
+  expect(findEvidence(cefrRequirement,[fact('language','German','German C1')]).status).toBe('direct');
+ });
  it('ignores unreviewed facts and counts only approved job criteria',()=>{
   const a=requirement('Microsoft Excel'),b={...requirement('Oracle'),review:'candidate' as const};
   const rows=[findEvidence(a,[fact('skill','Excel','Skilled with Excel'),fact('skill','Oracle','Oracle','unreviewed')]),
