@@ -67,12 +67,14 @@ export async function createTargetedResume(id:string,revision:number,sourceId:st
   return fail('Invalid source resume or session.');
  const {user,supabase}=await requireAccount();
  let blank:ReturnType<typeof emptyResume>|null=null;
+ let sourceRevision:number|null=null;
  // Pre-validate the actual owned source for actionable feedback. The SQL function
  // re-reads it under a lock when making the copy, so stale snapshots are never used.
  if(sourceId){
   const {data:source,error}=await supabase.from('resumes')
-   .select('draft_content').eq('id',sourceId).eq('user_id',user.id).maybeSingle();
+   .select('draft_content,revision').eq('id',sourceId).eq('user_id',user.id).maybeSingle();
   if(error||!source)return fail('Selected source resume was not found.');
+  sourceRevision=source.revision;
   let content=source.draft_content;
   if(versionId){
    const {data:version,error:versionError}=await supabase.from('resume_versions')
@@ -98,7 +100,7 @@ export async function createTargetedResume(id:string,revision:number,sourceId:st
  // insert CV -> link job, or rollback both writes. No orphaned CVs on conflict.
  const {data,error}=await supabase.rpc('create_my_targeted_resume',{
   p_session:id,p_revision:revision,p_source:sourceId,p_version:versionId,
-  p_blank_doc:blank
+  p_blank_doc:blank,p_expected_source_revision:sourceRevision
  });
  if(error||!data||!Array.isArray(data)||data.length!==1)
   return fail('Targeted CV could not be created or linked. Reload the job brief and retry.',true);
