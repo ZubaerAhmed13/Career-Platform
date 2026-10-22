@@ -98,6 +98,14 @@ describe('Job-targeted resume intelligence without models',()=>{
   expect(findEvidence(requirement('Microsoft Excel experience'),records).status).toBe('direct');
   expect(findEvidence(requirement('Inventory cycle counting','skill'),records).matches).toHaveLength(1);
  });
+ it('quotes the actual matched Career Vault field rather than an unrelated description',()=>{
+  const record={...fact('skill','Reporting','Produced routine reporting notes.'),
+   details:{software:'Power BI'}};
+  const found=findEvidence(requirement('Power BI','tool'),[record]);
+  expect(found.status).toBe('direct');
+  expect(found.matches[0].excerpt).toContain('Detail · software: Power BI');
+  expect(found.matches[0].excerpt).not.toContain('Produced routine reporting notes.');
+ });
  it('does not count company names or unrelated activity as tool proficiency',()=>{
   const namedEmployer={...fact('experience','Customer service','Managed customer enquiries.'),
    organization:'Excel Analytics Limited'};
