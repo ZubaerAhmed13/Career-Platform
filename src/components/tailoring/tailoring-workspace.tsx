@@ -29,6 +29,7 @@ export function TailoringWorkspace({session,resumes,vault,demoMode=false}:{
  const [filter,setFilter]=useState<'all'|'approved'|'needs'>('all');
  const revision=useRef(session.revision),saving=useRef(false),blocked=useRef(false);
  const saved=useRef(JSON.stringify(brief)),current=useRef(brief);
+ const savedSourceDescription=useRef(session.original_job_description);
  const [tick,setTick]=useState(0);
  useEffect(()=>{
   let active=true;
@@ -38,6 +39,7 @@ export function TailoringWorkspace({session,resumes,vault,demoMode=false}:{
  },[sourceId]);
  current.current=brief;
  const dirty=JSON.stringify(brief)!==saved.current;
+ const sourceNeedsSave=brief.originalDescription!==savedSourceDescription.current;
  const matches=useMemo(()=>brief.requirements.map(r=>findEvidence(r,vault)),[brief.requirements,vault]);
  const summary=coverage(matches);
  const targeted=resumes.find(r=>r.id===session.tailored_resume_id);
@@ -58,6 +60,7 @@ export function TailoringWorkspace({session,resumes,vault,demoMode=false}:{
   // Development-only fixture: exercise the editor without Auth or Supabase writes.
   if(demoMode){
    saved.current=JSON.stringify(snapshot);
+   savedSourceDescription.current=snapshot.originalDescription;
    revision.current+=1;
    setStatus(JSON.stringify(current.current)===saved.current?'Saved (synthetic fixture)':'Unsaved changes');
    if(JSON.stringify(current.current)!==saved.current)setTick(n=>n+1);
@@ -73,6 +76,7 @@ export function TailoringWorkspace({session,resumes,vault,demoMode=false}:{
    }
    revision.current=result.revision!;
    saved.current=JSON.stringify(snapshot);
+   savedSourceDescription.current=snapshot.originalDescription;
    setStatus(JSON.stringify(current.current)===saved.current?'Saved':'Unsaved changes');
    if(JSON.stringify(current.current)!==saved.current)setTick(n=>n+1);
    return true;
@@ -228,6 +232,9 @@ export function TailoringWorkspace({session,resumes,vault,demoMode=false}:{
     </section>
     <section className="card stack">
      <h2 style={{margin:0}}>2. Review job requirements</h2>
+     {sourceNeedsSave&&<p className="subtle" role="status">
+      Save the revised job description before approving any requirements.
+     </p>}
      <p className="subtle">These are conservative candidate line excerpts, not exhaustive automatic understanding. Explicitly approve, correct or reject each. Compound / alternative statements require human interpretation.</p>
      <div className="resume-card-actions">
       {(['all','approved','needs'] as const).map(v=><button key={v} className={filter===v?'button':'button secondary'} onClick={()=>setFilter(v)}>{v==='all'?'All':v==='approved'?'Approved':'Evidence gaps'}</button>)}
@@ -285,7 +292,7 @@ export function TailoringWorkspace({session,resumes,vault,demoMode=false}:{
       <div className="resume-card-actions">
        <button className="button secondary" type="button" disabled={splitId===r.id||brief.requirements.length>=100}
         onClick={()=>prepareSplit(r)}>Split criterion</button>
-       <button className="button secondary" onClick={()=>patchRequirement(r.id,{review:'approved'})} disabled={r.review==='approved'}>Approve</button>
+       <button className="button secondary" onClick={()=>patchRequirement(r.id,{review:'approved'})} disabled={r.review==='approved'||sourceNeedsSave}>Approve</button>
        <button className="button secondary" onClick={()=>patchRequirement(r.id,{review:'rejected'})} disabled={r.review==='rejected'}>Reject</button>
       </div>
      </article>)}
