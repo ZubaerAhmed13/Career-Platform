@@ -65,3 +65,22 @@ Further Step 4 work strengthened the existing Resume Studio export path rather t
 - Browser-level synthetic tests exercise both cancelling and accepting the DOCX pre-export confirmation, alongside unit tests for warnings and document validation.
 
 These are GitHub-only code and synthetic CI changes. The live Step 4 Supabase migration is still **unapplied**. Authenticated user acceptance, true document visual review, and two-user staging security remain outstanding. Do not merge PR #10 or deploy before separate owner approval.
+
+## Atomic targeted resume creation and evidence approval gate — 22 October 2026
+
+To address a real failure mode in the original implementation, Step 4 now includes a **second additive migration**:
+`supabase/migrations/202610160003_atomic_targeted_resume.sql`, to be applied after
+`202610160002_resume_tailoring.sql`, and **only after explicit live-migration approval**.
+
+- The `create_my_targeted_resume` PostgreSQL function checks the authenticated user, locks the owned job brief, verifies the expected revision, and creates and links exactly one independent targeted resume **in one transaction**.
+- Concurrent tabs, cross-user references, duplicate submissions, and a changed current source revision reject the entire operation without leaving orphaned copies.
+- User-chosen historical versions are copied from immutable version snapshots, not from the current source draft. Starting without a source resume is also supported using validated initial content.
+- The function uses **security invoker** under the authenticated table permissions and row-level security. Anonymous access is denied.
+- The job brief revision trigger now also rejects carrying approved criteria onto a changed source advert or editing an approved criterion's meaning while retaining its approval, including direct REST mutations.
+- The workspace disables criterion approval while an edited advert remains unsaved and exposes a plain-language explanation.
+- Disposable PostgreSQL and PostgREST tests cover owner isolation, source-version fidelity, clean blank creation, stale revision/source rollback, duplicates, immutable source baselines, and direct REST approval bypass attempts. Development-only browser tests check the review sequence.
+- **No live database changes were made**. The current owner account, other accounts, source resumes and production data were not used for testing.
+
+### Remaining external acceptance
+
+These cannot be certified solely from GitHub code or synthetic test accounts: real signed-in creation and restoration, the owner's Supabase migration approval and backup, two real isolated staging identities, the full Word/PDF visual/pagination check, accessibility with assistive technologies, and end-to-end signed-in deletion/export. Keep PR #10 draft and hosting disabled until separately authorised.
