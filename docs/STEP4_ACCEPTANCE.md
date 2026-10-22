@@ -37,3 +37,17 @@ Branch: `feat/step4-advanced-resume-tailoring`
 8. Perform two-account live RLS only with throwaway identities, never destructive testing on the main account.
 
 The PR should remain draft unless all mandatory code-level checks pass and owner explicitly authorises merge. Real-account and live service acceptance are separate gates.
+
+## Reliability follow-up — 22 October 2026
+
+The existing Step 4 implementation received an additional evidence and browser-acceptance review on the same draft pull request.
+
+- Resume comparisons now separately reveal contact-link changes, portrait and field visibility, section/entry visibility, bullet edits, professional summary visibility and document design settings.
+- Editing a reviewed requirement's meaning automatically returns it to **candidate** until re-approved. Editing the underlying working job advert also invalidates prior approvals; the first-saved source advert remains immutable.
+- Mandatory and preferred criteria are counted separately; a source sentence containing both priority types remains unclassified for human review.
+- Language matching recognises explicit equivalent labels such as German/Deutsch and English/Englisch, but does not infer native speech from C2 or fluent speech from A1.
+- Direct tool-activity matches no longer treat organisation names or unrelated action verbs as evidence of skill. These rule-based matches remain deliberately conservative, and no score predicts hiring.
+- A development-only synthetic fixture (`/tailoring-fixture`) exercises the real Step 4 workspace with fictitious job details, career facts and resumes. Its saves never call Supabase; the route returns 404 outside development. Desktop/mobile Playwright now tests evidence counts, review changes, source-advert edits, comparison inspection and 320px navigation.
+- Private routes for tailoring were added to anonymous-access smoke tests. Real signed-in acceptance remains separately required.
+
+**Latest branch commit:** see the head of draft PR #10. GitHub CI should be checked for that exact commit; passing an earlier commit is not signoff for subsequent changes. Nothing here authorises a live migration, production account changes, a merge or deployment.
