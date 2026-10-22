@@ -115,6 +115,14 @@ describe('Job-targeted resume intelligence without models',()=>{
   expect(findEvidence(cefrRequirement,[fact('language','German','German fluent')]).status).toBe('none');
   expect(findEvidence(cefrRequirement,[fact('language','German','German C1')]).status).toBe('direct');
  });
+ it('understands equivalent German and English language labels without inventing proficiency',()=>{
+  const germanInDeutsch=fact('language','Deutsch','Deutsch A1');
+  expect(findEvidence(requirement('Fluent German required','language'),[germanInDeutsch]).status).toBe('none');
+  const englishRecord=fact('language','Englisch','Englisch C1');
+  expect(findEvidence(requirement('English B2 required','language'),[englishRecord]).status).toBe('direct');
+  const germanC1=fact('language','Deutsch','Deutsch C1');
+  expect(findEvidence(requirement('German B2 required','language'),[germanC1]).status).toBe('direct');
+ });
  it('ignores unreviewed facts and counts only approved job criteria',()=>{
   const a=requirement('Microsoft Excel'),b={...requirement('Oracle'),review:'candidate' as const};
   const rows=[findEvidence(a,[fact('skill','Excel','Skilled with Excel'),fact('skill','Oracle','Oracle','unreviewed')]),
