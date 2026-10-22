@@ -79,7 +79,9 @@ describe('Resume Studio structured model',()=>{
   // extra deliberately repeated bullet added above.
   second.bullets[0].id=crypto.randomUUID();
   second.bullets[1].id=crypto.randomUUID();
-  expect(resumeDocSchema.safeParse(doc).success).toBe(true);
+  const valid=resumeDocSchema.safeParse(doc);
+  if(!valid.success)throw new Error('Expected unique IDs to be accepted: '+JSON.stringify(valid.error.issues));
+  expect(valid.success).toBe(true);
  });
  it('warns only through transparent deterministic checks',()=>{
   const d=emptyResume();expect(qualityWarnings(d)).toContain('Add your full name.');
