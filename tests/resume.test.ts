@@ -64,6 +64,20 @@ describe('Resume Studio structured model',()=>{
   d.summary='';d.sections[1].id=d.sections[0].id;
   expect(resumeDocSchema.safeParse(d).success).toBe(false);
  });
+ it('rejects duplicated entry and bullet IDs in imported or restored document snapshots',()=>{
+  const doc=emptyResume();
+  const first=entryFromRecord(record);
+  const second=entryFromRecord(record);
+  second.id=first.id;
+  doc.sections[0].entries.push(first,second);
+  expect(resumeDocSchema.safeParse(doc).success).toBe(false);
+  second.id=crypto.randomUUID();
+  const repeatedBullet=structuredClone(first.bullets[0]);
+  second.bullets.push(repeatedBullet);
+  expect(resumeDocSchema.safeParse(doc).success).toBe(false);
+  second.bullets[0].id=crypto.randomUUID();
+  expect(resumeDocSchema.safeParse(doc).success).toBe(true);
+ });
  it('warns only through transparent deterministic checks',()=>{
   const d=emptyResume();expect(qualityWarnings(d)).toContain('Add your full name.');
   expect(qualityWarnings(d)).toContain('Add at least one contact method.');
