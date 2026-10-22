@@ -8,6 +8,7 @@ import {entryFromRecord,qualityWarnings,resumeExtraFields,templateIds,templateNa
 import {careerKinds,kindLabels,type CareerKind,type CareerRecord} from '@/lib/career/schema';
 import {makeResumeDocx,resumePlainText} from '@/lib/resume/exports';
 import {safeExportName} from '@/lib/resume/schema';
+import {reviewResumeBeforeExport} from '@/lib/resume/export-review';
 import {ResumePreview} from './resume-preview';
 
 type Panel='content'|'design'|'preview';
@@ -126,7 +127,23 @@ export function ResumeEditor({row,versions:initialVersions,vault,openVault,demoM
   setSelectedVaultIds([]);
   setMessage(added+' confirmed Career Vault record'+(added===1?'':'s')+' added as independent resume snapshots.');
  }
+ function approveExport(item:ResumeDoc){
+  const review=reviewResumeBeforeExport(item);
+  if(review.errors.length){
+   setMessage('Export blocked. '+review.errors.join(' '));
+   return false;
+  }
+  if(review.warnings.length&&!window.confirm(
+   'Before exporting, review these items:\n\n• '+review.warnings.join('\n• ')+
+   '\n\nContinue with this document anyway?'
+  )){
+   setMessage('Export cancelled. Your document was not changed.');
+   return false;
+  }
+  return true;
+ }
  function exportDoc(format:'docx'|'txt',item:ResumeDoc=previewVersion?.snapshot_content??doc){
+  if(!approveExport(item))return;
   const base=item.contact.name||row.name;
   if(format==='txt')download(resumePlainText(item),'text/plain;charset=utf-8',safeExportName(base,'txt'));
   else {
@@ -214,6 +231,7 @@ export function ResumeEditor({row,versions:initialVersions,vault,openVault,demoM
     <button className="button secondary" disabled={!redoRef.current.length} onClick={redo}>Redo</button>
     <button className="button secondary" disabled={busy||savingRef.current||blockedRef.current} onClick={()=>void save(doc)}>Save now</button>
     <button className="button secondary" type="button" onClick={()=>{
+     if(!approveExport(previewVersion?.snapshot_content??docRef.current))return;
      // Open while still inside the user's click, then load ONLY a confirmed saved draft.
      const tab=window.open('about:blank','_blank');
      if(!tab){setMessage('Allow pop-ups for this page to print your saved resume.');return;}
