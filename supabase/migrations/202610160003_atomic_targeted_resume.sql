@@ -90,3 +90,37 @@ revoke all on function public.create_my_targeted_resume(uuid,integer,uuid,uuid,j
  from public,anon;
 grant execute on function public.create_my_targeted_resume(uuid,integer,uuid,uuid,jsonb,integer)
  to authenticated;
+
+-- Even direct REST writes may not carry old approved evidence onto a newly
+-- revised advert. Approvals are meaningful only for the saved source text.
+create or replace function public.tailoring_revision_guard() returns trigger
+language plpgsql set search_path='' as $$
+begin
+ if tg_op='INSERT' then
+  if new.initial_job_description is distinct from new.original_job_description then
+   raise exception 'First saved advert must match source job text';
+  end if;
+  return new;
+ end if;
+ if new.id<>old.id or new.user_id<>old.user_id or new.created_at<>old.created_at or
+    new.initial_job_description is distinct from old.initial_job_description then
+  raise exception 'Tailoring identity and original source are immutable';
+ end if;
+ if old.source_resume_id is not null and new.source_resume_id is distinct from old.source_resume_id
+    and new.source_resume_id is not null then
+  raise exception 'Source resume relationship cannot be reassigned';
+ end if;
+ if old.source_snapshot is not null and new.source_snapshot is distinct from old.source_snapshot then
+  raise exception 'Original comparison snapshot is immutable';
+ end if;
+ if new.original_job_description is distinct from old.original_job_description and
+    exists(select 1 from jsonb_array_elements(new.requirements) r
+     where r->>'review'='approved') then
+  raise exception 'Approve requirements only after saving the revised job text';
+ end if;
+ new.revision=old.revision+1;
+ new.updated_at=now();
+ return new;
+end;
+$$;
+revoke all on function public.tailoring_revision_guard() from public,anon,authenticated;
