@@ -88,6 +88,16 @@ describe('Job-targeted resume intelligence without models',()=>{
   expect(findEvidence(requirement('Microsoft Excel experience'),records).status).toBe('direct');
   expect(findEvidence(requirement('Inventory cycle counting','skill'),records).matches).toHaveLength(1);
  });
+ it('does not count company names or unrelated activity as tool proficiency',()=>{
+  const namedEmployer={...fact('experience','Customer service','Managed customer enquiries.'),
+   organization:'Excel Analytics Limited'};
+  expect(findEvidence(requirement('Microsoft Excel experience'),[namedEmployer]).status).toBe('none');
+  const passingMention=fact('experience','Customer service',
+   'Managed customer enquiries. Familiar with Excel.');
+  expect(findEvidence(requirement('Microsoft Excel experience'),[passingMention]).status).toBe('related');
+  const supported=fact('experience','Stock analyst','Created inventory reports using Microsoft Excel.');
+  expect(findEvidence(requirement('Microsoft Excel experience'),[supported]).status).toBe('direct');
+ });
  it('flags under-qualified German rather than claiming fluency',()=>{
   expect(detectLanguageGap('Business-fluent German required','German A1')).toMatch(/not supported/);
   expect(findEvidence(requirement('Business-fluent German required','language'),
