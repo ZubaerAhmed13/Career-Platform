@@ -125,6 +125,14 @@ describe('Job-targeted resume intelligence without models',()=>{
   expect(findEvidence(cefrRequirement,[fact('language','German','German fluent')]).status).toBe('none');
   expect(findEvidence(cefrRequirement,[fact('language','German','German C1')]).status).toBe('direct');
  });
+ it('does not read explicit non-native or not-fluent descriptions as positive proficiency',()=>{
+  const nativeReq=requirement('Native German speaker required','language');
+  expect(findEvidence(nativeReq,[fact('language','German','German non-native speaker C2')]).status).toBe('none');
+  expect(findEvidence(nativeReq,[fact('language','German','German not a native speaker')]).status).toBe('none');
+  const fluentReq=requirement('Fluent German required','language');
+  expect(findEvidence(fluentReq,[fact('language','German','German not fluent')]).status).toBe('none');
+  expect(findEvidence(fluentReq,[fact('language','German','German fluent')]).status).toBe('direct');
+ });
  it('understands equivalent German and English language labels without inventing proficiency',()=>{
   const germanInDeutsch=fact('language','Deutsch','Deutsch A1');
   expect(findEvidence(requirement('Fluent German required','language'),[germanInDeutsch]).status).toBe('none');
