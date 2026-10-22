@@ -172,19 +172,26 @@ export function compareResume(source:ResumeDoc,target:ResumeDoc):ResumeChange[]{
  }
  const before=new Map(source.sections.map((s,i)=>[s.id,{s,i}]));
  const after=new Map(target.sections.map((s,i)=>[s.id,{s,i}]));
- for(const [id,{s,i}] of before){
+ // Ignore index shifts caused solely by newly inserted or removed sections.
+ const sharedBefore=source.sections.map(s=>s.id).filter(id=>after.has(id));
+ const sharedAfter=target.sections.map(s=>s.id).filter(id=>before.has(id));
+ const reorderedSections=new Set(sharedBefore.filter((id,index)=>id!==sharedAfter[index]));
+ for(const [id,{s}] of before){
   const found=after.get(id);
   if(!found){diff.push({kind:'removed',label:'Section: '+s.title});continue;}
-  if(found.i!==i)diff.push({kind:'moved',label:'Section: '+s.title});
+  if(reorderedSections.has(id))diff.push({kind:'moved',label:'Section: '+s.title});
   if(s.visible!==found.s.visible)diff.push({kind:'changed',label:'Section visibility: '+s.title});
   if(s.title!==found.s.title||s.kind!==found.s.kind)
    diff.push({kind:'changed',label:'Section heading/type: '+s.title});
   const original=new Map(s.entries.map((entry,index)=>[entry.id,{entry,index}]));
   const current=new Map(found.s.entries.map((entry,index)=>[entry.id,{entry,index}]));
+  const sharedOriginal=s.entries.map(entry=>entry.id).filter(id=>current.has(id));
+  const sharedCurrent=found.s.entries.map(entry=>entry.id).filter(id=>original.has(id));
+  const reorderedEntries=new Set(sharedOriginal.filter((eid,index)=>eid!==sharedCurrent[index]));
   for(const [eid,item] of original){
    const update=current.get(eid);
    if(!update){diff.push({kind:'removed',label:'Entry: '+item.entry.title});continue;}
-   if(update.index!==item.index)diff.push({kind:'moved',label:'Entry: '+item.entry.title});
+   if(reorderedEntries.has(eid))diff.push({kind:'moved',label:'Entry: '+item.entry.title});
    if(item.entry.visible!==update.entry.visible)
     diff.push({kind:'changed',label:'Entry visibility: '+item.entry.title});
    if(JSON.stringify(item.entry.bullets)!==JSON.stringify(update.entry.bullets))
