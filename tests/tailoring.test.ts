@@ -97,7 +97,8 @@ describe('Job-targeted resume intelligence without models',()=>{
   const a=requirement('Microsoft Excel'),b={...requirement('Oracle'),review:'candidate' as const};
   const rows=[findEvidence(a,[fact('skill','Excel','Skilled with Excel'),fact('skill','Oracle','Oracle','unreviewed')]),
    findEvidence(b,[])];
-  expect(coverage(rows)).toMatchObject({total:1,direct:1,missing:0,essential:1,essentialDirect:1});
+  expect(coverage(rows)).toMatchObject({total:1,direct:1,missing:0,essential:1,essentialDirect:1,
+   preferred:0,preferredDirect:0,essentialAttention:0,preferredAttention:0});
  });
 
  it('reports hidden fields, portrait controls, bullet edits and document design changes',()=>{
