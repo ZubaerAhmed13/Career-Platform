@@ -84,9 +84,13 @@ describe('Resume Studio structured model',()=>{
  });
  it('warns only through transparent deterministic checks',()=>{
   const d=emptyResume();expect(qualityWarnings(d)).toContain('Add your full name.');
-  expect(qualityWarnings(d)).toContain('Add at least one contact method.');
+  expect(qualityWarnings(d)).toContain('Show at least one contact method (email or phone).');
   d.contact.name='Sample';d.contact.email='sample@example.org';
   expect(qualityWarnings(d)).not.toContain('Add your full name.');
+  d.contact.hidden.push('email');
+  expect(qualityWarnings(d)).toContain('Show at least one contact method (email or phone).');
+  d.contact.hidden=[];
+  expect(qualityWarnings(d)).not.toContain('Show at least one contact method (email or phone).');
  });
  it('applies dates and filenames safely',()=>{
   expect(formatDate('2026-05-01','year')).toBe('2026');
