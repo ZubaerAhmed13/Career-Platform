@@ -184,6 +184,27 @@ describe('Job-targeted resume intelligence without models',()=>{
   expect(original.sections[0].entries[0].bullets[0].text).toBe('Performed reporting');
  });
 
+ it('does not mistake insertions for reordering of unchanged sections or entries',()=>{
+  const original=emptyResume();
+  original.sections[0].entries.push({
+   id:crypto.randomUUID(),title:'Original role',subtitle:'',location:'',
+   startedOn:'',endedOn:'',current:false,visible:true,extras:{},
+   bullets:[],source:null
+  });
+  const updated=structuredClone(original);
+  updated.sections.unshift({
+   id:crypto.randomUUID(),kind:'custom',title:'New section',visible:true,entries:[]
+  });
+  updated.sections[1].entries.unshift({
+   id:crypto.randomUUID(),title:'New role',subtitle:'',location:'',
+   startedOn:'',endedOn:'',current:false,visible:true,extras:{},
+   bullets:[],source:null
+  });
+  const changes=compareResume(original,updated);
+  expect(changes.some(c=>c.kind==='added'&&c.label==='Section: New section')).toBe(true);
+  expect(changes.some(c=>c.kind==='added'&&c.label==='Entry: New role')).toBe(true);
+  expect(changes.filter(c=>c.kind==='moved')).toHaveLength(0);
+ });
  it('maintains source snapshot and enumerates differences instead of arbitrary match scores',()=>{
   const original=emptyResume(),copy=structuredClone(original);
   copy.summary='User-written professional summary';
