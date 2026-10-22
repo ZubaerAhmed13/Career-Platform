@@ -27,11 +27,15 @@ export function extractRequirements(source:string):JobRequirement[]{
   // Long paragraphs are retained for manual review rather than split into misleading criteria.
   const norm=full.toLowerCase().replace(/\s+/g,' ');
   if(seen.has(norm))continue;seen.add(norm);
-  const priority=preferred.test(full)?'preferred':essential.test(full)?'essential':'unclassified';
+  // Mixed "required ... preferred ..." statements contain separate priorities.
+  // Treat the whole line as unclassified until a person splits or reviews it.
+  const hasPreferred=preferred.test(full),hasEssential=essential.test(full);
+  const mixedPriority=hasPreferred&&hasEssential;
+  const priority=mixedPriority?'unclassified':hasPreferred?'preferred':hasEssential?'essential':'unclassified';
   results.push({
    id:crypto.randomUUID(),text:full,excerpt:line.slice(0,1500),
    position,category:category(full),priority,
-   relation:/\b(or|oder|either)\b/i.test(full)?'alternative':
+   relation:mixedPriority?'compound':/\b(or|oder|either)\b/i.test(full)?'alternative':
     /\b(and|sowie|und)\b/i.test(full)?'compound':'single',
    origin:'detected',review:'candidate',
   });
