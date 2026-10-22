@@ -58,7 +58,7 @@ test('newly edited adverts cannot approve criteria until the revised source is s
  await expect(page.getByText('Saved (synthetic fixture)')).toBeVisible();
  await expect(first.getByRole('button',{name:'Approve'})).toBeEnabled();
  await first.getByRole('button',{name:'Approve'}).click();
- await expect(first.getByText('Approved')).toBeVisible();
+ await expect(first.getByText('Approved',{exact:true})).toBeVisible();
 });
 
 test('Step 4 remains navigable at 320px with no page-level horizontal overflow',async({page})=>{
