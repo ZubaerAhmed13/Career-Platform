@@ -59,6 +59,16 @@ describe('Job-targeted resume intelligence without models',()=>{
   const r=extractRequirements('Preferred: Proficiency using Power BI and Excel.');
   expect(r[0].priority).toBe('preferred');
  });
+ it('leaves mixed mandatory and preferred requirements unclassified for human review',()=>{
+  const extracted=extractRequirements('Microsoft Excel required; Power BI preferred');
+  expect(extracted).toHaveLength(1);
+  expect(extracted[0]).toMatchObject({
+   priority:'unclassified',relation:'compound',review:'candidate'
+  });
+  // A requirement with a single explicit priority retains that priority.
+  expect(extractRequirements('Microsoft Excel required')[0].priority).toBe('essential');
+  expect(extractRequirements('Power BI preferred')[0].priority).toBe('preferred');
+ });
  it('validates limits, URL scheme, unique requirements, source and manual labelling',()=>{
   const r=newManualRequirement('Confirmed project coordination');
   const input={jobTitle:'Analyst',originalDescription:'This is a genuine long example job description with tasks and expectations.',requirements:[r]};
