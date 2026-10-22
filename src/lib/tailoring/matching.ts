@@ -26,15 +26,31 @@ function hasPhrase(text:string,phrase:string){
 }
 const levels=['a1','a2','b1','b2','c1','c2'];
 const languageWords=['german','english','french','spanish','deutsch','englisch'];
+const nativeLanguage=/\b(?:native|mother[ -]?tongue|first language|muttersprache|muttersprachlich)\b/i;
+const fluentLanguage=/\b(?:fluent(?:ly)?|fluency|verhandlungssicher)\b/i;
+/** A CEFR level alone cannot prove native proficiency; vague fluency cannot prove a CEFR score. */
 export function detectLanguageGap(required:string,recordText:string){
  const requested=languageWords.find(lang=>hasPhrase(required,lang));
  if(!requested||!hasPhrase(recordText,requested))return undefined;
+ const recordNative=nativeLanguage.test(recordText);
+ const requiredNative=nativeLanguage.test(required);
+ if(requiredNative&&!recordNative)
+  return 'Native language proficiency cannot be inferred from a CEFR level or general fluency.';
+ if(recordNative)return undefined;
  const recordLevel=levels.findIndex(level=>hasPhrase(recordText,level));
- if(recordLevel<0)return 'Language proficiency not explicitly stated in the record.';
  const requestedLevel=levels.findIndex(level=>hasPhrase(required,level));
- if(requestedLevel>=0&&recordLevel<requestedLevel)return 'Recorded language level is below the stated requirement.';
- if(/\b(business.fluent|fluent|native|verhandlungssicher)\b/i.test(required)&&recordLevel<4)
-  return 'Fluent language proficiency is not supported by this recorded level.';
+ if(requestedLevel>=0){
+  if(recordLevel<0)return 'The specified CEFR level is not confirmed by this record.';
+  if(recordLevel<requestedLevel)return 'Recorded language level is below the stated requirement.';
+ }
+ if(fluentLanguage.test(required)){
+  if(recordLevel>=0&&recordLevel<4)
+   return 'Fluent language proficiency is not supported by this recorded level.';
+  if(recordLevel<0&&!fluentLanguage.test(recordText))
+   return 'Fluent language proficiency is not confirmed by this record.';
+ }
+ if(recordLevel<0&&!fluentLanguage.test(recordText))
+  return 'Language proficiency not explicitly stated in the record.';
  return undefined;
 }
 export function findEvidence(requirement:JobRequirement,records:CareerRecord[]):RequirementEvidence{
