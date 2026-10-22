@@ -101,6 +101,22 @@ test('synthetic Resume Studio editor supports fact selection and template switch
  const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth+2);
  expect(overflow).toBe(false);
 });
+test('DOCX pre-export review can be cancelled or explicitly accepted in the synthetic editor',async({page})=>{
+ await page.goto('/resume-fixture/editor');
+ page.once('dialog',async dialog=>{
+  expect(dialog.message()).toContain('no visible career entries');
+  await dialog.dismiss();
+ });
+ await page.getByRole('button',{name:'Download DOCX'}).click();
+ await expect(page.getByText('Export cancelled. Your document was not changed.')).toBeVisible();
+ page.once('dialog',async dialog=>{await dialog.accept();});
+ const [download]=await Promise.all([
+  page.waitForEvent('download'),
+  page.getByRole('button',{name:'Download DOCX'}).click()
+ ]);
+ expect(download.suggestedFilename()).toBe('Example_Applicant.docx');
+});
+
 test('optional photo can be added and removed privately in the synthetic editor',async({page})=>{
  await page.goto('/resume-fixture/editor');
  const photo=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLttAAAAABJRU5ErkJggg==','base64');
