@@ -1,5 +1,5 @@
 import {describe,it,expect} from 'vitest';
-import {extractRequirements,newManualRequirement,splitRequirement,mergeRequirements} from '../src/lib/tailoring/requirements';
+import {extractRequirements,newManualRequirement,splitRequirement,mergeRequirements,reviseRequirement} from '../src/lib/tailoring/requirements';
 import {jobBriefSchema} from '../src/lib/tailoring/schema';
 import {findEvidence,coverage,detectLanguageGap,compareResume} from '../src/lib/tailoring/matching';
 import {emptyResume} from '../src/lib/resume/schema';
@@ -38,6 +38,15 @@ describe('Job-targeted resume intelligence without models',()=>{
   expect(merged.relation).toBe('compound');
   expect(merged.origin).toBe('user');
   expect(()=>splitRequirement(source,'','PowerPoint')).toThrow();
+ });
+ it('requires explicit approval after changing the meaning of an accepted criterion',()=>{
+  const original={...newManualRequirement('Experience with Microsoft Excel'),review:'approved' as const};
+  const changed=reviseRequirement(original,{text:'Advanced SAP FI/CO experience'});
+  expect(changed).toMatchObject({review:'candidate',origin:'user'});
+  expect(original.review).toBe('approved');
+  expect(reviseRequirement(original,{priority:'essential'}).review).toBe('candidate');
+  expect(reviseRequirement(original,{review:'rejected'}).review).toBe('rejected');
+  expect(reviseRequirement(original,{text:original.text}).review).toBe('approved');
  });
  it('preserves working-hour numbers while recognising proficiency and certification words',()=>{
   const source='20 working hours per week required\nProficiency in stakeholder communication essential\nCertification is preferred';
