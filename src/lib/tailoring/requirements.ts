@@ -65,3 +65,14 @@ export function mergeRequirements(a:JobRequirement,b:JobRequirement):JobRequirem
   relation:'compound',origin:'user',review:'candidate',
  };
 }
+
+/** Re-review the meaning of a previously approved criterion after a semantic edit. */
+export function reviseRequirement(item:JobRequirement,changes:Partial<JobRequirement>):JobRequirement{
+ const meaningful=['text','category','priority','relation'] as const;
+ const changed=meaningful.some(key=>changes[key]!==undefined&&changes[key]!==item[key]);
+ return {
+  ...item,...changes,
+  ...(changes.text!==undefined&&changes.text!==item.text?{origin:'user' as const}:{}),
+  ...(changed&&changes.review===undefined?{review:'candidate' as const}:{})
+ };
+}
