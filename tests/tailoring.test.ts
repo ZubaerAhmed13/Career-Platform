@@ -90,6 +90,34 @@ describe('Job-targeted resume intelligence without models',()=>{
    findEvidence(b,[])];
   expect(coverage(rows)).toMatchObject({total:1,direct:1,missing:0,essential:1,essentialDirect:1});
  });
+
+ it('reports hidden fields, portrait controls, bullet edits and document design changes',()=>{
+  const original=emptyResume(),target=structuredClone(original);
+  original.sections[0].entries.push({
+   id:crypto.randomUUID(),title:'Role',subtitle:'',location:'',startedOn:'',endedOn:'',
+   current:false,visible:true,extras:{},source:null,
+   bullets:[{id:crypto.randomUUID(),text:'Performed reporting',visible:true}]
+  });
+  target.sections=structuredClone(original.sections);
+  target.contact.linkedin='https://example.org/profile';
+  target.contact.hidden.push('linkedin');
+  target.contact.showPhoto=true;
+  target.summaryVisible=false;
+  target.settings.paper='Letter';
+  target.settings.font='Georgia';
+  target.sections[0].visible=false;
+  target.sections[0].entries[0].visible=false;
+  target.sections[0].entries[0].bullets[0].text='Updated reporting';
+  const labels=compareResume(original,target).map(change=>change.label);
+  for(const expected of [
+   'Contact: linkedin','Contact field visibility','Portrait visibility',
+   'Professional summary visibility','Design setting: paper','Design setting: font',
+   'Section visibility: '+original.sections[0].title,
+   'Entry visibility: Role','Entry bullets: Role'
+  ])expect(labels).toContain(expected);
+  expect(original.sections[0].entries[0].bullets[0].text).toBe('Performed reporting');
+ });
+
  it('maintains source snapshot and enumerates differences instead of arbitrary match scores',()=>{
   const original=emptyResume(),copy=structuredClone(original);
   copy.summary='User-written professional summary';
