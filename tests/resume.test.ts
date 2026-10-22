@@ -75,7 +75,10 @@ describe('Resume Studio structured model',()=>{
   const repeatedBullet=structuredClone(first.bullets[0]);
   second.bullets.push(repeatedBullet);
   expect(resumeDocSchema.safeParse(doc).success).toBe(false);
+  // Fix both duplicated bullets: one copied from the other entry and the
+  // extra deliberately repeated bullet added above.
   second.bullets[0].id=crypto.randomUUID();
+  second.bullets[1].id=crypto.randomUUID();
   expect(resumeDocSchema.safeParse(doc).success).toBe(true);
  });
  it('warns only through transparent deterministic checks',()=>{
