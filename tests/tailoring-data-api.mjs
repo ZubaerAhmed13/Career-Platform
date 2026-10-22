@@ -86,6 +86,53 @@ assert.equal(sourceAgain[0].draft_content.summary,'Before tailoring');
 const targetCopy=await ok('/resumes?select=draft_content&id=eq.'+copy.id,{identity:A});
 assert.equal(targetCopy[0].draft_content.summary,'Before tailoring',
  'Target must begin as a faithful, independent snapshot, not rewritten content');
+// The same transaction also supports immutable saved versions and new blank CVs.
+const version=await ok('/rpc/create_my_resume_version',{method:'POST',identity:A,
+ body:{p_resume:source.id,p_label:'Known good source',p_revision:source.revision}});
+assert.equal(version,1);
+const savedVersions=await ok('/resume_versions?select=id,version_number&resume_id=eq.'+source.id,{identity:A});
+assert.equal(savedVersions.length,1);
+const [modifiedSource]=await ok('/resumes?select=revision&revision=eq.'+source.revision+
+ '&id=eq.'+source.id,{method:'PATCH',identity:A,
+ body:{draft_content:{...original,summary:'Unsaved-for-target updated source'}}});
+assert.equal(modifiedSource.revision,source.revision+1);
+const versionJob=(await ok('/resume_tailoring_sessions?select=id,revision',{
+ method:'POST',identity:A,body:{user_id:A,job_title:'Version-specific analyst',
+ original_job_description:job,initial_job_description:job,requirements:[]}}))[0];
+const [versionClone]=await ok(rpc,{method:'POST',identity:A,body:{
+ p_session:versionJob.id,p_revision:versionJob.revision,p_source:source.id,
+ p_version:savedVersions[0].id,p_blank_doc:null,
+ p_expected_source_revision:source.revision}});
+const versionCopy=await ok('/resumes?select=draft_content&id=eq.'+versionClone.resume_id,{identity:A});
+assert.equal(versionCopy[0].draft_content.summary,'Before tailoring',
+ 'The selected saved version must win over the newer source draft');
+const versionBaseline=await ok('/resume_tailoring_sessions?select=source_version_number,source_snapshot&id=eq.'+
+ versionJob.id,{identity:A});
+assert.equal(versionBaseline[0].source_version_number,1);
+assert.equal(versionBaseline[0].source_snapshot.summary,'Before tailoring');
+
+const blankJob=(await ok('/resume_tailoring_sessions?select=id,revision',{
+ method:'POST',identity:A,body:{user_id:A,job_title:'New blank CV',
+ original_job_description:job,initial_job_description:job,requirements:[]}}))[0];
+const [blankCopy]=await ok(rpc,{method:'POST',identity:A,body:{
+ p_session:blankJob.id,p_revision:blankJob.revision,p_source:null,p_version:null,
+ p_blank_doc:{...original,summary:'Newly written starting point'},
+ p_expected_source_revision:null}});
+const blankContent=await ok('/resumes?select=draft_content&id=eq.'+blankCopy.resume_id,{identity:A});
+assert.equal(blankContent[0].draft_content.summary,'Newly written starting point');
+const badCrossVersionJob=(await ok('/resume_tailoring_sessions?select=id,revision',{
+ method:'POST',identity:B,body:{user_id:B,job_title:'Forbidden other account version',
+ original_job_description:job,initial_job_description:job,requirements:[]}}))[0];
+const forbiddenVersion=await query(rpc,{method:'POST',identity:B,body:{
+ p_session:badCrossVersionJob.id,p_revision:badCrossVersionJob.revision,p_source:source.id,
+ p_version:savedVersions[0].id,p_blank_doc:null,p_expected_source_revision:source.revision}});
+assert(forbiddenVersion.status>=400,'Another owner cannot copy or link a saved source version');
+
+await ok('/resume_tailoring_sessions?id=eq.'+versionJob.id,{method:'DELETE',identity:A});
+await ok('/resume_tailoring_sessions?id=eq.'+blankJob.id,{method:'DELETE',identity:A});
+await ok('/resume_tailoring_sessions?id=eq.'+badCrossVersionJob.id,{method:'DELETE',identity:B});
+await ok('/resumes?id=eq.'+versionClone.resume_id,{method:'DELETE',identity:A});
+await ok('/resumes?id=eq.'+blankCopy.resume_id,{method:'DELETE',identity:A});
 const foreignUpdate=await ok('/resume_tailoring_sessions?select=id&id=eq.'+brief.id,{method:'PATCH',identity:B,
  body:{private_notes:'Foreign tamper'}});
 assert.deepEqual(foreignUpdate,[]);
@@ -93,4 +140,4 @@ await ok('/resume_tailoring_sessions?id=eq.'+brief.id,{method:'DELETE',identity:
 assert.equal((await ok('/resumes?select=id&id=eq.'+copy.id,{identity:A})).length,1);
 await ok('/resumes?id=eq.'+copy.id,{method:'DELETE',identity:A});
 await ok('/resumes?id=eq.'+source.id,{method:'DELETE',identity:A});
-console.log('PASS private job briefs, revisions, immutable comparisons, owner isolation, atomic CV cloning/linking, rollback on conflicts and independent deletion');
+console.log('PASS atomic CV cloning/linking, stale rollback, owner RLS, immutable source versions, blank CVs and independent deletion');
