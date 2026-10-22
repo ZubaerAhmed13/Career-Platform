@@ -57,12 +57,14 @@ const actionVerbs=new Set(['used','using','managed','performed','developed','mai
  'created','coordinated','analysed','analyzed','conducted','worked','applied','built','automated']);
 /** A skill mention near an action is more meaningful than a tool in an employer name. */
 function actionNearTerm(text:string,alias:string){
- const words=normalize(text).split(' ').filter(Boolean);
  const phrase=normalize(alias).split(' ');
- for(let i=0;i<=words.length-phrase.length;i++){
-  if(!phrase.every((word,j)=>words[i+j]===word))continue;
-  const vicinity=words.slice(Math.max(0,i-5),Math.min(words.length,i+phrase.length+5));
-  if(vicinity.some(word=>actionVerbs.has(word)))return true;
+ for(const clause of text.split(/[.!?;\n]+/)){
+  const words=normalize(clause).split(' ').filter(Boolean);
+  for(let i=0;i<=words.length-phrase.length;i++){
+   if(!phrase.every((word,j)=>words[i+j]===word))continue;
+   const vicinity=words.slice(Math.max(0,i-5),Math.min(words.length,i+phrase.length+5));
+   if(vicinity.some(word=>actionVerbs.has(word)))return true;
+  }
  }
  return false;
 }
