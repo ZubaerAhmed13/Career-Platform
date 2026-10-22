@@ -164,7 +164,9 @@ export function formatDate(value:string,style:ResumeSettings['dateStyle']='month
 export function qualityWarnings(doc:ResumeDoc){
  const items:string[]=[];
  if(!doc.contact.name.trim())items.push('Add your full name.');
- if(!doc.contact.email&&!doc.contact.phone)items.push('Add at least one contact method.');
+ const visibleContact=(['email','phone'] as const).some(key=>
+  !!doc.contact[key].trim()&&!doc.contact.hidden.includes(key));
+ if(!visibleContact)items.push('Show at least one contact method (email or phone).');
  if(doc.summary.length>850&&doc.summaryVisible)items.push('Your summary may be difficult to scan. Consider shortening it.');
  const used=new Set<string>();
  for(const section of doc.sections.filter(s=>s.visible)){
