@@ -170,7 +170,7 @@ export function TailoringWorkspace({session,resumes,vault}:{
    <div className="card"><strong>{summary.related}</strong><span>Related / needs review</span></div>
    <div className="card"><strong>{summary.missing}</strong><span>No confirmed evidence</span></div>
   </section>
-  <p className="subtle">Essential criteria: {summary.essentialDirect} of {summary.essential} with direct documented evidence. These are evidence counts, not ATS scores or hiring predictions.</p>
+  <p className="subtle">Essential criteria: {summary.essentialDirect} of {summary.essential} directly evidenced ({summary.essentialAttention} need attention). Preferred criteria: {summary.preferredDirect} of {summary.preferred} directly evidenced ({summary.preferredAttention} need attention). These counts describe only reviewed evidence, not ATS scores or hiring predictions.</p>
   <div className="tailoring-columns">
    <div className="stack">
     <section className="card stack">
