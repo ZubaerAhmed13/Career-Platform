@@ -85,7 +85,13 @@ export function findEvidence(requirement:JobRequirement,records:CareerRecord[]):
  let warning: string|undefined;
  for(const record of approved){
   // Employer names do not prove an employee's proficiency with similarly named tools.
-  const fields=[record.title,record.description,...Object.values(record.details??{})];
+  // Retain the exact matched field, rather than displaying unrelated description text.
+  const fieldEntries=[
+   {label:'Description',value:record.description},
+   {label:'Title',value:record.title},
+   ...Object.entries(record.details??{}).map(([label,value])=>({label:'Detail · '+label,value}))
+  ];
+  const fields=fieldEntries.map(field=>field.value);
   const value=fields.join(' ');
   if(requirement.category==='language'&&record.kind!=='language')continue;
   if(requirement.category==='certification'&&record.kind!=='certification')continue;
@@ -116,8 +122,14 @@ export function findEvidence(requirement:JobRequirement,records:CareerRecord[]):
     (record.kind==='skill'&&!/\b(years|experience|advanced|expert)\b/i.test(query))||
     handsOn))
   );
+  const citedFields=fieldEntries.filter(field=>
+   matched.some(group=>group.some(alias=>hasPhrase(field.value,alias)))||
+   (language&&sameLanguage(field.value,language))||
+   (certificationNamed&&hasPhrase(field.value,record.title)));
+  const excerpt=(citedFields.length?citedFields:[{label:'Title',value:record.title}])
+   .slice(0,3).map(field=>field.label+': '+field.value).join(' · ').slice(0,450);
   matches.push({recordId:record.id,revision:record.revision,kind:record.kind,
-   title:record.title,excerpt:(record.description||record.title).slice(0,450),
+   title:record.title,excerpt,
    rule:'Approved exact phrase / controlled alias: '+(matched[0]?.[0]??(certificationNamed?record.title:language?.[0])??''),
    classification:direct?'direct':requirement.relation!=='single'?'needs-review':'related'});
  }
