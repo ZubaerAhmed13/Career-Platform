@@ -88,6 +88,17 @@ export function TailoringWorkspace({session,resumes,vault,demoMode=false}:{
   return ()=>clearTimeout(timer);
  // eslint-disable-next-line react-hooks/exhaustive-deps
  },[brief,tick,dirty]);
+ function editDescription(value:string){
+  if(value===brief.originalDescription)return;
+  change(b=>{
+   b.originalDescription=value;
+   // A modified advert can change the meaning of previously approved requirements.
+   b.requirements=b.requirements.map(r=>r.review==='approved'?{
+    ...r,review:'candidate' as const
+   }:r);
+  });
+  setMessage('Job text changed: previously approved criteria now need review. Re-analyse to refresh extracted requirements.');
+ }
  function patchRequirement(id:string,changeSet:Partial<JobRequirement>){
   change(b=>{b.requirements=b.requirements.map(r=>r.id===id?reviseRequirement(r,changeSet):r);});
  }
@@ -207,7 +218,7 @@ export function TailoringWorkspace({session,resumes,vault,demoMode=false}:{
        onChange={e=>change(b=>{b.jobUrl=e.target.value;})}/></label>
      <label className="form-row"><span className="label">Original description</span>
       <textarea className="field" rows={6} maxLength={50000} value={brief.originalDescription}
-       onChange={e=>change(b=>{b.originalDescription=e.target.value;})}/></label>
+       onChange={e=>editDescription(e.target.value)}/></label>
      <details><summary>Show the first saved original posting (immutable source copy)</summary>
       <pre className="tailoring-original-text">{session.initial_job_description}</pre>
      </details>
