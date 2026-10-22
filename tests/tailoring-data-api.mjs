@@ -47,6 +47,13 @@ const proposed=[{id:'31313131-3131-4131-8131-313131313131',text:'Excel experienc
 const saved=(await ok('/resume_tailoring_sessions?select=revision&revision=eq.1&id=eq.'+brief.id,{
  method:'PATCH',identity:A,body:{requirements:proposed}}))[0];
 assert.equal(saved.revision,2);
+const forgedReview=await query('/resume_tailoring_sessions?id=eq.'+brief.id,{
+ method:'PATCH',identity:A,body:{
+  original_job_description:job+' Newly modified details.',
+  requirements:proposed
+ }});
+assert(forgedReview.status>=400,
+ 'Direct REST must not carry approved old requirements onto a new job description');
 const stale=await ok('/resume_tailoring_sessions?select=revision&revision=eq.1&id=eq.'+brief.id,{
  method:'PATCH',identity:A,body:{private_notes:'Stale edit'}});
 assert.deepEqual(stale,[]);
