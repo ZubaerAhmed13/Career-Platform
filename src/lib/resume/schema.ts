@@ -67,10 +67,25 @@ export const resumeDocSchema=z.object({
  sections:z.array(sectionSchema).max(25),
  settings:resumeSettingsSchema
 }).superRefine((doc,ctx)=>{
- const ids=new Set<string>();
- for(const s of doc.sections){
-  if(ids.has(s.id))ctx.addIssue({code:'custom',message:'Duplicate section ID'});
-  ids.add(s.id);
+ const sections=new Set<string>(),entries=new Set<string>(),bullets=new Set<string>();
+ for(const [sectionIndex,section] of doc.sections.entries()){
+  if(sections.has(section.id))ctx.addIssue({
+   code:'custom',path:['sections',sectionIndex,'id'],message:'Duplicate section ID'
+  });
+  sections.add(section.id);
+  for(const [entryIndex,entry] of section.entries.entries()){
+   if(entries.has(entry.id))ctx.addIssue({
+    code:'custom',path:['sections',sectionIndex,'entries',entryIndex,'id'],message:'Duplicate entry ID'
+   });
+   entries.add(entry.id);
+   for(const [bulletIndex,bullet] of entry.bullets.entries()){
+    if(bullets.has(bullet.id))ctx.addIssue({
+     code:'custom',path:['sections',sectionIndex,'entries',entryIndex,'bullets',bulletIndex,'id'],
+     message:'Duplicate bullet ID'
+    });
+    bullets.add(bullet.id);
+   }
+  }
  }
 }).refine(v=>JSON.stringify(v).length<=180000,'Resume exceeds 180 KB');
 export type ResumeDoc=z.infer<typeof resumeDocSchema>;
