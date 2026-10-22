@@ -46,6 +46,21 @@ test('modifying a saved job advert invalidates approvals derived from the previo
  await expect(page.getByText('Saved (synthetic fixture)')).toBeVisible();
 });
 
+test('newly edited adverts cannot approve criteria until the revised source is saved',async({page})=>{
+ await page.goto('/tailoring-fixture');
+ const description=page.getByRole('textbox',{name:'Original description'});
+ const existing=await description.inputValue();
+ await description.fill(existing+'\nAdded conditions requiring human review.');
+ const first=page.locator('.tailoring-requirement').first();
+ await expect(first.getByRole('button',{name:'Approve'})).toBeDisabled();
+ await expect(page.getByText('Save the revised job description before approving any requirements.')).toBeVisible();
+ await page.getByRole('button',{name:'Save now'}).click();
+ await expect(page.getByText('Saved (synthetic fixture)')).toBeVisible();
+ await expect(first.getByRole('button',{name:'Approve'})).toBeEnabled();
+ await first.getByRole('button',{name:'Approve'}).click();
+ await expect(first.getByText('Approved')).toBeVisible();
+});
+
 test('Step 4 remains navigable at 320px with no page-level horizontal overflow',async({page})=>{
  await page.setViewportSize({width:320,height:720});
  await page.goto('/tailoring-fixture');
