@@ -33,11 +33,14 @@ const languageGroup=(text:string)=>languageAliases.find(group=>group.some(word=>
 const sameLanguage=(text:string,group:readonly string[])=>group.some(word=>hasPhrase(text,word));
 const nativeLanguage=/\b(?:native|mother[ -]?tongue|first language|muttersprache|muttersprachlich)\b/i;
 const fluentLanguage=/\b(?:fluent(?:ly)?|fluency|verhandlungssicher)\b/i;
+const negatedNative=/\b(?:non[ -]?native|not\s+(?:a\s+)?native)\b/i;
+const negatedFluency=/\b(?:not\s+(?:yet\s+)?fluent|non[ -]?fluent|not\s+fluent(?:ly)?)\b/i;
 /** A CEFR level alone cannot prove native proficiency; vague fluency cannot prove a CEFR score. */
 export function detectLanguageGap(required:string,recordText:string){
  const requested=languageGroup(required);
  if(!requested||!sameLanguage(recordText,requested))return undefined;
- const recordNative=nativeLanguage.test(recordText);
+ const recordNative=nativeLanguage.test(recordText)&&!negatedNative.test(recordText);
+ const recordFluent=fluentLanguage.test(recordText)&&!negatedFluency.test(recordText);
  const requiredNative=nativeLanguage.test(required);
  if(requiredNative&&!recordNative)
   return 'Native language proficiency cannot be inferred from a CEFR level or general fluency.';
@@ -51,10 +54,10 @@ export function detectLanguageGap(required:string,recordText:string){
  if(fluentLanguage.test(required)){
   if(recordLevel>=0&&recordLevel<4)
    return 'Fluent language proficiency is not supported by this recorded level.';
-  if(recordLevel<0&&!fluentLanguage.test(recordText))
+  if(recordLevel<0&&!recordFluent)
    return 'Fluent language proficiency is not confirmed by this record.';
  }
- if(recordLevel<0&&!fluentLanguage.test(recordText))
+ if(recordLevel<0&&!recordFluent)
   return 'Language proficiency not explicitly stated in the record.';
  return undefined;
 }
