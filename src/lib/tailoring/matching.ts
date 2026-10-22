@@ -132,8 +132,8 @@ export function compareResume(source:ResumeDoc,target:ResumeDoc):ResumeChange[]{
     diff.push({kind:'changed',label:'Entry visibility: '+item.entry.title});
    if(JSON.stringify(item.entry.bullets)!==JSON.stringify(update.entry.bullets))
     diff.push({kind:'changed',label:'Entry bullets: '+item.entry.title});
-   const {visible:oldVisible,bullets:oldBullets,...oldContent}=item.entry;
-   const {visible:newVisible,bullets:newBullets,...newContent}=update.entry;
+   const oldContent={...item.entry,visible:undefined,bullets:undefined};
+   const newContent={...update.entry,visible:undefined,bullets:undefined};
    if(JSON.stringify(oldContent)!==JSON.stringify(newContent))
     diff.push({kind:'changed',label:'Entry content: '+item.entry.title});
   }
