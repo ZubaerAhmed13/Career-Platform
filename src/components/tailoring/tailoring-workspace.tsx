@@ -4,7 +4,7 @@ import {useEffect,useMemo,useRef,useState,useTransition} from 'react';
 import {useRouter} from 'next/navigation';
 import {createTargetedResume,saveTailoringSession,includeVerifiedCareerRecord,getAvailableResumeVersions} from '@/app/actions/resume-tailoring';
 import {briefFromRow,requirementCategories,requirementPriorities,type JobBrief,type JobRequirement,type TailoringRow} from '@/lib/tailoring/schema';
-import {newManualRequirement,extractRequirements,splitRequirement,mergeRequirements} from '@/lib/tailoring/requirements';
+import {newManualRequirement,extractRequirements,splitRequirement,mergeRequirements,reviseRequirement} from '@/lib/tailoring/requirements';
 import {compareResume,coverage,findEvidence} from '@/lib/tailoring/matching';
 import {qualityWarnings,type ResumeRow} from '@/lib/resume/schema';
 import {resumePlainText} from '@/lib/resume/exports';
@@ -81,9 +81,7 @@ export function TailoringWorkspace({session,resumes,vault}:{
  // eslint-disable-next-line react-hooks/exhaustive-deps
  },[brief,tick,dirty]);
  function patchRequirement(id:string,changeSet:Partial<JobRequirement>){
-  change(b=>{b.requirements=b.requirements.map(r=>r.id===id?{
-   ...r,...changeSet,...(changeSet.text!==undefined?{origin:'user' as const}:{}),
-  }:r);});
+  change(b=>{b.requirements=b.requirements.map(r=>r.id===id?reviseRequirement(r,changeSet):r);});
  }
  function add(){
   const value=newRequirement.trim();
