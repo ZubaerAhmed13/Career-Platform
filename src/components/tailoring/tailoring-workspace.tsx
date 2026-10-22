@@ -12,8 +12,8 @@ import {contentSuggestions,sourceChangeWarnings,wordingPrompts} from '@/lib/tail
 import {inspectKeywordCoverage} from '@/lib/tailoring/keywords';
 import type {CareerRecord} from '@/lib/career/schema';
 
-export function TailoringWorkspace({session,resumes,vault}:{
- session:TailoringRow;resumes:ResumeRow[];vault:CareerRecord[]
+export function TailoringWorkspace({session,resumes,vault,demoMode=false}:{
+ session:TailoringRow;resumes:ResumeRow[];vault:CareerRecord[];demoMode?:boolean
 }){
  const router=useRouter();
  const [brief,setBrief]=useState<JobBrief>(()=>briefFromRow(session));
@@ -55,6 +55,14 @@ export function TailoringWorkspace({session,resumes,vault}:{
  }
  async function save(snapshot:JobBrief){
   if(saving.current||blocked.current)return false;
+  // Development-only fixture: exercise the editor without Auth or Supabase writes.
+  if(demoMode){
+   saved.current=JSON.stringify(snapshot);
+   revision.current+=1;
+   setStatus(JSON.stringify(current.current)===saved.current?'Saved (synthetic fixture)':'Unsaved changes');
+   if(JSON.stringify(current.current)!==saved.current)setTick(n=>n+1);
+   return true;
+  }
   saving.current=true;setStatus('Saving…');
   try{
    const result=await saveTailoringSession(session.id,revision.current,snapshot);
@@ -311,7 +319,7 @@ export function TailoringWorkspace({session,resumes,vault}:{
        <p className="subtle">{item.reason}</p>
        <p className="subtle">Supports: {item.requirements.slice(0,2).join(' · ')}</p>
        <p>{item.record.description.slice(0,320)}</p>
-       {targeted&&<div><button className="button secondary" disabled={pending} onClick={()=>addSelectedFact(item.recordId)}>
+       {targeted&&<div><button className="button secondary" disabled={pending||demoMode} onClick={()=>addSelectedFact(item.recordId)}>
         Add this confirmed fact to targeted CV
        </button></div>}
       </article>)}
