@@ -66,54 +66,46 @@ export async function createTargetedResume(id:string,revision:number,sourceId:st
   (versionId!==null&&(!sourceId||!uid.safeParse(versionId).success)))
   return fail('Invalid source resume or session.');
  const {user,supabase}=await requireAccount();
- const {data:job,error:jobError}=await supabase.from('resume_tailoring_sessions')
-  .select('*').eq('user_id',user.id).eq('id',id).maybeSingle();
- if(jobError||!job)return fail('Job brief not found.');
- if(job.revision!==revision)return fail('This session has changed. Reload before making a copy.',true);
- if(job.tailored_resume_id)return fail('A tailored resume already exists for this job. Open it instead.');
- let content=emptyResume(),sourceRevision:number|null=null,sourceVersionNumber:number|null=null;
+ let blank:ReturnType<typeof emptyResume>|null=null;
+ // Pre-validate the actual owned source for actionable feedback. The SQL function
+ // re-reads it under a lock when making the copy, so stale snapshots are never used.
  if(sourceId){
-  const {data:source,error}=await supabase.from('resumes').select('*').eq('user_id',user.id).eq('id',sourceId).maybeSingle();
+  const {data:source,error}=await supabase.from('resumes')
+   .select('draft_content').eq('id',sourceId).eq('user_id',user.id).maybeSingle();
   if(error||!source)return fail('Selected source resume was not found.');
-  sourceRevision=source.revision;
+  let content=source.draft_content;
   if(versionId){
    const {data:version,error:versionError}=await supabase.from('resume_versions')
-    .select('snapshot_content,version_number').eq('id',versionId).eq('user_id',user.id).eq('resume_id',sourceId).maybeSingle();
+    .select('snapshot_content').eq('id',versionId).eq('user_id',user.id)
+    .eq('resume_id',sourceId).maybeSingle();
    if(versionError||!version)return fail('Selected source version was not found.');
-   const parsed=resumeDocSchema.safeParse(version.snapshot_content);
-   if(!parsed.success)return fail('The source version is invalid.');
-   content=structuredClone(parsed.data);sourceVersionNumber=version.version_number;
-  }else{
-   const parsed=resumeDocSchema.safeParse(source.draft_content);
-   if(!parsed.success)return fail('The source draft is invalid.');
-   content=structuredClone(parsed.data);
+   content=version.snapshot_content;
   }
+  if(!resumeDocSchema.safeParse(content).success)
+   return fail('The selected source resume or version is invalid.');
  }else{
+  blank=emptyResume();
   const {data:profile}=await supabase.from('profiles').select('full_name,display_name,city,country')
    .eq('id',user.id).maybeSingle();
-  content.contact.name=(profile?.full_name?.trim()||profile?.display_name?.trim()||'').slice(0,160);
-  content.contact.email=user.email??'';
-  content.contact.location=[profile?.city,profile?.country].filter(Boolean).join(', ').slice(0,180);
+  blank.contact.name=(profile?.full_name?.trim()||profile?.display_name?.trim()||'').slice(0,160);
+  blank.contact.email=user.email??'';
+  blank.contact.location=[profile?.city,profile?.country].filter(Boolean).join(', ').slice(0,180);
+  const validated=resumeDocSchema.safeParse(blank);
+  if(!validated.success)return fail('The new resume could not be validated.');
+  blank=validated.data;
  }
- const validated=resumeDocSchema.safeParse(content);
- if(!validated.success)return fail('The new resume could not be validated.');
- const label=[job.job_title,job.employer_name].filter(Boolean).join(' — ').slice(0,160);
- const {data:copy,error:copyError}=await supabase.from('resumes').insert({
-  user_id:user.id,name:label,focus_label:job.job_title.slice(0,160),
-  draft_content:validated.data,template_id:validated.data.settings.template,
-  paper_size:validated.data.settings.paper,document_language:validated.data.settings.language,
- }).select('id').single();
- if(copyError||!copy)return fail('Could not create the independent tailored resume.');
- const {data:linked,error:linkError}=await supabase.from('resume_tailoring_sessions')
-  .update({source_resume_id:sourceId,source_resume_revision:sourceRevision,
-   source_version_number:sourceVersionNumber,source_snapshot:validated.data,tailored_resume_id:copy.id})
-  .eq('id',id).eq('user_id',user.id).eq('revision',revision)
-  .is('tailored_resume_id',null).select('revision').maybeSingle();
- if(linkError||!linked){
-  await supabase.from('resumes').delete().eq('user_id',user.id).eq('id',copy.id);
-  return fail('A concurrent edit interrupted linking. Reload before trying again.',true);
- }
- refresh(id);return {ok:true,resumeId:copy.id,revision:linked.revision};
+ // One owner-scoped SQL transaction: lock job -> copy current source/version ->
+ // insert CV -> link job, or rollback both writes. No orphaned CVs on conflict.
+ const {data,error}=await supabase.rpc('create_my_targeted_resume',{
+  p_session:id,p_revision:revision,p_source:sourceId,p_version:versionId,
+  p_blank_doc:blank
+ });
+ if(error||!data||!Array.isArray(data)||data.length!==1)
+  return fail('Targeted CV could not be created or linked. Reload the job brief and retry.',true);
+ const result=data[0];
+ if(!result?.resume_id||!isValidRevision(result.session_revision))
+  return fail('Targeted CV was created, but its reference could not be read. Reload to verify.');
+ refresh(id);return {ok:true,resumeId:result.resume_id,revision:result.session_revision};
 }
 
 /** Add one explicitly chosen confirmed fact, never silently insert recommendations. */
