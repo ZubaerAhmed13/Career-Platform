@@ -25,13 +25,18 @@ function hasPhrase(text:string,phrase:string){
  return (' '+normalize(text)+' ').includes(' '+normalize(phrase)+' ');
 }
 const levels=['a1','a2','b1','b2','c1','c2'];
-const languageWords=['german','english','french','spanish','deutsch','englisch'];
+const languageAliases:readonly (readonly string[])[]=[
+ ['german','deutsch'],['english','englisch'],
+ ['french','französisch','franzoesisch'],['spanish','spanisch']
+];
+const languageGroup=(text:string)=>languageAliases.find(group=>group.some(word=>hasPhrase(text,word)));
+const sameLanguage=(text:string,group:readonly string[])=>group.some(word=>hasPhrase(text,word));
 const nativeLanguage=/\b(?:native|mother[ -]?tongue|first language|muttersprache|muttersprachlich)\b/i;
 const fluentLanguage=/\b(?:fluent(?:ly)?|fluency|verhandlungssicher)\b/i;
 /** A CEFR level alone cannot prove native proficiency; vague fluency cannot prove a CEFR score. */
 export function detectLanguageGap(required:string,recordText:string){
- const requested=languageWords.find(lang=>hasPhrase(required,lang));
- if(!requested||!hasPhrase(recordText,requested))return undefined;
+ const requested=languageGroup(required);
+ if(!requested||!sameLanguage(recordText,requested))return undefined;
  const recordNative=nativeLanguage.test(recordText);
  const requiredNative=nativeLanguage.test(required);
  if(requiredNative&&!recordNative)
@@ -72,7 +77,7 @@ export function findEvidence(requirement:JobRequirement,records:CareerRecord[]):
  const approved=records.filter(r=>r.status==='confirmed');
  const query=requirement.text;
  const terms=controlledAliases.filter(group=>group.some(v=>hasPhrase(query,v)));
- const language=languageWords.find(word=>hasPhrase(query,word));
+ const language=languageGroup(query);
  const matches:EvidenceMatch[]=[];
  let warning: string|undefined;
  for(const record of approved){
@@ -82,7 +87,7 @@ export function findEvidence(requirement:JobRequirement,records:CareerRecord[]):
   if(requirement.category==='language'&&record.kind!=='language')continue;
   if(requirement.category==='certification'&&record.kind!=='certification')continue;
   if(requirement.category==='qualification'&&record.kind!=='education')continue;
-  if(language&&!hasPhrase(value,language))continue;
+  if(language&&!sameLanguage(value,language))continue;
   const gap=requirement.category==='language'?detectLanguageGap(query,value):undefined;
   if(gap){warning=gap;continue;}
   const matched=terms.filter(group=>group.some(v=>hasPhrase(value,v)));
@@ -93,7 +98,7 @@ export function findEvidence(requirement:JobRequirement,records:CareerRecord[]):
   const degreeNamed=requirement.category==='qualification'&&
    (matched.length>0||hasPhrase(query,record.title));
   const relevant=matched.length>0||certificationNamed||degreeNamed||
-   (requirement.category==='language'&&!!language&&hasPhrase(value,language));
+   (requirement.category==='language'&&!!language&&sameLanguage(value,language));
   if(!relevant)continue;
   // No single skill keyword proves years of experience, seniority, fluency or certification.
   const advanced=/\b(advanced|expert|senior|years|certified|certification|qualified|professional)\b/i.test(query);
@@ -110,7 +115,7 @@ export function findEvidence(requirement:JobRequirement,records:CareerRecord[]):
   );
   matches.push({recordId:record.id,revision:record.revision,kind:record.kind,
    title:record.title,excerpt:(record.description||record.title).slice(0,450),
-   rule:'Approved exact phrase / controlled alias: '+(matched[0]?.[0]??(certificationNamed?record.title:language)??''),
+   rule:'Approved exact phrase / controlled alias: '+(matched[0]?.[0]??(certificationNamed?record.title:language?.[0])??''),
    classification:direct?'direct':requirement.relation!=='single'?'needs-review':'related'});
  }
  matches.sort((a,b)=>(a.classification==='direct'?0:1)-(b.classification==='direct'?0:1));
