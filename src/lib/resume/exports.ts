@@ -131,9 +131,10 @@ export function makeResumeDocx(doc:ResumeDoc):Uint8Array{
  const nameAlignment=graduate?'<w:jc w:val="center"/>':'';
  const sectionAlignment=graduate?'<w:jc w:val="center"/>':'';
  const sectionDecoration=modern
-  ?'<w:pBdr><w:left w:val="single" w:sz="16" w:space="6" w:color="'+accent+'"/></w:pBdr><w:ind w:left="140"/>'
+  ?'<w:pBdr><w:left w:val="single" w:sz="16" w:space="6" w:color="'+accent+'"/></w:pBdr>'
   :european?'<w:shd w:val="clear" w:fill="EEF2F7"/>'
   :'<w:pBdr><w:bottom w:val="single" w:sz="'+(executive?'12':classic?'8':'6')+'" w:space="3" w:color="'+accent+'"/></w:pBdr>';
+ const sectionIndent=modern?'<w:ind w:left="140"/>':'';
  const nameCaps=executive?'<w:caps/>':'';
  const styles='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
   '<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'+
@@ -142,22 +143,23 @@ export function makeResumeDocx(doc:ResumeDoc):Uint8Array{
   '<w:rPr><w:rFonts w:ascii="'+xml(style.font)+'" w:hAnsi="'+xml(style.font)+'"/>'+
   '<w:sz w:val="'+pts(style.bodySize)+'"/></w:rPr></w:style>'+
   '<w:style w:type="paragraph" w:styleId="Name"><w:name w:val="Name"/><w:basedOn w:val="Normal"/>'+
-  '<w:pPr>'+nameAlignment+'<w:spacing w:after="80"/><w:keepNext/></w:pPr>'+
+  '<w:pPr><w:keepNext/><w:spacing w:after="80"/>'+nameAlignment+'</w:pPr>'+
   '<w:rPr><w:rFonts w:ascii="'+xml(nameFont)+'" w:hAnsi="'+xml(nameFont)+'"/>'+
   '<w:b/>'+nameCaps+'<w:color w:val="'+accent+'"/><w:sz w:val="'+pts(nameSize)+'"/></w:rPr></w:style>'+
   '<w:style w:type="paragraph" w:styleId="Headline"><w:name w:val="Headline"/><w:basedOn w:val="Normal"/>'+
-  '<w:pPr><w:spacing w:after="70"/><w:keepNext/></w:pPr>'+
+  '<w:pPr><w:keepNext/><w:spacing w:after="70"/></w:pPr>'+
   '<w:rPr><w:b/><w:sz w:val="220"/></w:rPr></w:style>'+
   '<w:style w:type="paragraph" w:styleId="Contact"><w:name w:val="Contact"/><w:basedOn w:val="Normal"/>'+
   '<w:pPr><w:spacing w:after="100"/></w:pPr><w:rPr><w:color w:val="475569"/>'+
   '<w:sz w:val="180"/></w:rPr></w:style>'+
   '<w:style w:type="paragraph" w:styleId="Section"><w:name w:val="Section"/><w:basedOn w:val="Normal"/>'+
-  '<w:pPr><w:spacing w:before="'+gap+'" w:after="95"/><w:keepNext/>'+
-  sectionAlignment+sectionDecoration+'</w:pPr>'+
+  '<w:pPr><w:keepNext/>'+sectionDecoration+
+  '<w:spacing w:before="'+gap+'" w:after="95"/>'+sectionIndent+
+  sectionAlignment+'</w:pPr>'+
   '<w:rPr><w:b/><w:color w:val="'+(european?'1E293B':accent)+'"/>'+
   '<w:sz w:val="'+pts(style.headingSize)+'"/></w:rPr></w:style>'+
   '<w:style w:type="paragraph" w:styleId="Entry"><w:name w:val="Entry"/><w:basedOn w:val="Normal"/>'+
-  '<w:pPr><w:spacing w:before="100" w:after="20"/><w:keepNext/></w:pPr>'+
+  '<w:pPr><w:keepNext/><w:spacing w:before="100" w:after="20"/></w:pPr>'+
   '<w:rPr><w:b/></w:rPr></w:style>'+
   '<w:style w:type="paragraph" w:styleId="Meta"><w:name w:val="Meta"/><w:basedOn w:val="Normal"/>'+
   '<w:rPr><w:i/><w:color w:val="475569"/></w:rPr></w:style>'+
