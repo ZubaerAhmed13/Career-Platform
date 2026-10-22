@@ -118,6 +118,16 @@ begin
      where r->>'review'='approved') then
   raise exception 'Approve requirements only after saving the revised job text';
  end if;
+ -- An already-approved criterion cannot silently change meaning or provenance.
+ -- Revisions may reorder criteria, but meaning edits must return to candidate.
+ if exists(
+  select 1 from jsonb_array_elements(new.requirements) n
+   join jsonb_array_elements(old.requirements) o on n->>'id'=o->>'id'
+  where n->>'review'='approved' and o->>'review'='approved'
+   and (n-'review') is distinct from (o-'review')
+ ) then
+  raise exception 'Modified approved criteria must return to candidate for review';
+ end if;
  new.revision=old.revision+1;
  new.updated_at=now();
  return new;
