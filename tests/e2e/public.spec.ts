@@ -51,7 +51,8 @@ test('anonymous career export is denied with no-store caching',async({request})=
 
 test('private Resume Studio and guessed resume UUID redirect anonymous browsers',async({page})=>{
  for(const url of ['/resume-studio','/resume-studio/11111111-1111-4111-8111-111111111111',
-  '/resume-studio/11111111-1111-4111-8111-111111111111/print']){
+  '/resume-studio/11111111-1111-4111-8111-111111111111/print',
+  '/resume-studio/tailor','/resume-studio/tailor/11111111-1111-4111-8111-111111111111']){
   await page.goto(url);
   await expect(page).toHaveURL(/\/login(?:\?|$)/);
  }
