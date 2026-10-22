@@ -33,6 +33,19 @@ test('editing an approved criterion requires another human approval, without rea
  expect(posted).toEqual([]);
 });
 
+test('modifying a saved job advert invalidates approvals derived from the previous advert',async({page})=>{
+ await page.goto('/tailoring-fixture');
+ await expect(page.getByText(/Essential criteria: 1 of 2 directly evidenced/)).toBeVisible();
+ const description=page.getByRole('textbox',{name:'Original description'});
+ const before=await description.inputValue();
+ await description.fill(before+'\nAdditional essential criteria must now be reviewed.');
+ await expect(page.getByText(/Job text changed: previously approved criteria now need review/)).toBeVisible();
+ await expect(page.getByText(/Essential criteria: 0 of 0 directly evidenced/)).toBeVisible();
+ await expect(page.locator('.tailoring-requirement').getByText('Approved')).toHaveCount(0);
+ await page.getByRole('button',{name:'Save now'}).click();
+ await expect(page.getByText('Saved (synthetic fixture)')).toBeVisible();
+});
+
 test('Step 4 remains navigable at 320px with no page-level horizontal overflow',async({page})=>{
  await page.setViewportSize({width:320,height:720});
  await page.goto('/tailoring-fixture');
