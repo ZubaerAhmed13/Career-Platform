@@ -50,14 +50,26 @@ assert.equal(saved.revision,2);
 const stale=await ok('/resume_tailoring_sessions?select=revision&revision=eq.1&id=eq.'+brief.id,{
  method:'PATCH',identity:A,body:{private_notes:'Stale edit'}});
 assert.deepEqual(stale,[]);
-const copy=(await ok('/resumes?select=id,revision',{method:'POST',identity:A,
- body:{user_id:A,name:'Targeted',draft_content:{...original,summary:'Changed for this job'},
-  template_id:'ats-classic',paper_size:'A4',document_language:'en'}}))[0];
-const linked=(await ok('/resume_tailoring_sessions?select=revision&revision=eq.2&id=eq.'+brief.id,{
- method:'PATCH',identity:A,body:{source_resume_id:source.id,
-  source_resume_revision:source.revision,source_snapshot:original,
-  tailored_resume_id:copy.id}}))[0];
-assert.equal(linked.revision,3);
+// A single owner-checked SQL transaction must insert and link, never create
+// an orphan document after another tab changes the job or a stranger calls it.
+const rpc='/rpc/create_my_targeted_resume';
+const rpcBody={p_session:brief.id,p_revision:2,p_source:source.id,
+ p_version:null,p_blank_doc:null};
+const before=await ok('/resumes?select=id',{identity:A});
+const crossOwner=await query(rpc,{method:'POST',identity:B,body:rpcBody});
+assert(crossOwner.status>=400,'A different account must not create a CV for this job');
+const outdated=await query(rpc,{method:'POST',identity:A,body:{...rpcBody,p_revision:1}});
+assert(outdated.status>=400,'A stale revision must reject the entire transaction');
+assert.equal((await ok('/resumes?select=id',{identity:A})).length,before.length,
+ 'Failed target creation must never create an orphan CV');
+const [linked]=(await ok(rpc,{method:'POST',identity:A,body:rpcBody}));
+assert.equal(linked.session_revision,3);
+const copy={id:linked.resume_id};
+const duplicate=await query(rpc,{method:'POST',identity:A,body:rpcBody});
+assert(duplicate.status>=400,'Second submission must not create another target CV');
+assert.equal((await ok('/resumes?select=id',{identity:A})).length,before.length+1,
+ 'Only one targeted CV may be created for a job');
+
 const fresh=await ok('/resume_tailoring_sessions?select=id,requirements,source_snapshot,tailored_resume_id&id=eq.'+brief.id,{
  identity:A});
 assert.equal(fresh[0].source_snapshot.summary,'Before tailoring');
@@ -68,6 +80,9 @@ const tamper=await query('/resume_tailoring_sessions?id=eq.'+brief.id,{method:'P
 assert(tamper.status>=400,'Immutable baseline change must be rejected');
 const sourceAgain=await ok('/resumes?select=draft_content&id=eq.'+source.id,{identity:A});
 assert.equal(sourceAgain[0].draft_content.summary,'Before tailoring');
+const targetCopy=await ok('/resumes?select=draft_content&id=eq.'+copy.id,{identity:A});
+assert.equal(targetCopy[0].draft_content.summary,'Before tailoring',
+ 'Target must begin as a faithful, independent snapshot, not rewritten content');
 const foreignUpdate=await ok('/resume_tailoring_sessions?select=id&id=eq.'+brief.id,{method:'PATCH',identity:B,
  body:{private_notes:'Foreign tamper'}});
 assert.deepEqual(foreignUpdate,[]);
@@ -75,4 +90,4 @@ await ok('/resume_tailoring_sessions?id=eq.'+brief.id,{method:'DELETE',identity:
 assert.equal((await ok('/resumes?select=id&id=eq.'+copy.id,{identity:A})).length,1);
 await ok('/resumes?id=eq.'+copy.id,{method:'DELETE',identity:A});
 await ok('/resumes?id=eq.'+source.id,{method:'DELETE',identity:A});
-console.log('PASS private job briefs, fresh owner reads, manual requirements, revision safety, immutable comparison, cross-owner isolation, independent CV deletion');
+console.log('PASS private job briefs, revisions, immutable comparisons, owner isolation, atomic CV cloning/linking, rollback on conflicts and independent deletion');
