@@ -51,3 +51,17 @@ The existing Step 4 implementation received an additional evidence and browser-a
 - Private routes for tailoring were added to anonymous-access smoke tests. Real signed-in acceptance remains separately required.
 
 **Latest branch commit:** see the head of draft PR #10. GitHub CI should be checked for that exact commit; passing an earlier commit is not signoff for subsequent changes. Nothing here authorises a live migration, production account changes, a merge or deployment.
+
+
+## Export fidelity and document identity follow-up — 22 October 2026
+
+Further Step 4 work strengthened the existing Resume Studio export path rather than building a second document renderer:
+
+- DOCX now uses distinct editable Word paragraph styles for ATS Classic, Modern Professional, Student & Graduate, European Clean and Executive Minimal, with template-specific accents, section treatments, heading alignment and name styles. It preserves genuine editable text and optional embedded JPEG portraits. Standard and compact Word margins are aligned more closely with the browser preview. **This is improved styling, not a claim of pixel-identical layout in Microsoft Word.**
+- Independent parser tests open all five OOXML packages and verify editable text, Unicode, style distinctions, A4/Letter geometry, and optional portraits; final manual Microsoft Word/LibreOffice pagination and print fidelity are still open acceptance gates.
+- Zod rejects duplicate section, entry and bullet IDs, preventing ambiguous document editing and structural comparisons.
+- Before PDF, DOCX, and text export, the editor now validates the snapshot and offers a non-blocking review of missing visible contact methods, no visible career entries, long bullets and unsupported percentage achievements. Invalid documents are blocked from export; legitimate warnings can be accepted by the user.
+- Numerical-claim review compares exact percentage values with the captured source description, rather than accepting any percentage as supporting a different one.
+- Browser-level synthetic tests exercise both cancelling and accepting the DOCX pre-export confirmation, alongside unit tests for warnings and document validation.
+
+These are GitHub-only code and synthetic CI changes. The live Step 4 Supabase migration is still **unapplied**. Authenticated user acceptance, true document visual review, and two-user staging security remain outstanding. Do not merge PR #10 or deploy before separate owner approval.
