@@ -75,10 +75,9 @@ describe('Resume Studio structured model',()=>{
   const repeatedBullet=structuredClone(first.bullets[0]);
   second.bullets.push(repeatedBullet);
   expect(resumeDocSchema.safeParse(doc).success).toBe(false);
-  // Fix both duplicated bullets: one copied from the other entry and the
-  // extra deliberately repeated bullet added above.
-  second.bullets[0].id=crypto.randomUUID();
-  second.bullets[1].id=crypto.randomUUID();
+  // A record can create multiple bullets from structured details; give every
+  // bullet in the second entry a fresh identity before asserting validity.
+  second.bullets=second.bullets.map(bullet=>({...bullet,id:crypto.randomUUID()}));
   const valid=resumeDocSchema.safeParse(doc);
   if(!valid.success)throw new Error('Expected unique IDs to be accepted: '+JSON.stringify(valid.error.issues));
   expect(valid.success).toBe(true);
