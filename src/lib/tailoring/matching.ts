@@ -53,6 +53,19 @@ export function detectLanguageGap(required:string,recordText:string){
   return 'Language proficiency not explicitly stated in the record.';
  return undefined;
 }
+const actionVerbs=new Set(['used','using','managed','performed','developed','maintained',
+ 'created','coordinated','analysed','analyzed','conducted','worked','applied','built','automated']);
+/** A skill mention near an action is more meaningful than a tool in an employer name. */
+function actionNearTerm(text:string,alias:string){
+ const words=normalize(text).split(' ').filter(Boolean);
+ const phrase=normalize(alias).split(' ');
+ for(let i=0;i<=words.length-phrase.length;i++){
+  if(!phrase.every((word,j)=>words[i+j]===word))continue;
+  const vicinity=words.slice(Math.max(0,i-5),Math.min(words.length,i+phrase.length+5));
+  if(vicinity.some(word=>actionVerbs.has(word)))return true;
+ }
+ return false;
+}
 export function findEvidence(requirement:JobRequirement,records:CareerRecord[]):RequirementEvidence{
  const approved=records.filter(r=>r.status==='confirmed');
  const query=requirement.text;
@@ -61,8 +74,9 @@ export function findEvidence(requirement:JobRequirement,records:CareerRecord[]):
  const matches:EvidenceMatch[]=[];
  let warning: string|undefined;
  for(const record of approved){
-  const value=[record.title,record.description,record.organization,
-   ...Object.values(record.details??{})].join(' ');
+  // Employer names do not prove an employee's proficiency with similarly named tools.
+  const fields=[record.title,record.description,...Object.values(record.details??{})];
+  const value=fields.join(' ');
   if(requirement.category==='language'&&record.kind!=='language')continue;
   if(requirement.category==='certification'&&record.kind!=='certification')continue;
   if(requirement.category==='qualification'&&record.kind!=='education')continue;
@@ -81,7 +95,8 @@ export function findEvidence(requirement:JobRequirement,records:CareerRecord[]):
   if(!relevant)continue;
   // No single skill keyword proves years of experience, seniority, fluency or certification.
   const advanced=/\b(advanced|expert|senior|years|certified|certification|qualified|professional)\b/i.test(query);
-  const handsOn=/\b(used|using|managed|performed|developed|maintained|created|coordinated|analysed|analyzed|conducted|worked with)\b/i.test(value);
+  const handsOn=matched.length>0&&matched.every(group=>
+   fields.some(field=>group.some(alias=>actionNearTerm(field,alias))));
   const direct=requirement.relation==='single'&&(
    certificationNamed||
    (requirement.category==='qualification'&&degreeNamed&&!record.is_current&&
