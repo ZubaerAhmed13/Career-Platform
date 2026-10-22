@@ -100,26 +100,41 @@ export function coverage(rows:RequirementEvidence[]){
 export type ResumeChange={kind:'added'|'removed'|'changed'|'moved';label:string};
 export function compareResume(source:ResumeDoc,target:ResumeDoc):ResumeChange[]{
  const diff:ResumeChange[]=[];
- for(const key of ['name','headline','email','phone','location'] as const){
+ for(const key of ['name','headline','email','phone','location','linkedin','portfolio','github','website'] as const){
   if(source.contact[key]!==target.contact[key])diff.push({kind:'changed',label:'Contact: '+key});
  }
+ if(source.contact.photo!==target.contact.photo)diff.push({kind:'changed',label:'Portrait image'});
+ if(source.contact.showPhoto!==target.contact.showPhoto)diff.push({kind:'changed',label:'Portrait visibility'});
+ if(JSON.stringify([...source.contact.hidden].sort())!==JSON.stringify([...target.contact.hidden].sort()))
+  diff.push({kind:'changed',label:'Contact field visibility'});
  if(source.summary!==target.summary)diff.push({kind:'changed',label:'Professional summary'});
- if(source.settings.template!==target.settings.template)diff.push({kind:'changed',label:'Template'});
+ if(source.summaryVisible!==target.summaryVisible)diff.push({kind:'changed',label:'Professional summary visibility'});
+ for(const key of Object.keys(source.settings) as Array<keyof ResumeDoc['settings']>){
+  if(source.settings[key]!==target.settings[key])
+   diff.push({kind:'changed',label:'Design setting: '+key});
+ }
  const before=new Map(source.sections.map((s,i)=>[s.id,{s,i}]));
  const after=new Map(target.sections.map((s,i)=>[s.id,{s,i}]));
  for(const [id,{s,i}] of before){
   const found=after.get(id);
   if(!found){diff.push({kind:'removed',label:'Section: '+s.title});continue;}
   if(found.i!==i)diff.push({kind:'moved',label:'Section: '+s.title});
-  if(s.visible!==found.s.visible||s.title!==found.s.title)
-   diff.push({kind:'changed',label:'Section visibility/name: '+s.title});
+  if(s.visible!==found.s.visible)diff.push({kind:'changed',label:'Section visibility: '+s.title});
+  if(s.title!==found.s.title||s.kind!==found.s.kind)
+   diff.push({kind:'changed',label:'Section heading/type: '+s.title});
   const original=new Map(s.entries.map((entry,index)=>[entry.id,{entry,index}]));
   const current=new Map(found.s.entries.map((entry,index)=>[entry.id,{entry,index}]));
   for(const [eid,item] of original){
    const update=current.get(eid);
    if(!update){diff.push({kind:'removed',label:'Entry: '+item.entry.title});continue;}
    if(update.index!==item.index)diff.push({kind:'moved',label:'Entry: '+item.entry.title});
-   if(JSON.stringify(item.entry)!==JSON.stringify(update.entry))
+   if(item.entry.visible!==update.entry.visible)
+    diff.push({kind:'changed',label:'Entry visibility: '+item.entry.title});
+   if(JSON.stringify(item.entry.bullets)!==JSON.stringify(update.entry.bullets))
+    diff.push({kind:'changed',label:'Entry bullets: '+item.entry.title});
+   const {visible:oldVisible,bullets:oldBullets,...oldContent}=item.entry;
+   const {visible:newVisible,bullets:newBullets,...newContent}=update.entry;
+   if(JSON.stringify(oldContent)!==JSON.stringify(newContent))
     diff.push({kind:'changed',label:'Entry content: '+item.entry.title});
   }
   for(const [eid,item] of current)if(!original.has(eid))
