@@ -6,7 +6,8 @@ create function public.create_my_targeted_resume(
  p_revision integer,
  p_source uuid default null,
  p_version uuid default null,
- p_blank_doc jsonb default null
+ p_blank_doc jsonb default null,
+ p_expected_source_revision integer default null
 )
 returns table(resume_id uuid,session_revision integer)
 language plpgsql security invoker set search_path='' as $$
@@ -42,6 +43,10 @@ begin
    where id=p_source and user_id=person for share;
   if not found then raise exception 'Source resume does not belong to this account';end if;
   source_revision:=base.revision;
+  if p_version is null and (p_expected_source_revision is null or
+    p_expected_source_revision<>base.revision) then
+   raise exception 'Source resume changed: refresh before copying';
+  end if;
   if p_version is not null then
    select v.snapshot_content,v.version_number into snapshot,version_number
     from public.resume_versions v
@@ -81,7 +86,7 @@ begin
  return query select new_resume_id,linked_revision;
 end;
 $$;
-revoke all on function public.create_my_targeted_resume(uuid,integer,uuid,uuid,jsonb)
+revoke all on function public.create_my_targeted_resume(uuid,integer,uuid,uuid,jsonb,integer)
  from public,anon;
-grant execute on function public.create_my_targeted_resume(uuid,integer,uuid,uuid,jsonb)
+grant execute on function public.create_my_targeted_resume(uuid,integer,uuid,uuid,jsonb,integer)
  to authenticated;
