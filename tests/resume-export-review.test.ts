@@ -37,6 +37,22 @@ describe('Local resume pre-export review',()=>{
   expect(reviewResumeBeforeExport(doc).warnings).toContain(
    'Check percentage achievements against original evidence before using them.');
  });
+ it('compares the exact claimed percentage, not merely the presence of any percentage',()=>{
+  const doc=sample();
+  const entry=doc.sections[0].entries[0];
+  entry.source={
+   recordId:crypto.randomUUID(),revision:1,kind:'experience',
+   capturedAt:'2026-10-22T12:00:00.000Z',
+   title:'Analyst',organization:'Example Employer',
+   description:'Reduced processing errors by 35% in the approved source.'
+  };
+  entry.bullets[0].text='Reduced processing errors by 35%.';
+  expect(reviewResumeBeforeExport(doc).warnings).not.toContain(
+   'Check percentage achievements against original evidence before using them.');
+  entry.bullets[0].text='Reduced processing errors by 45%.';
+  expect(reviewResumeBeforeExport(doc).warnings).toContain(
+   'Check percentage achievements against original evidence before using them.');
+ });
  it('blocks invalid URLs, duplicate IDs and impossible dates before PDF/DOCX/text',()=>{
   const doc=sample();
   doc.contact.website='javascript:alert(1)';
