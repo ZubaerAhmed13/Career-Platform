@@ -49,6 +49,31 @@ test('anonymous career export is denied with no-store caching',async({request})=
 });
 
 
+
+test('direct PDF print page requires explicit review and blocks invalid content',async({page})=>{
+ await page.addInitScript(()=>{
+  const w=window as Window & {__syntheticPrintCount?:number};
+  w.print=()=>{w.__syntheticPrintCount=(w.__syntheticPrintCount??0)+1;};
+ });
+ const printCount=()=>page.evaluate(()=>(window as Window & {__syntheticPrintCount?:number}).__syntheticPrintCount??0);
+ await page.goto('/resume-fixture/print?warning=1');
+ await expect(page.getByText('Check percentage achievements against original evidence before using them.')).toBeVisible();
+ page.once('dialog',dialog=>dialog.dismiss());
+ await page.getByRole('button',{name:'Print / Save as PDF'}).click();
+ expect(await printCount()).toBe(0);
+ page.once('dialog',dialog=>dialog.accept());
+ await page.getByRole('button',{name:'Print / Save as PDF'}).click();
+ await expect.poll(printCount).toBe(1);
+
+ await page.goto('/resume-fixture/print?invalid=1');
+ await expect(page.getByText('Print blocked until the document is corrected.')).toBeVisible();
+ await expect(page.getByRole('button',{name:'Print / Save as PDF'})).toBeDisabled();
+
+ await page.goto('/resume-fixture/print');
+ await expect(page.getByRole('button',{name:'Print / Save as PDF'})).toBeEnabled();
+ await expect(page.getByText('Review these items before printing:')).toHaveCount(0);
+});
+
 test('private Resume Studio and guessed resume UUID redirect anonymous browsers',async({page})=>{
  for(const url of ['/resume-studio','/resume-studio/11111111-1111-4111-8111-111111111111',
   '/resume-studio/11111111-1111-4111-8111-111111111111/print',
