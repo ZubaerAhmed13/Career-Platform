@@ -108,7 +108,6 @@ test.describe('Step 4 protected signed-in staging acceptance',()=>{
    await page.reload();
    await expect(page.getByPlaceholder('Brief factual overview of your experience, strengths and target work.')).toHaveValue(tailored);
    await page.goto('/resume-studio');
-   await page.getByRole('link',{name:'Edit',exact:true}).locator('xpath=..').count();
    const sourceRow=page.locator('article.resume-library-card').filter({has:page.getByRole('heading',{name:sourceName,exact:true})});
    await sourceRow.getByRole('link',{name:'Edit'}).click();
    await expect(page.getByPlaceholder('Brief factual overview of your experience, strengths and target work.')).toHaveValue(latest);
