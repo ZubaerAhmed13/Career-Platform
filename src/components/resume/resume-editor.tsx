@@ -9,6 +9,7 @@ import {careerKinds,kindLabels,type CareerKind,type CareerRecord} from '@/lib/ca
 import {makeResumeDocx,resumePlainText} from '@/lib/resume/exports';
 import {safeExportName} from '@/lib/resume/schema';
 import {reviewResumeBeforeExport} from '@/lib/resume/export-review';
+import {useUnsavedNavigationGuard} from '@/lib/resume/use-unsaved-navigation-guard';
 import {ResumePreview} from './resume-preview';
 
 type Panel='content'|'design'|'preview';
@@ -44,6 +45,8 @@ export function ResumeEditor({row,versions:initialVersions,vault,openVault,demoM
  },[doc.settings.paper,panel]);
  const revisionRef=useRef(row.revision),savingRef=useRef(false),blockedRef=useRef(false);
  const savedRef=useRef(JSON.stringify(row.draft_content)),docRef=useRef(doc);
+ useUnsavedNavigationGuard(()=>savingRef.current||blockedRef.current||
+  JSON.stringify(docRef.current)!==savedRef.current);
  const undoRef=useRef<ResumeDoc[]>([]),redoRef=useRef<ResumeDoc[]>([]);
  const router=useRouter();
  docRef.current=doc;
