@@ -49,9 +49,22 @@ export function resumePlainText(doc:ResumeDoc){
  return resumeLines(doc).map(l=>l.type==='bullet'?'• '+l.text:l.text)
   .reduce((text,line,index,all)=>text+(index===0?'':line.startsWith('• ')&&all[index-1]?.startsWith('• ')?'\n':'\n\n')+line,'');
 }
+/** OOXML is XML 1.0: drop forbidden control code points and replace isolated
+ * UTF-16 surrogates. Text pasted from other apps must not corrupt a DOCX. */
 function xml(input:string){
- return input.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+ return input.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g,'')
+  .replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g,'\uFFFD')
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
   .replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+}
+/** Preserve user-entered paragraphs, line breaks and tabs as genuine editable
+ * Word text runs. A raw newline inside w:t can otherwise be normalised away. */
+function wordText(input:string){
+ return input.split(/(\r\n|\r|\n|\t)/).map(part=>{
+  if(part==='\r'||part==='\n'||part==='\r\n')return '<w:br/>';
+  if(part==='\t')return '<w:tab/>';
+  return part?'<w:t xml:space="preserve">'+xml(part)+'</w:t>':'';
+ }).join('');
 }
 function crc32(bytes:Uint8Array){
  let crc=0xffffffff;
@@ -106,7 +119,7 @@ export function makeResumeDocx(doc:ResumeDoc):Uint8Array{
   const bullet=line.type==='bullet'
    ?'<w:numPr><w:ilvl w:val="0"/><w:numId w:val="1"/></w:numPr>':'';
   return '<w:p><w:pPr><w:pStyle w:val="'+heading+'"/>'+bullet+'</w:pPr>'+
-   '<w:r><w:rPr>'+(bold?'<w:b/>':'')+'</w:rPr><w:t xml:space="preserve">'+xml(line.text)+'</w:t></w:r></w:p>';
+   '<w:r><w:rPr>'+(bold?'<w:b/>':'')+'</w:rPr>'+wordText(line.text)+'</w:r></w:p>';
  }).join('');
  const a4=style.paper==='A4';
  // Match the browser preview's 11 mm compact / 16 mm standard page padding.
