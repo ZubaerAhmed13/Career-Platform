@@ -33,6 +33,32 @@ describe('real editable DOCX integrity',()=>{
   expect(parsed.value.indexOf('International analysis')).toBeLessThan(parsed.value.indexOf('Compared costs'));
  });
 
+ it('retains pasted line breaks and tabs and sanitises forbidden XML characters',async()=>{
+  const doc=emptyResume('modern-professional','A4');
+  doc.contact.name='Test Candidate';
+  doc.contact.email='test@example.org';
+  doc.summaryVisible=true;
+  doc.summary='Prepared <financial> & operations reports.\r\n'+
+   'Used Excel\tand SQL.\n'+
+   'Control\u0001character and unmatched surrogate \uD800 after.';
+  const bytes=makeResumeDocx(doc);
+  validateLocalDocxArchive(bytes);
+  // The editable OOXML must contain real Word control elements, not raw
+  // newlines in a w:t node or illegal XML control characters.
+  const raw=new TextDecoder().decode(bytes);
+  const document=raw.slice(raw.indexOf('<w:document '),raw.indexOf('</w:document>')+13);
+  expect(document).toContain('<w:br/>');
+  expect(document).toContain('<w:tab/>');
+  expect(document).toContain('&lt;financial&gt; &amp; operations reports.');
+  expect(document).not.toContain('\u0001');
+  expect(document).not.toContain('\uD800');
+  const extracted=await extractRawText({buffer:Buffer.from(bytes)});
+  expect(extracted.value).toContain('Prepared <financial> & operations reports.');
+  expect(extracted.value).toContain('Used Excel');
+  expect(extracted.value).toContain('and SQL.');
+  expect(extracted.value).toContain('Controlcharacter');
+ });
+
  it('preserves five distinctive editable template styles and page choices without losing content',async()=>{
   const themes=['ats-classic','modern-professional','student-graduate',
    'european-clean','executive-minimal'] as const;
