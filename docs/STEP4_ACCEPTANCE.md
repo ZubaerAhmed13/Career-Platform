@@ -84,3 +84,29 @@ To address a real failure mode in the original implementation, Step 4 now includ
 ### Remaining external acceptance
 
 These cannot be certified solely from GitHub code or synthetic test accounts: real signed-in creation and restoration, the owner's Supabase migration approval and backup, two real isolated staging identities, the full Word/PDF visual/pagination check, accessibility with assistive technologies, and end-to-end signed-in deletion/export. Keep PR #10 draft and hosting disabled until separately authorised.
+
+
+## Protected end-to-end staging acceptance for Step 4 — 23 October 2026
+
+The added \`tests/e2e/staging-tailoring.spec.ts\` is an **opt-in authenticated browser acceptance suite** covering:
+
+- A newly created synthetic source resume, editable content and an immutable saved version
+- Editing the source after versioning, then selecting the older version while creating a private job-specific independent CV
+- A job description saved for the first owner and a versioned tailored resume linked to it atomically
+- Resume editing, document persistence on reload, and a downloadable editable DOCX
+- Original source content unaffected by changes to the independent targeted CV
+- Second-account isolation at the job listing, CV listing and full-account JSON export layers
+- Deleting only the test job brief, confirming both independent CVs survive, then cleaning up uniquely marked test CVs
+
+The suite **is not run in ordinary GitHub CI**. The CI job only collects/compiles its Playwright test declarations with \`--list\`, without staging credentials or mutating real accounts. Running the suite requires a distinct dedicated staging Supabase project, staging-only test accounts, previously authorised and applied Step 4 migrations, a manual dispatch of the protected \`staging\` GitHub environment, and an environment variable \`CAREER_STAGING_STEP4=I_UNDERSTAND_STEP4_STAGING_ONLY\`. The user has **not yet authorised** the live or staging migrations for this task, so no signed-in end-to-end result is claimed.
+
+The suite is intentionally not designed to clean or modify unrelated data. Before enabling it, verify the staging environment variable and the two disposable identities. No production deletion test is part of this flow.
+
+### Final release blockers that cannot be truthfully cleared by synthetic GitHub tests
+
+1. Authorise and prepare a **separate staging** Supabase backend, migrate it, and run the opt-in two-account suite; diagnose and resolve any signed-in failures.
+2. Inspect representative A4/Letter print outputs and all DOCX templates in Microsoft Word and another word processor, including long-page flow and optional portraits.
+3. Verify account recovery, keyboard and screen-reader usability in real protected routes, including stale tabs and autosave failure recovery.
+4. Only after the owner separately approves the actual deployment/migration plan: take a backup, verify real migration history, apply the new SQL to the designated backend, and conduct non-destructive acceptance. Merge or deploy only with explicit approval.
+
+**Status:** GitHub-only draft PR. No actual staging execution, live database mutation, GitHub merge or hosting activation.
