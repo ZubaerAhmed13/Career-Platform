@@ -106,6 +106,23 @@ test.describe('Step 4 protected signed-in staging acceptance',()=>{
    expect(docx.suggestedFilename()).toMatch(/\.docx$/i);
    expect((await stat(await docx.path())).size).toBeGreaterThan(2000);
 
+   // Exercise the *authenticated print route*, not only an isolated fixture.
+   // PDF text must remain selectable and show the independent tailored wording.
+   const printPage=await page.context().newPage();
+   try{
+    await printPage.goto(new URL(page.url()).pathname+'/print');
+    await expect(printPage.locator('.resume-paper')).toBeVisible();
+    await expect(printPage.locator('.resume-summary')).toContainText(tailored);
+    const pdf=await printPage.pdf({format:'A4',preferCSSPageSize:true,printBackground:true});
+    expect(pdf.subarray(0,5).toString('utf8')).toBe('%PDF-');
+    const {getDocumentProxy,extractText}=await import('unpdf');
+    const proxy=await getDocumentProxy(new Uint8Array(pdf));
+    try{
+     const extracted=await extractText(proxy,{mergePages:true});
+     expect(extracted.text).toContain(tailored);
+    }finally{await (proxy as unknown as {destroy?:()=>Promise<void>}).destroy?.();}
+   }finally{await printPage.close();}
+
    // Reloading proves persistence; independent source and historical snapshot
    // remain unmodified by editing the target.
    await page.reload();
