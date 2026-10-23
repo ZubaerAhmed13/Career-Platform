@@ -20,8 +20,8 @@ export function reviewResumeBeforeExport(doc:ResumeDoc):ResumeExportReview{
  // be traceable to the captured source. Reworded or new claims get an
  // overridable human-review warning, not a claim of automatic verification.
  const canonical=(value:string)=>value.toLowerCase().normalize('NFKC')
-  .replace(/(\d+(?:[.,]\d+)?)\s*%/g,(_,n:string)=>n.replace(',','.')+'%')
-  .replace(/[^\p{L}\p{N}%.]+/gu,' ').replace(/\s+/g,' ').trim();
+  .replace(/(\d+(?:[.,]\d+)?)\s*%/g,(_,n:string)=>n.replace(/[.,]/g,' ')+' percent')
+  .replace(/[^\p{L}\p{N}]+/gu,' ').replace(/\s+/g,' ').trim();
  const percentages=(value:string)=>[...value.matchAll(/\b\d+(?:[.,]\d+)?\s*%/g)];
  const unsupportedNumber=visible.some(entry=>{
   const original=' '+canonical(entry.source?.description??'')+' ';
