@@ -113,3 +113,7 @@ The GitHub-only Step 3 source implementation was squash-merged through [PR #6](h
 **Database readiness (approved 16 October 2026):** The owner explicitly approved applying `supabase/migrations/202610150001_resume_studio.sql` to the **CareerOS AI** Supabase project, followed by `supabase/migrations/202610160001_resume_studio_least_privilege.sql` to correct overly broad default grants. Both succeeded and were verified using read-only schema, RLS, policy, function-permission and migration-history queries. The new tables were empty at verification. **Signed-in real-account create/edit/relogin and live resume use have NOT been manually tested.** The source-level CI passed before merge; post-merge `main` CI is tracked separately. Do not represent this milestone as production-ready or live-account accepted. No AI model, Vercel deployment or optional scanner infrastructure was enabled.
 
 See [Step 3 acceptance matrix](docs/STEP3_ACCEPTANCE.md) and [technical design](docs/STEP3_TECHNICAL_DESIGN.md). Keep all development GitHub-only until the owner explicitly authorises hosting.
+
+## Step 4 — advanced resume tailoring (review branch only)
+
+Draft [PR #10](https://github.com/ZubaerAhmed13/Career-Platform/pull/10) adds job description review, explainable deterministic requirement-to-confirmed-Vault matching, independent targeted CV creation and comparison. See [Step 4 technical design](docs/STEP4_TECHNICAL_DESIGN.md) and [acceptance](docs/STEP4_ACCEPTANCE.md). **Not merged, deployed, or enabled on the connected database.** No AI model is running.

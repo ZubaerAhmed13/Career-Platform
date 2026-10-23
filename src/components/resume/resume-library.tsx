@@ -41,6 +41,11 @@ export function ResumeLibrary({initial}:{initial:ResumeRow[]}){
   <header><p className="eyebrow">Career documents</p><h1 className="heading">Resume Studio</h1>
    <p className="subtle">Build truthful resumes from confirmed career facts or start from scratch. Your account contact details are prefilled, but fully editable. No AI required.</p>
   </header>
+  <section className="card stack">
+   <h2 style={{margin:0}}>Tailor your resume to a job</h2>
+   <p className="subtle">Review a real vacancy against confirmed Career Vault evidence, create a job-specific copy, and track what you changed. No AI or invented match score.</p>
+   <div><Link className="button" href="/resume-studio/tailor">Open advanced resume tailoring →</Link></div>
+  </section>
   <section className="card stack" aria-labelledby="new-resume-title">
    <h2 id="new-resume-title" style={{margin:0}}>Create a new resume</h2>
    <div className="resume-form-grid">

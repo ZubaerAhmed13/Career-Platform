@@ -32,4 +32,86 @@ describe('real editable DOCX integrity',()=>{
   expect(parsed.value).toContain('Compared costs and markets.');
   expect(parsed.value.indexOf('International analysis')).toBeLessThan(parsed.value.indexOf('Compared costs'));
  });
+
+ it('retains pasted line breaks and tabs and sanitises forbidden XML characters',async()=>{
+  const doc=emptyResume('modern-professional','A4');
+  doc.contact.name='Test Candidate';
+  doc.contact.email='test@example.org';
+  doc.summaryVisible=true;
+  doc.summary='Prepared <financial> & operations reports.\r\n'+
+   'Used Excel\tand SQL.\n'+
+   'Control\u0001character and unmatched surrogate \uD800 after.';
+  const bytes=makeResumeDocx(doc);
+  validateLocalDocxArchive(bytes);
+  // The editable OOXML must contain real Word control elements, not raw
+  // newlines in a w:t node or illegal XML control characters.
+  const raw=new TextDecoder().decode(bytes);
+  const document=raw.slice(raw.indexOf('<w:document '),raw.indexOf('</w:document>')+13);
+  expect(document).toContain('<w:br/>');
+  expect(document).toContain('<w:tab/>');
+  expect(document).toContain('&lt;financial&gt; &amp; operations reports.');
+  expect(document).not.toContain('\u0001');
+  expect(document).not.toContain('\uD800');
+  const extracted=await extractRawText({buffer:Buffer.from(bytes)});
+  expect(extracted.value).toContain('Prepared <financial> & operations reports.');
+  expect(extracted.value).toContain('Used Excel');
+  expect(extracted.value).toContain('and SQL.');
+  expect(extracted.value).toContain('Controlcharacter');
+ });
+
+ it('preserves five distinctive editable template styles and page choices without losing content',async()=>{
+  const themes=['ats-classic','modern-professional','student-graduate',
+   'european-clean','executive-minimal'] as const;
+  const outputs=new Set<string>();
+  for(const template of themes){
+   const doc=emptyResume(template,'A4');
+   doc.settings.accent='#0f766e';
+   doc.contact.name='Sample Candidate';
+   doc.contact.headline='Finance and operations';
+   doc.contact.email='test@example.org';
+   doc.summary='Validated fictional professional profile.';
+   doc.sections.find(s=>s.kind==='experience')!.entries.push(entryFromRecord({
+    id:crypto.randomUUID(),user_id:crypto.randomUUID(),revision:1,
+    created_at:'2026-10-22T12:00:00.000Z',updated_at:'2026-10-22T12:00:00.000Z',
+    kind:'experience',status:'confirmed',source:'manual',
+    title:'Operations Analyst',organization:'Example Employer',location:'Test City',
+    description:'Prepared a weekly report.',started_on:'2025-01-01',ended_on:null,
+    is_current:true,details:{}
+   }));
+   const bytes=makeResumeDocx(doc);
+   validateLocalDocxArchive(bytes);
+   const zip=new TextDecoder().decode(bytes);
+   const start=zip.indexOf('<w:styles '),end=zip.indexOf('</w:styles>')+'</w:styles>'.length;
+   const styles=zip.slice(start,end);
+   expect(start).toBeGreaterThan(-1);
+   for(const id of ['Normal','Name','Headline','Contact','Section','Entry','Meta','Summary','Bullet'])
+    expect(styles).toContain('w:styleId="'+id+'"');
+   expect(zip).toContain('<w:pgMar w:top="907"');
+   expect(zip).toContain('w:pStyle w:val="Bullet"');
+   if(template==='ats-classic'){
+    expect(styles).toContain('<w:color w:val="000000"/>');
+    expect(styles).toContain('w:sz="8"');
+   }
+   if(template==='modern-professional')
+    expect(styles).toContain('<w:left w:val="single"');
+   if(template==='student-graduate')
+    expect(styles).toContain('<w:jc w:val="center"/>');
+   if(template==='european-clean')
+    expect(styles).toContain('<w:shd w:val="clear" w:fill="EEF2F7"/>');
+   if(template==='executive-minimal')
+    expect(styles).toContain('<w:caps/>');
+   const parsed=await extractRawText({buffer:Buffer.from(bytes)});
+   expect(parsed.value).toContain('Sample Candidate');
+   expect(parsed.value).toContain('Operations Analyst');
+   expect(parsed.value).toContain('Prepared a weekly report.');
+   outputs.add(styles);
+  }
+  expect(outputs.size).toBe(5);
+  const compact=emptyResume('ats-classic','Letter');
+  compact.settings.margin='compact';
+  const zipped=new TextDecoder().decode(makeResumeDocx(compact));
+  expect(zipped).toContain('<w:pgSz w:w="12240" w:h="15840"/>');
+  expect(zipped).toContain('<w:pgMar w:top="624"');
+ });
+
 });

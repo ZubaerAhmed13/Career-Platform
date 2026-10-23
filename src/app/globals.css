@@ -147,3 +147,39 @@
 .resume-european .resume-profile-photo{grid-column:2;grid-row:1/4;margin:0 0 0 12px}
 .resume-european .resume-contact{grid-column:1 / -1}
 @media(max-width:480px){.resume-photo-control .field{max-width:100%}}
+
+/* Step 4: evidence-first job-targeting workspace, responsive and accessible. */
+.tailoring-workspace{max-width:1500px;margin:auto;gap:16px}
+.tailoring-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.tailoring-summary .card{display:flex;flex-direction:column;gap:5px;padding:16px}
+.tailoring-summary strong{font-size:1.8rem;font-variant-numeric:tabular-nums}
+.tailoring-summary span{color:var(--muted);font-size:.88rem}
+.tailoring-columns{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(290px,1fr);gap:20px;align-items:start}
+.tailoring-columns>*{min-width:0}
+.tailoring-requirement{border:1px solid var(--border);border-radius:12px;padding:14px;gap:10px}
+.tailoring-evidence{padding-left:20px}
+.tailoring-evidence li,.tailoring-evidence-row{padding:12px 0;border-bottom:1px solid var(--border);overflow-wrap:anywhere}
+.tailoring-diff{padding-left:20px;max-height:400px;overflow-y:auto}
+.tailoring-diff li{margin-bottom:8px;overflow-wrap:anywhere}
+@media(max-width:960px){
+ .tailoring-columns{grid-template-columns:minmax(0,1fr)}
+ .tailoring-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:420px){
+ .tailoring-summary .card{padding:12px}
+ .tailoring-summary strong{font-size:1.45rem}
+ .tailoring-workspace .resume-card-actions{flex-wrap:wrap}
+}
+
+.tailoring-compare{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
+.tailoring-compare section{min-width:0}
+.tailoring-compare pre{white-space:pre-wrap;overflow-wrap:anywhere;font-family:inherit;font-size:.85rem;line-height:1.5;
+ background:var(--background);border:1px solid var(--line);border-radius:10px;padding:12px;max-height:550px;overflow:auto}
+@media(max-width:700px){.tailoring-compare{grid-template-columns:1fr}}
+
+.tailoring-original-text{white-space:pre-wrap;overflow-wrap:anywhere;max-height:350px;overflow:auto;
+ background:var(--background);border:1px solid var(--line);border-radius:10px;padding:12px;font:inherit}
+
+.tailoring-keyword-list{list-style:none;padding:0;display:grid;gap:8px}
+.tailoring-keyword-list li{display:grid;gap:4px;padding:9px 0;border-bottom:1px solid var(--line)}
+.tailoring-keyword-list span{font-size:.9rem;color:var(--muted)}

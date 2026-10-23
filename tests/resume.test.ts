@@ -64,11 +64,33 @@ describe('Resume Studio structured model',()=>{
   d.summary='';d.sections[1].id=d.sections[0].id;
   expect(resumeDocSchema.safeParse(d).success).toBe(false);
  });
+ it('rejects duplicated entry and bullet IDs in imported or restored document snapshots',()=>{
+  const doc=emptyResume();
+  const first=entryFromRecord(record);
+  const second=entryFromRecord(record);
+  second.id=first.id;
+  doc.sections[0].entries.push(first,second);
+  expect(resumeDocSchema.safeParse(doc).success).toBe(false);
+  second.id=crypto.randomUUID();
+  const repeatedBullet=structuredClone(first.bullets[0]);
+  second.bullets.push(repeatedBullet);
+  expect(resumeDocSchema.safeParse(doc).success).toBe(false);
+  // A record can create multiple bullets from structured details; give every
+  // bullet in the second entry a fresh identity before asserting validity.
+  second.bullets=second.bullets.map(bullet=>({...bullet,id:crypto.randomUUID()}));
+  const valid=resumeDocSchema.safeParse(doc);
+  if(!valid.success)throw new Error('Expected unique IDs to be accepted: '+JSON.stringify(valid.error.issues));
+  expect(valid.success).toBe(true);
+ });
  it('warns only through transparent deterministic checks',()=>{
   const d=emptyResume();expect(qualityWarnings(d)).toContain('Add your full name.');
-  expect(qualityWarnings(d)).toContain('Add at least one contact method.');
+  expect(qualityWarnings(d)).toContain('Show at least one contact method (email or phone).');
   d.contact.name='Sample';d.contact.email='sample@example.org';
   expect(qualityWarnings(d)).not.toContain('Add your full name.');
+  d.contact.hidden.push('email');
+  expect(qualityWarnings(d)).toContain('Show at least one contact method (email or phone).');
+  d.contact.hidden=[];
+  expect(qualityWarnings(d)).not.toContain('Show at least one contact method (email or phone).');
  });
  it('applies dates and filenames safely',()=>{
   expect(formatDate('2026-05-01','year')).toBe('2026');

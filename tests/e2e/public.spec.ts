@@ -49,9 +49,35 @@ test('anonymous career export is denied with no-store caching',async({request})=
 });
 
 
+
+test('direct PDF print page requires explicit review and blocks invalid content',async({page})=>{
+ await page.addInitScript(()=>{
+  const w=window as Window & {__syntheticPrintCount?:number};
+  w.print=()=>{w.__syntheticPrintCount=(w.__syntheticPrintCount??0)+1;};
+ });
+ const printCount=()=>page.evaluate(()=>(window as Window & {__syntheticPrintCount?:number}).__syntheticPrintCount??0);
+ await page.goto('/resume-fixture/print?warning=1');
+ await expect(page.getByText('Check percentage achievements against original evidence before using them.')).toBeVisible();
+ page.once('dialog',dialog=>dialog.dismiss());
+ await page.getByRole('button',{name:'Print / Save as PDF'}).click();
+ expect(await printCount()).toBe(0);
+ page.once('dialog',dialog=>dialog.accept());
+ await page.getByRole('button',{name:'Print / Save as PDF'}).click();
+ await expect.poll(printCount).toBe(1);
+
+ await page.goto('/resume-fixture/print?invalid=1');
+ await expect(page.getByText('Print blocked until the document is corrected.')).toBeVisible();
+ await expect(page.getByRole('button',{name:'Print / Save as PDF'})).toBeDisabled();
+
+ await page.goto('/resume-fixture/print');
+ await expect(page.getByRole('button',{name:'Print / Save as PDF'})).toBeEnabled();
+ await expect(page.getByText('Review these items before printing:')).toHaveCount(0);
+});
+
 test('private Resume Studio and guessed resume UUID redirect anonymous browsers',async({page})=>{
  for(const url of ['/resume-studio','/resume-studio/11111111-1111-4111-8111-111111111111',
-  '/resume-studio/11111111-1111-4111-8111-111111111111/print']){
+  '/resume-studio/11111111-1111-4111-8111-111111111111/print',
+  '/resume-studio/tailor','/resume-studio/tailor/11111111-1111-4111-8111-111111111111']){
   await page.goto(url);
   await expect(page).toHaveURL(/\/login(?:\?|$)/);
  }
@@ -100,6 +126,22 @@ test('synthetic Resume Studio editor supports fact selection and template switch
  const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth+2);
  expect(overflow).toBe(false);
 });
+test('DOCX pre-export review can be cancelled or explicitly accepted in the synthetic editor',async({page})=>{
+ await page.goto('/resume-fixture/editor');
+ page.once('dialog',async dialog=>{
+  expect(dialog.message()).toContain('no visible career entries');
+  await dialog.dismiss();
+ });
+ await page.getByRole('button',{name:'Download DOCX'}).click();
+ await expect(page.getByText('Export cancelled. Your document was not changed.')).toBeVisible();
+ page.once('dialog',async dialog=>{await dialog.accept();});
+ const [download]=await Promise.all([
+  page.waitForEvent('download'),
+  page.getByRole('button',{name:'Download DOCX'}).click()
+ ]);
+ expect(download.suggestedFilename()).toBe('Example_Applicant.docx');
+});
+
 test('optional photo can be added and removed privately in the synthetic editor',async({page})=>{
  await page.goto('/resume-fixture/editor');
  const photo=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLttAAAAABJRU5ErkJggg==','base64');
@@ -115,4 +157,21 @@ test('optional photo can be added and removed privately in the synthetic editor'
  }
  await page.getByRole('button',{name:'Remove photo'}).click();
  await expect(page.getByRole('img',{name:'Resume portrait'})).toHaveCount(0);
+});
+
+test('unsaved CV changes warn before internal navigation and do not store a browser draft',async({page})=>{
+ await page.goto('/resume-fixture/editor');
+ const summary=page.getByPlaceholder('Brief factual overview of your experience, strengths and target work.');
+ await summary.fill('Unique unsaved synthetic profile.');
+ page.once('dialog',async dialog=>{
+  expect(dialog.message()).toContain('not fully saved');
+  await dialog.dismiss();
+ });
+ await page.getByRole('link',{name:'Resume library'}).click();
+ await expect(page).toHaveURL(/\/resume-fixture\/editor$/);
+ await expect(summary).toHaveValue('Unique unsaved synthetic profile.');
+ await page.getByRole('button',{name:'Save now'}).click();
+ await expect(page.locator('.resume-editor-top [role="status"]')).toContainText('All changes saved');
+ await page.getByRole('link',{name:'Resume library'}).click();
+ await expect(page).toHaveURL(/\/login(?:\?|$)/);
 });
