@@ -124,3 +124,16 @@ GitHub-only release follow-up:
 - This is synthetic/code-level validation only. It cannot certify pixel-identical Word/Google Docs/LibreOffice page layout or real signed-in session workflows; both remain independently listed acceptance gates.
 
 No production migration, deployment or merge has been performed.
+
+
+## Unsaved edits and navigation protection — 23 October 2026
+
+Both Resume Studio and the Step 4 job-tailoring workspace now have a shared client-side unsaved-work guard:
+
+- **Reloading, closing the tab or navigating via a full-page load** while there are unsaved edits, an active save, or a revision conflict invokes the browser's native leave-page warning where the browser supports it.
+- **Next.js internal navigation links** are intercepted before client-side transitions discard the component's in-memory edits. A user can cancel and continue editing, or explicitly confirm abandoning the unsaved state.
+- Saved documents navigate normally. Download links, modifier-clicks, new tabs and same-page anchor fragments do not interrupt the active editor.
+- The guard retains no CV text outside the component state. It does **not** write raw professional information to localStorage, sessionStorage, IndexedDB or third-party services, and does not implement silent offline persistence.
+- Synthetic desktop/mobile Playwright scenarios cover "cancel leave" and "save then leave" for the resume and job-brief editors. The protected real-account staging suite remains pending separately authorised execution.
+
+The safeguard prevents accidental page exits but **does not guarantee crash recovery** after a hard browser/process failure, power loss, or cancelled/unavailable network request. The release workflow still requires authenticated staging verification of actual persistence.
