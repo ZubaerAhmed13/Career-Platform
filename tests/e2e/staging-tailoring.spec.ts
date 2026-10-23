@@ -57,6 +57,9 @@ test.describe('Step 4 protected signed-in staging acceptance',()=>{
    await page.getByLabel('Resume name').fill(sourceName);
    await page.getByRole('button',{name:'Create resume'}).click();
    await expect(page.getByRole('heading',{name:sourceName,exact:true})).toBeVisible({timeout:20000});
+   // Avoid relying on either staging account's profile completeness.
+   await page.getByLabel('Full name').fill('Synthetic Stage Candidate');
+   await page.getByLabel('Email',{exact:true}).fill('staging-candidate@example.invalid');
    await page.getByPlaceholder('Brief factual overview of your experience, strengths and target work.').fill(baseline);
    await page.getByRole('button',{name:'+ Manual entry'}).click();
    await page.getByLabel('Title / degree / skill').fill('Synthetic operations analyst');
