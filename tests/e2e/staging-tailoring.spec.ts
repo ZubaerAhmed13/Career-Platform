@@ -149,6 +149,7 @@ test.describe('Step 4 protected signed-in staging acceptance',()=>{
    await cleanupResume(page,targetName);
    await cleanupResume(page,sourceName);
   }
+ });
 
  test('two saved job brief tabs protect the first edit from a stale overwrite',async({page},testInfo)=>{
   test.skip(testInfo.project.name!=='desktop-chromium','Desktop-only two-tab mutation test.');
@@ -168,7 +169,7 @@ test.describe('Step 4 protected signed-in staging acceptance',()=>{
    await expect(other.getByRole('heading',{name:marker,exact:true})).toBeVisible();
    await page.getByRole('textbox',{name:'Private notes'}).fill('First owner-tab edit');
    await page.getByRole('button',{name:'Save now'}).click();
-   await expect(page.getByText('Saved',{exact:true}).first()).toBeVisible({timeout:20000});
+   await expect(page.locator('.resume-editor-top .subtle').last()).toHaveText(/· Saved\s*$/,{timeout:20000});
    await other.getByRole('textbox',{name:'Private notes'}).fill('Stale owner-tab edit');
    await other.getByRole('button',{name:'Save now'}).click();
    await expect(other.getByText('Another tab changed this job brief.')).toBeVisible({timeout:20000});
@@ -178,6 +179,5 @@ test.describe('Step 4 protected signed-in staging acceptance',()=>{
    if(other)await other.close();
    await cleanupJob(page,marker);
   }
- });
  });
 });
