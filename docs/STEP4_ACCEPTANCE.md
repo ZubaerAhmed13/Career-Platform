@@ -93,7 +93,7 @@ The added \`tests/e2e/staging-tailoring.spec.ts\` is an **opt-in authenticated b
 - A newly created synthetic source resume, editable content and an immutable saved version
 - Editing the source after versioning, then selecting the older version while creating a private job-specific independent CV
 - A job description saved for the first owner and a versioned tailored resume linked to it atomically
-- Resume editing, document persistence on reload, and a downloadable editable DOCX
+- Resume editing, document persistence on reload, a downloadable editable DOCX and text extraction from the authenticated PDF print route
 - Original source content unaffected by changes to the independent targeted CV, followed by an actual saved-version restore and page reload
 - Two-tab optimistic-revision conflicts: one owner's first edit persists, and an outdated tab cannot overwrite it
 - Second-account isolation at the job listing, CV listing and full-account JSON export layers
