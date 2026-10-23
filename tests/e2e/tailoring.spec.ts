@@ -73,3 +73,20 @@ test('Step 4 remains navigable at 320px with no page-level horizontal overflow',
  await page.getByRole('button',{name:'All',exact:true}).focus();
  await expect(page.getByRole('button',{name:'All',exact:true})).toBeFocused();
 });
+
+test('unsaved job text warns before in-app navigation and saved text navigates normally',async({page})=>{
+ await page.goto('/tailoring-fixture');
+ const notes=page.getByRole('textbox',{name:'Private notes'});
+ await notes.fill('Locally edited job notes that have not been saved.');
+ page.once('dialog',async dialog=>{
+  expect(dialog.message()).toContain('not fully saved');
+  await dialog.dismiss();
+ });
+ await page.getByRole('link',{name:'All job briefs'}).click();
+ await expect(page).toHaveURL(/\/tailoring-fixture$/);
+ await expect(notes).toHaveValue('Locally edited job notes that have not been saved.');
+ await page.getByRole('button',{name:'Save now'}).click();
+ await expect(page.getByText('Saved (synthetic fixture)')).toBeVisible();
+ await page.getByRole('link',{name:'All job briefs'}).click();
+ await expect(page).toHaveURL(/\/login(?:\?|$)/);
+});
