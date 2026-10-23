@@ -158,3 +158,20 @@ test('optional photo can be added and removed privately in the synthetic editor'
  await page.getByRole('button',{name:'Remove photo'}).click();
  await expect(page.getByRole('img',{name:'Resume portrait'})).toHaveCount(0);
 });
+
+test('unsaved CV changes warn before internal navigation and do not store a browser draft',async({page})=>{
+ await page.goto('/resume-fixture/editor');
+ const summary=page.getByPlaceholder('Brief factual overview of your experience, strengths and target work.');
+ await summary.fill('Unique unsaved synthetic profile.');
+ page.once('dialog',async dialog=>{
+  expect(dialog.message()).toContain('not fully saved');
+  await dialog.dismiss();
+ });
+ await page.getByRole('link',{name:'Resume library'}).click();
+ await expect(page).toHaveURL(/\/resume-fixture\/editor$/);
+ await expect(summary).toHaveValue('Unique unsaved synthetic profile.');
+ await page.getByRole('button',{name:'Save now'}).click();
+ await expect(page.locator('.resume-editor-top [role="status"]')).toContainText('All changes saved');
+ await page.getByRole('link',{name:'Resume library'}).click();
+ await expect(page).toHaveURL(/\/login(?:\?|$)/);
+});
