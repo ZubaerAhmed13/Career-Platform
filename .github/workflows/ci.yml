@@ -118,5 +118,5 @@ jobs:
       # Parse opt-in suites in ordinary CI without executing any staging tests,
       # starting a credentialed web server, or touching a real Supabase account.
       - name: Collect protected staging tests without running them
-        run: npx playwright test tests/e2e/staging-career-vault.spec.ts tests/e2e/staging-privacy-erasure.spec.ts --list
+        run: npx playwright test tests/e2e/staging-career-vault.spec.ts tests/e2e/staging-privacy-erasure.spec.ts tests/e2e/staging-tailoring.spec.ts --list
       - run: npm run test:e2e
