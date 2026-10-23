@@ -53,6 +53,39 @@ describe('Local resume pre-export review',()=>{
   expect(reviewResumeBeforeExport(doc).warnings).toContain(
    'Check percentage achievements against original evidence before using them.');
  });
+ it('flags an unrelated achievement even when its percentage matches the evidence',()=>{
+  const doc=sample();
+  const entry=doc.sections[0].entries[0];
+  entry.source={
+   recordId:crypto.randomUUID(),revision:1,kind:'experience',
+   capturedAt:'2026-10-22T12:00:00.000Z',
+   title:'Analyst',organization:'Example Employer',
+   description:'Reduced processing errors by 35% in a monthly audit.'
+  };
+  entry.bullets[0].text='Increased revenue by 35%.';
+  expect(reviewResumeBeforeExport(doc).warnings).toContain(
+   'Check percentage achievements against original evidence before using them.');
+  entry.bullets[0].text='Reduced processing errors by 35%.';
+  expect(reviewResumeBeforeExport(doc).warnings).not.toContain(
+   'Check percentage achievements against original evidence before using them.');
+  entry.bullets[0].text='Reduced processing errors by 35 %.'; // visual formatting only
+  expect(reviewResumeBeforeExport(doc).warnings).not.toContain(
+   'Check percentage achievements against original evidence before using them.');
+  entry.bullets[0].text='Reduced processing errors by 35.0%.';
+  expect(reviewResumeBeforeExport(doc).warnings).toContain(
+   'Check percentage achievements against original evidence before using them.');
+ });
+ it('ignores hidden entries and hidden bullet claims in the export preflight',()=>{
+  const doc=sample();
+  doc.sections[0].entries[0].bullets[0].text='Added a speculative 99% saving.';
+  doc.sections[0].entries[0].bullets[0].visible=false;
+  expect(reviewResumeBeforeExport(doc).warnings).not.toContain(
+   'Check percentage achievements against original evidence before using them.');
+  doc.sections[0].entries[0].bullets[0].visible=true;
+  doc.sections[0].entries[0].visible=false;
+  expect(reviewResumeBeforeExport(doc).warnings).not.toContain(
+   'Check percentage achievements against original evidence before using them.');
+ });
  it('blocks invalid URLs, duplicate IDs and impossible dates before PDF/DOCX/text',()=>{
   const doc=sample();
   doc.contact.website='javascript:alert(1)';
