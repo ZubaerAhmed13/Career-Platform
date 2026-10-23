@@ -114,6 +114,13 @@ test.describe('Step 4 protected signed-in staging acceptance',()=>{
    const sourceRow=page.locator('article.resume-library-card').filter({has:page.getByRole('heading',{name:sourceName,exact:true})});
    await sourceRow.getByRole('link',{name:'Edit'}).click();
    await expect(page.getByPlaceholder('Brief factual overview of your experience, strengths and target work.')).toHaveValue(latest);
+   // A stored version restores an earlier draft, without rewriting the
+   // independent job-targeted copy or the immutable version itself.
+   page.once('dialog',dialog=>dialog.accept());
+   await page.getByRole('button',{name:'Restore',exact:true}).first().click();
+   await expect(page.getByPlaceholder('Brief factual overview of your experience, strengths and target work.')).toHaveValue(baseline,{timeout:20000});
+   await page.reload();
+   await expect(page.getByPlaceholder('Brief factual overview of your experience, strengths and target work.')).toHaveValue(baseline);
    const account=await page.request.get('/api/account/export');
    expect(account.ok()).toBe(true);
    expect(JSON.stringify(await account.json())).toContain(jobTitle);
@@ -142,5 +149,35 @@ test.describe('Step 4 protected signed-in staging acceptance',()=>{
    await cleanupResume(page,targetName);
    await cleanupResume(page,sourceName);
   }
+
+ test('two saved job brief tabs protect the first edit from a stale overwrite',async({page},testInfo)=>{
+  test.skip(testInfo.project.name!=='desktop-chromium','Desktop-only two-tab mutation test.');
+  const marker='ST4 Conflict '+randomUUID().slice(0,12);
+  let other:Page|undefined;
+  await signIn(page,'a');
+  try{
+   await page.goto('/resume-studio/tailor');
+   await page.getByLabel('Job title *').fill(marker);
+   await page.getByLabel('Paste the complete job description *').fill(
+    'Required: accurate Microsoft Excel reporting, documentation and verified teamwork experience.'
+   );
+   await page.getByRole('button',{name:'Save job and review requirements'}).click();
+   await expect(page.getByRole('heading',{name:marker,exact:true})).toBeVisible({timeout:20000});
+   other=await page.context().newPage();
+   await other.goto(page.url());
+   await expect(other.getByRole('heading',{name:marker,exact:true})).toBeVisible();
+   await page.getByRole('textbox',{name:'Private notes'}).fill('First owner-tab edit');
+   await page.getByRole('button',{name:'Save now'}).click();
+   await expect(page.getByText('Saved',{exact:true}).first()).toBeVisible({timeout:20000});
+   await other.getByRole('textbox',{name:'Private notes'}).fill('Stale owner-tab edit');
+   await other.getByRole('button',{name:'Save now'}).click();
+   await expect(other.getByText('Another tab changed this job brief.')).toBeVisible({timeout:20000});
+   await other.reload();
+   await expect(other.getByRole('textbox',{name:'Private notes'})).toHaveValue('First owner-tab edit');
+  }finally{
+   if(other)await other.close();
+   await cleanupJob(page,marker);
+  }
+ });
  });
 });
