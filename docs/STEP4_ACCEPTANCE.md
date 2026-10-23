@@ -111,3 +111,16 @@ The suite is intentionally not designed to clean or modify unrelated data. Befor
 4. Only after the owner separately approves the actual deployment/migration plan: take a backup, verify real migration history, apply the new SQL to the designated backend, and conduct non-destructive acceptance. Merge or deploy only with explicit approval.
 
 **Status:** GitHub-only draft PR. No actual staging execution, live database mutation, GitHub merge or hosting activation.
+
+
+## Export integrity and direct PDF review — 23 October 2026
+
+GitHub-only release follow-up:
+
+- DOCX output now sanitises XML 1.0-forbidden control characters and invalid isolated UTF-16 surrogates, while preserving author-entered line breaks and tabs as **editable Word elements** (`w:br`, `w:tab`). Validation uses an independent `mammoth` parser and the existing structural DOCX validator.
+- Percentage-achievement preflight no longer accepts an unrelated claim merely because the original evidence contains the same numeric percentage. A changed statement or paraphrase receives an **overridable manual verification warning**, not a fabricated finding or automatic rejection. Literal wording from the recorded source, including trivial percentage spacing, is accepted.
+- The authenticated **direct print route** (including links from the resume library) now applies the same `reviewResumeBeforeExport` checks as the editor. Invalid content disables printing; review warnings are visible and require explicit confirmation before opening the print dialog.
+- A development-only synthetic print fixture, `/resume-fixture/print`, verifies warning review, cancellation, confirmation, and blocked print behaviour without Auth, live data, network model calls or Supabase writes. The fixture is unavailable in production builds.
+- This is synthetic/code-level validation only. It cannot certify pixel-identical Word/Google Docs/LibreOffice page layout or real signed-in session workflows; both remain independently listed acceptance gates.
+
+No production migration, deployment or merge has been performed.
