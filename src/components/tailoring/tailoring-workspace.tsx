@@ -10,6 +10,7 @@ import {qualityWarnings,type ResumeRow} from '@/lib/resume/schema';
 import {resumePlainText} from '@/lib/resume/exports';
 import {contentSuggestions,sourceChangeWarnings,wordingPrompts} from '@/lib/tailoring/recommendations';
 import {inspectKeywordCoverage} from '@/lib/tailoring/keywords';
+import {useUnsavedNavigationGuard} from '@/lib/resume/use-unsaved-navigation-guard';
 import type {CareerRecord} from '@/lib/career/schema';
 
 export function TailoringWorkspace({session,resumes,vault,demoMode=false}:{
@@ -29,6 +30,8 @@ export function TailoringWorkspace({session,resumes,vault,demoMode=false}:{
  const [filter,setFilter]=useState<'all'|'approved'|'needs'>('all');
  const revision=useRef(session.revision),saving=useRef(false),blocked=useRef(false);
  const saved=useRef(JSON.stringify(brief)),current=useRef(brief);
+ useUnsavedNavigationGuard(()=>saving.current||blocked.current||
+  JSON.stringify(current.current)!==saved.current);
  const savedSourceDescription=useRef(session.original_job_description);
  const [tick,setTick]=useState(0);
  useEffect(()=>{
